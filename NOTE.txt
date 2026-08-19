@@ -1,0 +1,70 @@
+CẨM NANG SỬ DỤNG GIT & ĐẶT TÊN COMMIT (CHO NHÓM)
+1. QUY TRÌNH CODE HÀNG NGÀY (THẦN CHÚ 5 BƯỚC)
+    Luôn làm theo thứ tự này mỗi khi mở máy và tắt máy để không bao giờ bị mất code.
+
+    Kéo code mới nhất về máy (Đầu giờ làm việc)
+        git checkout dev       # Chuyển về nhánh gốc
+        git pull origin dev    # Lấy code mới nhất từ mạng về
+
+
+    Tạo nhánh riêng để làm tính năng mới
+        git checkout -b feature/[tên-tính-năng]
+        # Ví dụ: git checkout -b feature/lam-bai-test
+
+
+    Lưu code (Cuối ngày hoặc xong 1 cụm chức năng)
+        git add .
+        git commit -m "[Tiền_tố]: [Mô tả ngắn gọn]"
+        # Xem phần quy ước đặt tên ở dưới
+    
+    Đẩy code lên Github
+        git push origin feature/[tên-tính-năng]
+
+    Tạo Pull Request (Lên web Github thao tác)
+        Mở web Github 
+        →
+        → Bấm nút xanh Compare & pull request.
+        Chọn gộp nhánh feature/... vào nhánh dev.
+        Nhờ đồng đội review và bấm Merge. Xong!
+
+2. QUY ƯỚC ĐẶT TÊN COMMIT (CONVENTIONAL COMMITS)
+    Tuyệt đối không đặt tên kiểu "đã sửa", "update code", "abc". Hãy dùng các tiền tố (Prefix) sau để báo cáo đồ án nhìn chuyên nghiệp:
+
+    feat: (Feature) 
+        → Dùng khi thêm một tính năng mới hoàn toàn.
+        Ví dụ: feat: them chuc nang dang nhap bang Google
+
+    fix: (Fix bug) 
+        → Dùng khi sửa một lỗi nào đó.
+        Ví dụ: fix: sua loi crash app khi quen mat khau
+
+    ui: hoặc style: 
+        → Dùng khi chỉ chỉnh sửa giao diện, màu sắc, căn lề (không đụng tới logic).
+        Ví dụ: ui: doi mau nut submit thanh mau xanh
+
+    refactor: 
+        → Dùng khi sửa lại code cho gọn gàng, tối ưu hơn nhưng không làm thay đổi tính năng bên ngoài.
+        Ví dụ: refactor: viet gon lai ham tinh diem trung binh
+
+    docs: (Documentation) 
+        → Dùng khi viết thêm tài liệu, comment, cập nhật file README.
+        Ví dụ: docs: cap nhat huong dan chay backend
+
+    chore: 
+        → Dùng khi làm các việc lặt vặt như cài thêm thư viện, cấu hình file.
+        Ví dụ: chore: cai dat thu vien sequelize va dotenv
+
+3. CÁC LỆNH "CỨU HỘ" KHI LỠ TAY
+    Lỡ sửa code nhưng muốn vứt đi, quay lại trạng thái cũ ban đầu:
+        git checkout .
+
+    Muốn xem mình đang ở nhánh nào, và có file nào bị thay đổi chưa lưu:
+        git status
+
+    Lỡ tay git add . một file rác, muốn bỏ nó ra khỏi hàng chờ:
+        git reset HEAD <tên_file>
+    
+    Nếu lười gõ lệnh, hãy dùng tính năng Source Control có sẵn ở menu bên trái của VS Code:\
+        Nút + thay cho git add .
+        Gõ chữ vào ô text và nhấn Commit thay cho git commit
+        Nút Sync Changes thay cho git push & git pull.
