@@ -83,12 +83,12 @@ Backend sử dụng **Prisma** làm ORM kết nối với MySQL. Để đồng b
 
 1. **Sinh Prisma Client (Bắt buộc cho từng máy/hệ điều hành)**:
    ```bash
-   npx prisma generate
+   npx prisma generate --config src/config/prisma.config.ts
    ```
 
 2. **Đồng bộ Schema vào Database (Development)**:
    ```bash
-   npx prisma db push
+   npx prisma db push --config src/config/prisma.config.ts
    ```
    *(Hoặc nếu dự án sử dụng Migration: `npx prisma migrate dev`)*
 
