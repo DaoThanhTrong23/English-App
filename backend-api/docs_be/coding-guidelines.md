@@ -6,7 +6,7 @@ Tài liệu này quy định các nguyên tắc, chuẩn mực kiến trúc và 
 
 ## 🎯 1. Nguyên Tắc Cốt Lõi: Tối Ưu Hóa & Tự Động Hóa (DRY)
 
-> 🛑 **QUY TẮC VÀNG:** Những thành phần đã được **tự động hóa ở tầng Middleware/Global Handler** thì **TUYỆT ĐỐI KHÔNG ĐƯỢC VIẾT LẠI** thủ công trong các tầng nghiệp vụ (`Controller`, `Service`, `Repository`).
+> 🛑 **QUY TẮC VÀNG:** Những thành phần đã được **tự động hóa ở tầng Middleware/Global Handler/AOP Decorators** thì **TUYỆT ĐỐI KHÔNG ĐƯỢC VIẾT LẠI** thủ công trong các tầng nghiệp vụ (`Controller`, `Service`, `Repository`).
 
 ### Các thành phần ĐÃ ĐƯỢC TỰ ĐỘNG HÓA trong dự án:
 
@@ -25,12 +25,53 @@ Tài liệu này quy định các nguyên tắc, chuẩn mực kiến trúc và 
    - **Cơ chế:** Kiểm tra JWT Access Token, giải mã và gắn thông tin user vào `req.user`.
    - **Cấm:** Không tự parse Header `Authorization` hoặc tự query DB kiểm tra role thủ công trong hàm nghiệp vụ Service.
 
-4. **Bảo mật & Giới hạn tải (Security & Rate Limiting):**
+4. **Ghi log thực thi & Đo hiệu năng (Execution Logging & Performance Audit):**
+   - **Tự động bởi:** AOP Decorator `@logExecution()` (`src/shared/decorators/log.decorator.ts`).
+   - **Cơ chế:** Tự động ghi log trước/sau khi hàm chạy (`[AOP BEFORE]`, `[AOP AFTER]`), đo thời gian thực thi (duration ms) và ghi nhận lỗi nếu xảy ra.
+   - **Cấm:** Không tự viết code bấm thời gian (`Date.now()`) hoặc `loggers.info` thủ công ở từng hàm service để đo performance.
+
+5. **Bảo mật & Giới hạn tải (Security & Rate Limiting):**
    - **Tự động bởi:** `helmet`, `cors`, `rateLimit`, `express.json({ limit: '100kb' })` cấu hình sẵn trong `app.ts`.
 
 ---
 
-## 🏗️ 2. Cấu Trúc 4 Tầng Của Một Module Nghiệp Vụ (Module Layering)
+## 🌀 2. Aspect-Oriented Programming (AOP - Lập Trình Hướng Khía Cạnh)
+
+AOP là kỹ thuật tách biệt các **Cross-Cutting Concerns** (các mối quan tâm dùng chung) ra khỏi logic nghiệp vụ chính.
+
+Trong dự án `backend-api`, AOP được chia làm **2 cấp độ**:
+
+### 🅰️ AOP Tầng HTTP Request (Express Middleware Interceptors)
+Tự động can thiệp vào luồng xử lý HTTP trước và sau khi tới Controller:
+- **Validation Aspect:** `validate(schema)` intercept và validate dữ liệu.
+- **Security & Auth Aspect:** `authenticate`, `authorize` intercept kiểm tra quyền hạn.
+- **Exception Aspect:** `errorHandler` intercept bắt mọi ngoại lệ trôi ra ngoài.
+- **HTTP Logging Aspect:** `pinoHttp` tự động log thông tin các request/response HTTP.
+
+### 🅱️ AOP Tầng Method / Service (TypeScript Decorators)
+Can thiệp trực tiếp vào các phương thức (methods) của Class ở tầng Service/Repository mà không làm ô nhiễm code nghiệp vụ:
+- **`@logExecution()`** ([log.decorator.ts](file:///Users/mac/English-App/backend-api/src/shared/decorators/log.decorator.ts)):
+
+#### Ví dụ sử dụng AOP Decorator trong Service:
+
+```typescript
+import { logExecution } from "../../shared/decorators/log.decorator.js";
+
+export class UserService {
+  // Gắn decorator @logExecution() -> Tự động log tham số đầu vào, thời gian chạy (ms) & lỗi
+  @logExecution()
+  async processComplexBusiness(userId: string, amount: number) {
+    // 🟢 CHỈ VIẾT LOGIC NGHIỆP VỤ CHÍNH TẠI ĐÂY
+    // Không cần viết loggers.info("Start function..."), không cần tính Date.now()
+    const result = await this.repository.doSomething(userId, amount);
+    return result;
+  }
+}
+```
+
+---
+
+## 🏗️ 3. Cấu Trúc 4 Tầng Của Một Module Nghiệp Vụ (Module Layering)
 
 Mỗi module nghiệp vụ nằm trong thư mục `src/module/<tên-module>/` phải tuân thủ cấu trúc 4 file chính:
 
@@ -44,7 +85,7 @@ src/module/<module-name>/
 
 ---
 
-## 📋 3. Chi Tiết Nhiệm Vụ Của Từng Tầng & Code Mẫu
+## 📋 4. Chi Tiết Nhiệm Vụ Của Từng Tầng & Code Mẫu
 
 ### 🔹 Tầng 1: `*.schema.ts` (Định nghĩa Schema)
 Chỉ khai báo cấu trúc dữ liệu đầu vào/đầu ra với **Zod**.
@@ -133,7 +174,7 @@ export const insertUser = (data: any) => {
 
 ---
 
-## 🚫 4. Danh Sách Anti-Patterns (Những Điều Cấm Làm)
+## 🚫 5. Danh Sách Anti-Patterns (Những Điều Cấm Làm)
 
 | Anti-Pattern (Cách làm sai) | Cách làm đúng (Theo tiêu chuẩn) |
 | :--- | :--- |
@@ -141,13 +182,14 @@ export const insertUser = (data: any) => {
 | Bọc `try-catch` trong mọi hàm Controller và trả về `res.status(500).json(...)` | Không bọc `try-catch` thừa. Để `errorHandler` tự động bắt lỗi và log. |
 | Tự parse JWT token trong hàm Service: `jwt.verify(req.headers.token...)` | Dùng `authenticate` middleware. Đọc thông tin từ `req.user`. |
 | Query DB kiểm tra role trong Service: `if (user.role !== 'ADMIN')...` | Dùng `authorize(['ADMIN'])` middleware ở Route. |
+| Viết mã đo thời gian thực thi `const start = Date.now()` thủ công ở từng hàm | Dùng AOP Decorator `@logExecution()` lên trên method cần theo dõi. |
 
 ---
 
-## 🛠️ 5. Quy Trình Tạo Một Feature Mới (Checklist)
+## 🛠️ 6. Quy Trình Tạo Một Feature Mới (Checklist)
 
 1. [ ] **Khai báo Schema:** Tạo Zod schema trong `*.schema.ts`.
 2. [ ] **Viết DB Query:** Tạo các hàm trong `*.repository.ts`.
-3. [ ] **Viết Business Logic:** Viết hàm trong `*.service.ts` (ném `ApiError` nếu vi phạm nghiệp vụ).
+3. [ ] **Viết Business Logic:** Viết hàm trong `*.service.ts` (ném `ApiError` nếu vi phạm nghiệp vụ). Dùng `@logExecution()` cho hàm cần đo đạc performance.
 4. [ ] **Viết Controller/Handler:** Nhận `req`, gọi service, trả `res.json()`.
 5. [ ] **Đăng ký Route:** Khai báo route trong `*.route.ts`, truyền middleware `validate(schema)`.
