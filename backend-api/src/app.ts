@@ -6,6 +6,7 @@ import cors from "cors";
 import rateLimit from "express-rate-limit";
 import { loggers } from "./utils/logger.js";
 import { errorHandler } from "./shared/http/error-handler.js";
+import Authrouter from "./module/auth/auth.route.js";
 export function createapp()  {
     const app = express();
 
@@ -24,6 +25,8 @@ export function createapp()  {
         standardHeaders: 'draft-8',
         legacyHeaders: false
     }));
+
+    app.use("/api/auth",Authrouter)
 
     app.use(errorHandler);
     return app 
