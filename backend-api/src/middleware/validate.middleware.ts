@@ -1,4 +1,4 @@
-import { NextFunction, Request } from "express";
+import { NextFunction, Request, Response } from "express";
 import { ZodSchema } from "zod";
 
 export const validate = (schema: ZodSchema) => { 
