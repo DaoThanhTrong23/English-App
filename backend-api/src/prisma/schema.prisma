@@ -1,0 +1,276 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// Định nghĩa các enum
+enum Role {
+  admin
+  user
+}
+
+enum Sender {
+  user
+  ai
+}
+
+enum QuestionType {
+  multiple_choice
+  fill_in_blank
+}
+
+enum LearningStatus {
+  new
+  learning
+  mastered
+}
+
+// Nhóm tài khoản và hoạt động của chúng
+model User {
+  id            Int       @id @default(autoincrement())
+  username      String    @unique @db.VarChar(50)
+  email         String    @unique @db.VarChar(100)
+  passwordHash  String    @map("password_hash") @db.VarChar(255)
+  role          Role      @default(user)
+  xpPoints      Int       @default(0) @map("xp_points")
+  //Bỏ last streak day vì sẽ tính từ lastlogin date thay vì lưu thông tin
+  lastLoginDate DateTime? @map("last_login_date")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  // Các mối quan hệ liên kết đến user
+  refreshtokens    RefreshToken[]
+  acctivitylogs    ActivityLog[]
+  loginLogs        LoginLog[]
+  aiChatSessions   AiChatSession[]
+  userAchievements UserAchievement[]
+  userProgress     UserProgress[]
+  userTestResults  UserTestResult[]
+
+  @@map("user")
+}
+
+model ActivityLog {
+  id          Int      @id @default(autoincrement())
+  userId      Int      @map("user_id")
+  actionType  String   @map("action_type") @db.VarChar(50)
+  description String?  @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("activity_log")
+}
+
+model LoginLog {
+  id         Int      @id @default(autoincrement())
+  userId     Int      @map("user_id")
+  ipAddress  String?  @map("ip_address") @db.VarChar(45)
+  deviceInfo String?  @map("device_info") @db.Text
+  loginTime  DateTime @default(now()) @map("login_time")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "user_id")
+  @@map("login_log")
+}
+
+model RefreshToken {
+  id         Int      @id @default(autoincrement())
+  userId     Int      @map("user_id")
+  sessionId  String   @map("session_id") //ID đại diện cho từng thiết bị sẽ sinh ngẫu nhiên mỗi khi đăng nhập và giữ nguyên qua các lần refresh
+  tokenHash  String   @unique @map("token_hash")
+  deviceInfo String?  @map("device_info") @db.Text
+  isRevoked  Boolean  @default(false)
+  expiresAt  DateTime @map("expires_at")
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@map("refresh_token")
+}
+
+// Nhóm từ vựng và bài học (lesson)
+
+model word {
+  id              Int      @id @default(autoincrement())
+  headword        String   @db.VarChar(100)
+  partOfSpeech    String?  @map("part_of_speech") @db.VarChar(50)
+  cefrLevel       String?  @map("cefr_level") @db.VarChar(10)
+  phonetic        String?  @db.VarChar(100)
+  audioUrl        String?  @map("audio_url") @db.Text
+  imageUrl        String?  @map("image_url") @db.Text
+  meaning         String?  @db.Text
+  exampleSentence String?  @map("example_sentence") @db.Text
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  lessonWords  LessonWord[]
+  userProgress UserProgress[]
+
+  @@index([headword], map: "idx_headword")
+  @@index([cefrLevel], map: "idx_cefr_level")
+  @@map("word")
+}
+
+model Lesson {
+  id           Int      @id @default(autoincrement())
+  title        String   @db.VarChar(100)
+  description  String?  @db.Text
+  cefrLevel    String?  @map("cefr_level") @db.VarChar(10)
+  thumbnailUrl String?  @map("thumbnail_url") @db.Text
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  lessonWords LessonWord[]
+
+  @@map("lesson")
+}
+
+model LessonWord {
+  lessonId Int @map("lesson_id")
+  wordId   Int @map("word_id")
+
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  word   word   @relation(fields: [wordId], references: [id], onDelete: Cascade)
+
+  @@id([lessonId, wordId])
+  @@index([wordId], map: "word_id")
+  @@map("lesson_word")
+}
+
+model UserProgress {
+  id             Int            @id @default(autoincrement())
+  userId         Int            @map("user_id")
+  wordId         Int            @map("word_id")
+  status         LearningStatus @default(new)
+  memoryLevel    Int            @default(0) @map("memory_level")
+  nextReviewDate DateTime?      @default(now()) @map("next_review_date")
+  createdAt      DateTime       @default(now()) @map("created_at")
+  updatedAt      DateTime       @default(now()) @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  word word @relation(fields: [wordId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, wordId], map: "unique_user_word")
+  @@index([wordId], map: "word_id")
+  @@map("user_propress")
+}
+
+// Nhóm bài kiểm tra 
+model Test {
+  id          Int     @id @default(autoincrement())
+  title       String  @db.VarChar(255)
+  description String? @db.Text
+  ceftLevel   String? @map("ceft_level") @db.VarChar(10)
+
+  questions        Question[]
+  userTesstResults UserTestResult[]
+
+  @@map("test")
+}
+
+model Question {
+  id           Int          @id @default(autoincrement())
+  testId       Int          @map("test_id")
+  quesionText  String       @map("question_text") @db.Text
+  questionType QuestionType @default(multiple_choice) @map("question_type")
+  points       Decimal      @default(10)
+
+  test    Test     @relation(fields: [testId], references: [id], onDelete: Cascade)
+  answers Answer[]
+
+  @@index([testId], map: "test_id")
+  @@map("question")
+}
+
+model Answer {
+  id         Int     @id @default(autoincrement())
+  questionId Int     @map("question_id")
+  answerText String  @map("answer_text") @db.Text
+  isCorrect  Boolean @default(false) @map("is_correct")
+
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([questionId], map: "question_id")
+  @@map("answer")
+}
+
+model UserTestResult {
+  id          Int      @id @default(autoincrement())
+  userId      Int      @map("user_id")
+  testId      Int      @map("test_id")
+  totalScore  Decimal  @map("total_score")
+  completedAt DateTime @default(now()) @map("completed_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  test Test @relation(fields: [testId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "user_id")
+  @@index([testId], map: "test_id")
+  @@map("user_test_result")
+}
+
+//Nhóm achievements
+model Achievement {
+  id            Int     @id @default(autoincrement())
+  title         String  @db.VarChar(100)
+  description   String? @db.Text
+  iconUrl       String? @map("icon_url") @db.Text
+  requireXp     Int     @default(0) @map("require_xp")
+  requireStreak Int     @default(0) @map("require_streak")
+
+  userAchievements UserAchievement[]
+
+  @@map("achievement")
+}
+
+model UserAchievement {
+  userId        Int         @map("user_id")
+  achievementId Int         @map("achievement_id")
+  unlockedAt    DateTime    @default(now()) @map("unlocked_at")
+  user          User        @relation(fields: [userId], references: [id])
+  achievement   Achievement @relation(fields: [achievementId], references: [id])
+
+  @@id([userId, achievementId])
+  @@index([achievementId], map: "achievement_id")
+  @@map("user_achievement")
+}
+
+//Nhóm AI chat bot
+model AiChatSession {
+  id        Int       @id @default(autoincrement())
+  userId    Int       @map("user_id")
+  title     String?   @default("New Conversation") @db.VarChar(255)
+  startedAt DateTime  @default(now()) @map("started_at")
+  endedAt   DateTime? @map("ended_at")
+
+  user     User            @relation(fields: [userId], references: [id])
+  messages AiChatMessage[]
+
+  @@index([userId], map: "user_id")
+  @@map("ai_chat_session")
+}
+
+model AiChatMessage {
+  id          Int      @id @default(autoincrement())
+  sessionId   Int      @map("session_id")
+  sender      Sender
+  messageText String   @map("message_text") @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  aiChatSession   AiChatSession? @relation(fields: [aiChatSessionId], references: [id])
+  aiChatSessionId Int?
+
+  @@index([sessionId], map: "session_id")
+  @@map("ai_chat_message")
+}
