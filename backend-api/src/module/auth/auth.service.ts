@@ -73,12 +73,8 @@ export const loginService = async (data: LoginInput, clientIp?: string) => {
 export const refreshTokenService = async (oldRefreshToken: string) => {
     let decoded;;
 
-    try {
-        decoded = verifyRefreshTokenn(oldRefreshToken);
-    } catch {
-        throw new ApiError(401, "invalid_refresh_token", "Refresh Token không hợp lệ hoặc đã hết hạn");
-    }
-
+    decoded = verifyRefreshTokenn(oldRefreshToken);
+   
     const oldRefreshTokenHash = hashSHA256(oldRefreshToken);
     const savedToken = await authRepo.findRefreshTokenByHash(oldRefreshTokenHash);
 

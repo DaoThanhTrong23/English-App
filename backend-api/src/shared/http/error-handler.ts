@@ -27,7 +27,7 @@ export const errorHandler: ErrorRequestHandler = (error, request, response, _nex
     // Lỗi hệ thống
     request.log.error(error);
     response.status(500).json({
-        error: { code: "internal_error", message: "An unexpected error occurred." },
+        error: { code: "internal_error", message: "Lỗi không xác định từ Server" },
         path: request.path,
     });
 }
