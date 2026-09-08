@@ -6,6 +6,7 @@ import cors from "cors";
 import rateLimit from "express-rate-limit";
 import { loggers } from "./utils/logger.js";
 import { errorHandler } from "./shared/http/error-handler.js";
+import bubbleGameRouter from "./module/module-bubble-game/bubble-game.route.js";
 export function createapp()  {
     const app = express();
 
@@ -24,6 +25,9 @@ export function createapp()  {
         standardHeaders: 'draft-8',
         legacyHeaders: false
     }));
+
+    // Đăng ký route game
+    app.use("/game", bubbleGameRouter);
 
     app.use(errorHandler);
     return app 
