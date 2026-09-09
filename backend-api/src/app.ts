@@ -7,7 +7,8 @@ import rateLimit from "express-rate-limit";
 import { loggers } from "./utils/logger.js";
 import { errorHandler } from "./shared/http/error-handler.js";
 import Authrouter from "./module/auth/auth.route.js";
-export function createapp() {
+import bubbleGameRouter from "./module/bubble-game/bubble-game.route.js";
+export function createapp()  {
     const app = express();
 
     app.disable("x-powered-by");
@@ -37,6 +38,8 @@ export function createapp() {
     }));
 
     app.use("/api/auth", Authrouter)
+    // Đăng ký route game
+    app.use("/game", bubbleGameRouter);
 
     app.use(errorHandler);
     return app

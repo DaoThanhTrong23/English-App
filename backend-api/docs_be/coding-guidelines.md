@@ -50,17 +50,22 @@ Tự động can thiệp vào luồng xử lý HTTP trước và sau khi tới C
 
 ### 🅱️ AOP Tầng Method / Service (TypeScript Decorators)
 Can thiệp trực tiếp vào các phương thức (methods) của Class ở tầng Service/Repository mà không làm ô nhiễm code nghiệp vụ:
-- **`@logExecution()`** ([log.decorator.ts](file:///Users/mac/English-App/backend-api/src/shared/decorators/log.decorator.ts)):
+- **`@logExecution()`** ([log.decorator.ts](file:///d:/English-App/backend-api/src/shared/decorators/log.decorator.ts)): Tự động đo thời gian chạy (ms), ghi log input (đã ẩn mật khẩu), log kết quả và log lỗi.
+- **`@recordActivity()`** ([activity.decorator.ts](file:///d:/English-App/backend-api/src/shared/decorators/activity.decorator.ts)): Tự động ghi activity log vào database MySQL ở background khi người dùng thao tác.
+
+> 📖 Xem hướng dẫn chi tiết toàn diện tại: [aop-guide.md](file:///d:/English-App/backend-api/docs_be/aop-guide.md)
 
 #### Ví dụ sử dụng AOP Decorator trong Service:
 
 ```typescript
 import { logExecution } from "../../shared/decorators/log.decorator.js";
+import { recordActivity } from "../../shared/decorators/activity.decorator.js";
 
 export class UserService {
-  // Gắn decorator @logExecution() -> Tự động log tham số đầu vào, thời gian chạy (ms) & lỗi
+  // Gắn decorator @logExecution() và @recordActivity()
   @logExecution()
-  async processComplexBusiness(userId: string, amount: number) {
+  @recordActivity("USER_DO_SOMETHING", (result, userId) => `Người dùng ${userId} thực hiện thành công`)
+  async processComplexBusiness(userId: number, amount: number) {
     // 🟢 CHỈ VIẾT LOGIC NGHIỆP VỤ CHÍNH TẠI ĐÂY
     // Không cần viết loggers.info("Start function..."), không cần tính Date.now()
     const result = await this.repository.doSomething(userId, amount);

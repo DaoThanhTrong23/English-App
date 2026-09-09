@@ -36,6 +36,8 @@ export const errorHandler: ErrorRequestHandler = (error, request, response, _nex
         return;
     }
 
+
+
     // Lỗi hệ thống
     request.log.error(error);
     response.status(500).json({
