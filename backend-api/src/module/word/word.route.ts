@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
-import { wordService } from './word.service';
-import { getWordsQuerySchema } from './word.schema';
+import { wordService } from './word.service.js';
+import { getWordsQuerySchema } from './word.schema.js';
 
 const router = Router();
 

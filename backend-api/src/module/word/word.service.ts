@@ -1,4 +1,4 @@
-import { wordRepository } from './word.repository';
+import { wordRepository } from './word.repository.js';
 
 export const wordService = {
   async fetchWords(page: number, limit: number, cefrLevel?: string) {

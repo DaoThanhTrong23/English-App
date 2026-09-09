@@ -1,12 +1,13 @@
 import { NextFunction, Request, Response, Router } from "express";
 import { validate } from "../../middleware/validate.middleware.js";
 import { LoginSchema, LogoutSchema, RefreshTokenSChema, RegisterSchema } from "./auth.schema.js";
-import * as authservice from './auth.service.js';
+
 import { asyncHandler } from "../../shared/http/async-handler.js";
+import { authService } from "./auth.service.js";
 const Authrouter = Router();
 
 Authrouter.post("/register", validate(RegisterSchema), asyncHandler(async (req, res) => {
-    const result = await authservice.RegisterService(req.body);
+    const result = await authService.register(req.body);
     res.status(201).json({
         success: true,
         messages: "Đăng ký tài khoản thành công",
@@ -16,7 +17,7 @@ Authrouter.post("/register", validate(RegisterSchema), asyncHandler(async (req, 
 
 Authrouter.post("/login", validate(LoginSchema), asyncHandler(async (req, res) => {
     const clientIp = req.ip;
-    const result = await authservice.loginService(req.body,clientIp);
+    const result = await authService.login(req.body,clientIp);
     res.status(200).json({
         success: true,
         message: "Đăng nhập thành công",
@@ -26,7 +27,7 @@ Authrouter.post("/login", validate(LoginSchema), asyncHandler(async (req, res) =
 
 
 Authrouter.post("/refresh", validate(RefreshTokenSChema), asyncHandler(async (req, res) => {
-    const result = await authservice.refreshTokenService(req.body.refreshToken);
+    const result = await authService.refreshToken(req.body.refreshToken);
 
     res.status(200).json({
         success: true,
@@ -37,7 +38,7 @@ Authrouter.post("/refresh", validate(RefreshTokenSChema), asyncHandler(async (re
 
 
 Authrouter.post("/logout",validate(LogoutSchema), asyncHandler(async (req,res) => {
-    const result = await authservice.LogoutService(req.body.refreshToken);
+    const result = await authService.logout(req.body.refreshToken);
 
     res.status(200).json({
         success: true,
