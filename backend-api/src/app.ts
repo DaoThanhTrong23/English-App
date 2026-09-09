@@ -8,6 +8,7 @@ import { loggers } from "./utils/logger.js";
 import { errorHandler } from "./shared/http/error-handler.js";
 import Authrouter from "./module/auth/auth.route.js";
 import bubbleGameRouter from "./module/bubble-game/bubble-game.route.js";
+import memoryCardRouter from "./module/memory-card/memory-card.route.js";
 export function createapp()  {
     const app = express();
 
@@ -39,7 +40,8 @@ export function createapp()  {
 
     app.use("/api/auth", Authrouter)
     // Đăng ký route game
-    app.use("/game", bubbleGameRouter);
+    app.use("/game/bubble-game", bubbleGameRouter);
+    app.use("/game/memory-card", memoryCardRouter);
 
     app.use(errorHandler);
     return app
