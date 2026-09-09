@@ -5,7 +5,7 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
   output   = "../generated/prisma"
 }
 
@@ -62,12 +62,12 @@ model User {
 
 model ActivityLog {
   id          Int      @id @default(autoincrement())
-  userId      Int      @map("user_id")
+  userId      Int?     @map("user_id")
   actionType  String   @map("action_type") @db.VarChar(50)
   description String?  @db.Text
   createdAt   DateTime @default(now()) @map("created_at")
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@map("activity_log")
 }
