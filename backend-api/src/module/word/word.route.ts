@@ -1,24 +1,39 @@
 import { Router, Request, Response } from 'express';
 import { wordService } from './word.service.js';
-import { getWordsQuerySchema } from './word.schema.js';
+import { getWordsQuerySchema, createWordSchema, updateWordSchema } from './word.schema.js';
+import { asyncHandler } from "../../shared/http/async-handler.js";
 
 const router = Router();
 
-// API: GET /api/words
-router.get('/', async (req: Request, res: Response) => {
-  // 1. Kiểm tra đầu vào (Nếu lỗi, Express 5 sẽ tự bắt và báo lỗi 400/500)
+// LẤY DS ,TÌM KIẾM
+router.get('/', asyncHandler(async (req: Request, res: Response) => {
   const query = getWordsQuerySchema.parse(req.query);
-  const page = parseInt(query.page);
-  const limit = parseInt(query.limit);
-  
-  // 2. Gọi service lấy data
-  const result = await wordService.fetchWords(page, limit, query.cefrLevel);
-  
-  // 3. Trả về thành công
-  res.status(200).json({
-    success: true,
-    ...result
-  });
-});
+  const result = await wordService.fetchWords(parseInt(query.page), parseInt(query.limit), query.cefrLevel, query.search);
+  res.status(200).json({ success: true, ...result });
+}));
 
+// THÊM MỚI
+router.post('/', asyncHandler(async (req, res) => {
+  const data = createWordSchema.parse(req.body);
+  const word = await wordService.createWord(data);
+  res.status(201).json({ message: 'Thêm từ vựng thành công', data: word });
+}));
+
+// SỬA
+router.put('/:id', asyncHandler(async (req, res) => {
+  const data = updateWordSchema.parse(req.body);
+  
+  const id = req.params.id as string; 
+  
+  const word = await wordService.updateWord(id, data);
+  res.status(200).json({ message: 'Sửa từ vựng thành công', data: word });
+}));
+
+// XÓA
+router.delete('/:id', asyncHandler(async (req, res) => {
+  const id = req.params.id as string; 
+  
+  await wordService.deleteWord(id);
+  res.status(200).json({ message: 'Xóa từ vựng thành công' });
+}));
 export const wordRouter = router;
