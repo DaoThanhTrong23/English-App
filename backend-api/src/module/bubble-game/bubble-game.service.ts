@@ -1,176 +1,106 @@
-import crypto from "crypto";
-import { BubbleGameRepository, InMemorySession } from "./bubble-game.repository.js";
+import { BubbleGameRepository } from "./bubble-game.repository.js";
 import { StartGameQuery, MatchPairBody, FinishGameBody } from "./bubble-game.schema.js";
 import { ApiError } from "../../shared/http/api-error.js";
 import { logExecution } from "../../shared/decorators/log.decorator.js";
 import { recordActivity } from "../../shared/decorators/activity.decorator.js";
 
-
-
 export class BubbleGameService {
-    private repository: BubbleGameRepository;
+  private repository: BubbleGameRepository;
 
-    constructor() {
-        this.repository = new BubbleGameRepository();
+  constructor() {
+    this.repository = new BubbleGameRepository();
+  }
+
+  // Thuật toán trộn ngẫu nhiên bong bóng (Fisher-Yates)
+  private shuffle<T>(array: T[]): T[] {
+    const list = [...array];
+    for (let i = list.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [list[i], list[j]] = [list[j], list[i]];
+    }
+    return list;
+  }
+
+  // 1. Khởi tạo Game: Chỉ lấy từ vựng và xáo trộn bong bóng gửi FE
+  @logExecution()
+  @recordActivity("USER_START_GAME", (_result, userId) => `Người dùng ${userId} bắt đầu bubble game mới, nhận danh sách từ vựng`)
+  async startGame(userId: number, query: StartGameQuery) {
+    const words = await this.repository.getWordsForGame(query.limit, query.lessonId);
+
+    if (!words || words.length < 4) {
+      throw new ApiError(400, "not_enough_words", "Không đủ từ vựng để tạo bàn chơi (cần tối thiểu 4 từ).");
     }
 
-    // Thuật toán trộn ngẫu nhiên bong bóng (Fisher-Yates)
-    private shuffle<T>(array: T[]): T[] {
-        const list = [...array];
-        for (let i = list.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [list[i], list[j]] = [list[j], list[i]];
-        }
-        return list;
-    }
+    // Xáo trộn danh sách bong bóng từ vựng
+    const wordBubbles = this.shuffle(
+      words.map((w) => ({
+        id: w.id,
+        word: w.headword,
+        partOfSpeech: w.partOfSpeech,
+        phonetic: w.phonetic
+      }))
+    );
 
-    @logExecution()
-    @recordActivity("USER_START_GAME", (result, userId) => `Người dùng ${userId} bắt đầu bubble game mới, gửi danh sách từ đến người dùng`)
-    // 1. Khởi tạo Game
-    // Nên dừng lại ở việc là Lấy lên danh sách từ đừng làm session này kia ở BE vì FE sẽ giải quyết những việc đó 
-    async startGame(userId: number, query: StartGameQuery) {
-        const words = await this.repository.getWordsForGame(query.limit, query.lessonId);
+    // Xáo trộn danh sách bong bóng ý nghĩa
+    const meaningBubbles = this.shuffle(
+      words.map((w) => ({
+        id: w.id,
+        meaning: w.meaning,
+        imageUrl: w.imageUrl,
+        audioUrl: w.audioUrl
+      }))
+    );
 
-        if (!words || words.length < 4) {
-            throw new ApiError(400, "not_enough_words", "Không đủ từ vựng để tạo bàn chơi (cần tối thiểu 4 từ).");
-        }
+    return {
+      totalPairs: words.length,
+      wordBubbles,
+      meaningBubbles
+    };
+  }
 
-        const sessionId = crypto.randomUUID();
-        const wordIds = words.map((w) => w.id);
+  // 2. Lưu tiến trình tạm thời (FE đã tự kiểm tra đúng/sai)
+  @logExecution()
+  @recordActivity("USER_SAVE_PROCESS_GAME", (_result, userId) => `Người dùng ID ${userId} lưu tiến trình tạm của game`)
+  async matchPair(userId: number, data: MatchPairBody) {
+    await this.repository.saveTemporaryProgress({
+      userId,
+      currentScore: data.currentScore,
+      matchedPairs: data.matchedPairs,
+      totalPairs: data.totalPairs,
+      lessonId: data.lessonId,
+      updatedAt: new Date()
+    });
 
-        // Lưu phiên chơi tạm vào RAM
-        const sessionData: InMemorySession = {
-            sessionId,
-            userId,
-            lessonId: query.lessonId ?? null,
-            totalPairs: words.length,
-            matchedPairIds: [],
-            score: 0,
-            wordIds,
-            startTime: Date.now(),
-            expiresAt: Date.now() + 60 * 60 * 1000 // 1 giờ
-        };
-        await this.repository.saveSession(sessionData);
+    return {
+      message: "Lưu tiến trình tạm thời thành công",
+      currentScore: data.currentScore,
+      matchedPairs: data.matchedPairs,
+      totalPairs: data.totalPairs
+    };
+  }
 
-        // Xáo trộn 2 danh sách bong bóng riêng biệt cho giao diện
-        const wordBubbles = this.shuffle(
-            words.map((w) => ({
-                id: w.id,
-                word: w.headword,
-                partOfSpeech: w.partOfSpeech,
-                phonetic: w.phonetic
-            }))
-        );
+  // 3. Kết thúc Game: Nhận thông tin kết quả từ FE và lưu chốt điểm
+  @logExecution()
+  @recordActivity("USER_FINISH_GAME", (result, userId) => `Người dùng ID ${userId} hoàn thành game với ${result.result.totalScore} điểm`)
+  async finishGame(userId: number, data: FinishGameBody) {
+    const result = await this.repository.finalizeGameResult({
+      userId,
+      score: data.totalScore,
+      duration: data.duration,
+      correctPairs: data.correctPairs,
+      totalPairs: data.totalPairs,
+      lessonId: data.lessonId
+    });
 
-        const meaningBubbles = this.shuffle(
-            words.map((w) => ({
-                id: w.id,
-                meaning: w.meaning,
-                imageUrl: w.imageUrl,
-                audioUrl: w.audioUrl
-            }))
-        );
-
-        return {
-            sessionId,
-            totalPairs: words.length,
-            wordBubbles,
-            meaningBubbles
-        };
-    }
-
-    @logExecution()
-    @recordActivity("USER_SAVE_PROCESS_GAME", (result, userId) => `Người dùng id ${userId} tạm dừng game và lưu tiến trình tạm của game`)
-    // 2. Kiểm tra ghép đúng / sai & Lưu tiến trình tạm 
-    // Hàm này nên viết theo kiểu là kết quả đã được check ở FE rồi BE chỉ là nơi lưu điểm thay vì phải đếm lại điểm pla pla pal 
-    async matchPair(userId: number, data: MatchPairBody) {
-        const session = await this.repository.getSession(data.sessionId);
-
-        if (!session) {
-            throw new ApiError(404, "session_not_found", "Phiên chơi không tồn tại hoặc đã hết hạn.");
-        }
-
-        if (session.userId !== userId) {
-            throw new ApiError(403, "forbidden", "Bạn không có quyền thao tác trên phiên chơi này.");
-        }
-
-        if (!session.wordIds.includes(data.wordId)) {
-            throw new ApiError(400, "invalid_word", "Từ vựng không thuộc ván chơi này.");
-        }
-
-        if (session.matchedPairIds.includes(data.wordId)) {
-            throw new ApiError(400, "already_matched", "Bong bóng này đã được ghép hoàn thành trước đó.");
-        }
-        
-        // Kiểm tra ghép đúng: wordId khớp meaningId
-        const isMatch = data.wordId === data.meaningId;
-
-        if (!isMatch) {
-            // Ghép sai: Giữ nguyên, không lưu tiến trình
-            return {
-                isMatch: false,
-                score: session.score,
-                matchedCount: session.matchedPairIds.length,
-                totalPairs: session.totalPairs,
-                isCompleted: false
-            };
-        }
-
-        // Ghép đúng: Cộng điểm (+10đ), cập nhật tiến trình tạm ngay lập tức
-        session.matchedPairIds.push(data.wordId);
-        session.score += 10;
-        await this.repository.saveSession(session);
-
-        const isCompleted = session.matchedPairIds.length === session.totalPairs;
-
-        return {
-            isMatch: true,
-            score: session.score,
-            matchedCount: session.matchedPairIds.length,
-            totalPairs: session.totalPairs,
-            isCompleted
-        };
-    }
-
-    @logExecution()
-    @recordActivity("USER_FINISH_GAME", (result, userId) => `Người dùng ID ${userId} hoàn thành game với ${result.result.totalScore} điểm`)
-    // 3. Kết thúc Game, chốt điểm và XÓA tiến trình tạm
-    // Hàm này sữa lại thành nhận các thông tin về trò chơi đã kết thúc ntn ở FE rồi lưu lại
-    async finishGame(userId: number, data: FinishGameBody) {
-        const session = await this.repository.getSession(data.sessionId);
-
-        if (!session) {
-            throw new ApiError(404, "session_not_found", "Phiên chơi không tồn tại hoặc đã kết thúc.");
-        }
-
-        if (session.userId !== userId) {
-            throw new ApiError(403, "forbidden", "Bạn không có quyền thao tác trên phiên chơi này.");
-        }
-
-        const duration = Math.max(1, Math.floor((Date.now() - session.startTime) / 1000));
-
-        // 1. Ghi nhận kết quả vào database MySQL (Bảng user & activity_log có sẵn)
-        const result = await this.repository.finalizeGameResult({
-            userId: session.userId,
-            score: session.score,
-            duration,
-            correctPairs: session.matchedPairIds.length,
-            totalPairs: session.totalPairs
-        });
-
-        // 2. BẮT BUỘC: Xóa sạch phiên tạm trong bộ nhớ
-        await this.repository.deleteSession(data.sessionId);
-
-        return {
-            message: "Hoàn tất ván chơi thành công!",
-            result: {
-                totalScore: session.score,
-                durationSeconds: duration,
-                correctPairs: session.matchedPairIds.length,
-                totalPairs: session.totalPairs,
-                currentXp: result.currentXp,
-                completedAt: result.completedAt
-            }
-        };
-    }
+    return {
+      message: "Hoàn tất ván chơi thành công!",
+      result: {
+        totalScore: result.score,
+        durationSeconds: result.duration,
+        correctPairs: result.correctPairs,
+        totalPairs: result.totalPairs,
+        currentXp: result.currentXp
+      }
+    };
+  }
 }
