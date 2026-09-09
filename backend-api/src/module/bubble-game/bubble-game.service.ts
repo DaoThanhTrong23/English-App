@@ -80,7 +80,7 @@ export class BubbleGameService {
     }
 
     @logExecution()
-    @recordActivity("USER_START_GAME", (result, userId) => `Người dùng id ${userId} tạm dừng game và lưu tiến trình tạm của game`)
+    @recordActivity("USER_SAVE_PROCESS_GAME", (result, userId) => `Người dùng id ${userId} tạm dừng game và lưu tiến trình tạm của game`)
     // 2. Kiểm tra ghép đúng / sai & Lưu tiến trình tạm 
     // Hàm này nên viết theo kiểu là kết quả đã được check ở FE rồi BE chỉ là nơi lưu điểm thay vì phải đếm lại điểm pla pla pal 
     async matchPair(userId: number, data: MatchPairBody) {
