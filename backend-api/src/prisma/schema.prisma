@@ -57,7 +57,7 @@ model User {
   userProgress     UserProgress[]
   userTestResults  UserTestResult[]
 
-  @@map("user")
+  @@map("users")
 }
 
 model ActivityLog {
@@ -82,7 +82,7 @@ model LoginLog {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId], map: "user_id")
-  @@map("login_log")
+  @@map("login_logs")
 }
 
 model RefreshToken {
@@ -98,7 +98,7 @@ model RefreshToken {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([sessionId])
-  @@map("refresh_token")
+  @@map("refresh_tokens")
 }
 
 // Nhóm từ vựng và bài học (lesson)
