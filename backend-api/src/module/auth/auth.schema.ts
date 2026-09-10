@@ -41,6 +41,15 @@ export const RefreshTokenSChema = z.object({
 })
 
 
+export const GoogleLoginSchema = z.object({
+    body: z.object({
+        idToken: z.string().min(1, "Thiếu idToken của Google"),
+        deviceInfo: z.string().optional()
+    }),
+    query: z.object({}),
+    params: z.object({})
+});
+
 export type RegisterInput = z.infer<typeof RegisterSchema>["body"];
 export type LoginInput = z.infer<typeof LoginSchema>["body"];
 export type LogoutInput = z.infer<typeof LogoutSchema>["body"];
