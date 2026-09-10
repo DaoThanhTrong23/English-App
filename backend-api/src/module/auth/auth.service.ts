@@ -7,6 +7,9 @@ import { LoginInput, RegisterInput } from "./auth.schema.js";
 import { logExecution } from "../../shared/decorators/log.decorator.js";
 import { recordActivity } from "../../shared/decorators/activity.decorator.js";
 
+import { OAuth2Client } from 'google-auth-library';
+const googleClient = new OAuth2Client(env.GOOGLE_CLIENT_ID);
+
 export class AuthService {
     constructor(private authRepo: AuthRepository = authRepository) { }
 
@@ -75,6 +78,69 @@ export class AuthService {
     }
 
     @logExecution()
+    @recordActivity("GOOGLE_LOGIN", (result) => `Người dùng ${result.user.username} đăng nhập bằng Google`)
+    async googleLogin(idToken: string, deviceInfo?: string, ipAddress?: string) {
+        // 1. Xác minh ID Token với Google
+        const ticket = await googleClient.verifyIdToken({
+            idToken,
+            audience: env.GOOGLE_CLIENT_ID, 
+        });
+        const payload = ticket.getPayload();
+        
+        if (!payload || !payload.email) {
+            throw new ApiError(400, "invalid_token", "Token Google không hợp lệ hoặc thiếu email!");
+        }
+
+        const email = payload.email;
+
+        // 2 & 3. Tìm User theo Email
+        let user = await this.authRepo.findUserByEmail(email);
+
+        // 4. Nếu chưa có -> Tạo User mới
+        if (!user) {
+            const baseUsername = email.split('@')[0];
+            const randomSuffix = Math.floor(Math.random() * 10000);
+            
+            user = await this.authRepo.createUser({
+                username: `${baseUsername}${randomSuffix}`,
+                email: email,
+                passwordHash: "GOOGLE_AUTH_NO_PASSWORD" 
+            }) as any; 
+        }
+
+        // Cứu tinh của TypeScript: Ép kiểu chắc chắn biến này không thể bị rỗng
+        const currentUser = user!;
+
+        // 5 & 6. Sinh Session ID và Token
+        const sessionId = generatedSessionId();
+        const { accessToken, refreshToken } = await this.createToken(currentUser.id, currentUser.role, sessionId, deviceInfo);
+
+        // 7. Lưu Log
+        await Promise.all([
+            this.authRepo.updateLastLogin(currentUser.id),
+            this.authRepo.createLoginLog({
+                userId: currentUser.id,
+                ipAddress: ipAddress,
+                deviceInfo: deviceInfo
+            }),
+        ]);
+
+        return {
+            user: { 
+                id: currentUser.id, 
+                username: currentUser.username, 
+                email: email, 
+                role: currentUser.role, 
+                xpPoint: currentUser.xpPoints 
+            },
+            token: { 
+                accessToken, 
+                refreshToken 
+            }
+        };
+    }
+
+    @logExecution()
     async refreshToken(oldRefreshToken: string) {
         verifyRefreshTokenn(oldRefreshToken);
 
@@ -107,14 +173,17 @@ export class AuthService {
     }
 
     @logExecution()
-    @recordActivity("USER_LOGOUT", (result) => `Người dùng ${result.user.username} đăng xuất thành công`)
+    @recordActivity("USER_LOGOUT", (result) => `Người dùng ${result.user?.username || 'ẩn danh'} đăng xuất thành công`)
     async logout(refreshToken: string) {
         const tokenHash = hashSHA256(refreshToken);
         const existing = await this.authRepo.findRefreshTokenByHash(tokenHash);
-        if (!existing) {
+        if (existing) {
             await this.authRepo.revokeRefreshToken(tokenHash);
         }
-        return { message: "Đăng xuất thành công" };
+        return { 
+            message: "Đăng xuất thành công",
+            user: existing?.user 
+        };
     }
 
     @logExecution()

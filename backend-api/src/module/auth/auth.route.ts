@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response, Router } from "express";
 import { validate } from "../../middleware/validate.middleware.js";
 import { LoginSchema, LogoutSchema, RefreshTokenSChema, RegisterSchema } from "./auth.schema.js";
+import { GoogleLoginSchema } from './auth.schema.js';
 
 import { asyncHandler } from "../../shared/http/async-handler.js";
 import { authService } from "./auth.service.js";
@@ -23,6 +24,17 @@ Authrouter.post("/login", validate(LoginSchema), asyncHandler(async (req, res) =
         message: "Đăng nhập thành công",
         data:  result,
     })
+}));
+
+
+Authrouter.post('/google', validate(GoogleLoginSchema), asyncHandler(async (req: Request, res: Response) => {
+    const { idToken, deviceInfo } = req.body;
+    const ipAddress = req.ip;
+    const result = await authService.googleLogin(idToken, deviceInfo, ipAddress);
+    res.status(200).json({
+        message: "Đăng nhập Google thành công",
+        data: result
+    });
 }));
 
 
