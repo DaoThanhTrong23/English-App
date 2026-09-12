@@ -1,1 +1,0 @@
-// Nơi viết các câu truy vấn đến db 

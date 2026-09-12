@@ -92,6 +92,12 @@ Backend sử dụng **Prisma** làm ORM kết nối với MySQL. Để đồng b
    ```
    *(Hoặc nếu dự án sử dụng Migration: `npx prisma migrate dev`)*
 
+3. **Khởi tạo dữ liệu mẫu (Seeder tài khoản Admin/User)**:
+   ```bash
+   npm run seed
+   ```
+   *(Chi tiết xem thêm tại [database-seeder.md](./database-seeder.md))*
+
 ---
 
 ### 🚀 Bước 5: Chạy dự án ở môi trường Development
@@ -129,12 +135,12 @@ backend-api/
 │   ├── config/          # Đọc và validate cấu hình biến môi trường
 │   ├── middleware/      # Middlewares (CORS, Rate limit, JWT Auth, Logging...)
 │   ├── module/          # Các module xử lý nghiệp vụ theo tính năng
-│   ├── prisma/          # File schema.prisma định nghĩa CSDL
+│   ├── prisma/          # File schema.prisma định nghĩa CSDL & file seeder.ts
 │   ├── generated/       # Code Prisma Client sinh tự động (Đã .gitignore, mỗi máy tự generate)
 │   ├── utils/           # Các hàm hỗ trợ dùng chung (helpers, formatting)
 │   ├── app.ts           # Cấu hình ứng dụng Express
 │   └── server.ts        # Entry point khởi chạy HTTP Server
-├── docs_be/             # Tài liệu backend (API docs, setup guides...)
+├── docs_be/             # Tài liệu backend (API docs, setup guides, seeder...)
 ├── .env.example         # File môi trường mẫu
 ├── package.json         # Danh sách thư viện & scripts
 └── tsconfig.json        # Cấu hình TypeScript compiler
@@ -147,6 +153,7 @@ backend-api/
 | Lệnh | Công dụng |
 | :--- | :--- |
 | `npm run dev` | Chạy backend ở chế độ phát triển (Auto reload khi sửa code) |
+| `npm run seed` | Chạy seeder nạp dữ liệu mẫu (Tài khoản Admin / User test) |
 | `npm run build` | Biên dịch TypeScript sang JavaScript (`/dist`) |
 | `npm run start` | Chạy ứng dụng đã được build |
 | `npx prisma generate` | **Bắt buộc:** Sinh lại Prisma Client tương thích OS cá nhân |
