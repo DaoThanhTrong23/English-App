@@ -9,6 +9,7 @@ import { errorHandler } from "./shared/http/error-handler.js";
 import Authrouter from "./module/auth/auth.route.js";
 import bubbleGameRouter from "./module/bubble-game/bubble-game.route.js";
 import memoryCardRouter from "./module/memory-card/memory-card.route.js";
+import { studentManageRouter } from "./module/StudentManage/studenManage.route.js";
 export function createapp()  {
     const app = express();
 
@@ -39,6 +40,10 @@ export function createapp()  {
     }));
 
     app.use("/api/auth", Authrouter)
+
+    //đăng ký route quản lý học viên
+    app.use("/api/admin/students",studentManageRouter);
+
     // Đăng ký route game
     app.use("/game/bubble-game", bubbleGameRouter);
     app.use("/game/memory-card", memoryCardRouter);
