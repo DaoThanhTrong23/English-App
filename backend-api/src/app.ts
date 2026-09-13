@@ -6,16 +6,30 @@ import cors from "cors";
 import rateLimit from "express-rate-limit";
 import { loggers } from "./utils/logger.js";
 import { errorHandler } from "./shared/http/error-handler.js";
+import Authrouter from "./module/auth/auth.route.js";
+import bubbleGameRouter from "./module/bubble-game/bubble-game.route.js";
+import memoryCardRouter from "./module/memory-card/memory-card.route.js";
+import { studentManageRouter } from "./module/StudentManage/studenManage.route.js";
 export function createapp()  {
     const app = express();
 
     app.disable("x-powered-by");
-    app.use(pinoHttp({ logger: loggers}))
+    app.use(pinoHttp({
+        logger: loggers,
+        customLogLevel: (req, res, err) => {
+            if (res.statusCode >= 500 || err) return 'error';
+            if (res.statusCode >= 400) return 'warn';
+            return 'info';
+        },
+        // Tùy biến thông điệp ngắn gọn khi request hoàn tất (VD: "POST /api/auth/login 200 - 15ms")
+        customSuccessMessage: (req, res) => `${req.method} ${req.url} ${res.statusCode}`,
+        customErrorMessage: (req, res, err) => `${req.method} ${req.url} ${res.statusCode} - ${err.message}`,
+    }));
     app.use(helmet());
-    app.use(cors({ origin: env.CORS_ORIGIN, credentials: false}));
+    app.use(cors({ origin: env.CORS_ORIGIN, credentials: false }));
 
     // Giới hạn 100kb/request json
-    app.use(express.json({ limit: '100 kb'}));
+    app.use(express.json({ limit: '100 kb' }));
 
     // Giới hạn 100 req 1 phút
     app.use(rateLimit({
@@ -25,6 +39,15 @@ export function createapp()  {
         legacyHeaders: false
     }));
 
+    app.use("/api/auth", Authrouter)
+
+    //đăng ký route quản lý học viên
+    app.use("/api/admin/students",studentManageRouter);
+
+    // Đăng ký route game
+    app.use("/game/bubble-game", bubbleGameRouter);
+    app.use("/game/memory-card", memoryCardRouter);
+
     app.use(errorHandler);
-    return app 
+    return app
 }

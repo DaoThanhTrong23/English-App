@@ -5,7 +5,7 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
   output   = "../generated/prisma"
 }
 
@@ -56,18 +56,19 @@ model User {
   userAchievements UserAchievement[]
   userProgress     UserProgress[]
   userTestResults  UserTestResult[]
+  revokedTokens    revoked_token[]
 
-  @@map("user")
+  @@map("users")
 }
 
 model ActivityLog {
   id          Int      @id @default(autoincrement())
-  userId      Int      @map("user_id")
+  userId      Int?     @map("user_id")
   actionType  String   @map("action_type") @db.VarChar(50)
   description String?  @db.Text
   createdAt   DateTime @default(now()) @map("created_at")
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@map("activity_log")
 }
@@ -82,7 +83,7 @@ model LoginLog {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId], map: "user_id")
-  @@map("login_log")
+  @@map("login_logs")
 }
 
 model RefreshToken {
@@ -98,7 +99,7 @@ model RefreshToken {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([sessionId])
-  @@map("refresh_token")
+  @@map("refresh_tokens")
 }
 
 // Nhóm từ vựng và bài học (lesson)
@@ -273,4 +274,15 @@ model AiChatMessage {
 
   @@index([sessionId], map: "session_id")
   @@map("ai_chat_message")
+}
+
+model revoked_token {
+  access_token_hash String   @id @db.VarChar(255)
+  revoked_at        DateTime @default(now())
+  description       String   @db.Text
+  user_id           Int
+
+  user User @relation(fields: [user_id], references: [id])
+
+  @@map("revoked_token")
 }

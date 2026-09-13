@@ -1,7 +1,8 @@
-import { error } from "console";
 import { ErrorRequestHandler } from "express";
 import { ZodError } from "zod";
 import { ApiError } from "./api-error.js";
+import { PrismaClientInitializationError } from "@prisma/client/runtime/library";
+
 
 export const errorHandler: ErrorRequestHandler = (error, request, response, _next) => {
     if (error instanceof ZodError) {
@@ -24,10 +25,23 @@ export const errorHandler: ErrorRequestHandler = (error, request, response, _nex
         return;
     }
 
+    if (error instanceof PrismaClientInitializationError) {
+        response.status(500).json({
+            error: {
+                code: error.errorCode,
+                message: "Không trích thông tin từ cơ sở dữ liệu"
+            },
+            path: request.path
+        })
+        return;
+    }
+
+
+
     // Lỗi hệ thống
     request.log.error(error);
     response.status(500).json({
-        error: { code: "internal_error", message: "An unexpected error occurred." },
+        error: { code: "internal_error", message: "Lỗi không xác định từ Server" },
         path: request.path,
     });
 }

@@ -1,30 +1,37 @@
 import { loggers } from "../../utils/logger.js";
 
+function sanitizeArgs(args: any[]) {
+    return args.map(arg => {
+        if (typeof arg === "object" && arg !== null) {
+            const clone = { ...arg };
+            if ("password" in clone) clone.password = "***HIDDEN***";
+            return clone;
+        }
+        return arg;
+    });
+}
+
 export function logExecution() {
-    return function (target: any, propertyKey: string, desciptor: PropertyDescriptor) {
-        const originalMethod = desciptor.value;
+    return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+        const originalMethod = descriptor.value;
 
-        desciptor.value = async function (...args: any[]) {
-            const className = target.contructor.name;
+        descriptor.value = async function (...args: any[]) {
+            const className = target.constructor?.name || target.name || "Anonymous";
             const start = Date.now();
-            // Ghi log báo hàm được tiếp nhận và chuẩn bị được thực thi
-            loggers.info(`[AOP BEFORE] ${className}.${propertyKey}() | Params: ${JSON.stringify(args)}`);
+            const safeArgs = sanitizeArgs(args);
+
+            loggers.info(`[CALL] ${className}.${propertyKey}() | Args: ${JSON.stringify(safeArgs)}`);
             try {
-                // Chạy hàm thực thi 
                 const result = await originalMethod.apply(this, args);
-
-                //Lấy thời gian thực thi hàm
                 const duration = Date.now() - start;
-
-                loggers.info(`[AOP AFTER] ${className}.${propertyKey}() | Time: ${duration}ms`);
+                loggers.info(`[SUCCESS] ${className}.${propertyKey}() | Time: ${duration}ms`);
                 return result;
-            } catch (error) {
+            } catch (error: any) {
                 const duration = Date.now() - start;
-                loggers.error(`[AOP ERROR] ${className}.${propertyKey}() | Time: ${duration}ms | Error: ${error}`);
-
+                loggers.error(`[FAILED] ${className}.${propertyKey}() | Time: ${duration}ms | Error: ${error.message || error}`);
                 throw error;
-            };
-            return desciptor;
+            }
         };
-    }
+        return descriptor;
+    };
 }
