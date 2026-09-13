@@ -56,6 +56,7 @@ model User {
   userAchievements UserAchievement[]
   userProgress     UserProgress[]
   userTestResults  UserTestResult[]
+  revokedTokens    revoked_token[]
 
   @@map("users")
 }
@@ -273,4 +274,15 @@ model AiChatMessage {
 
   @@index([sessionId], map: "session_id")
   @@map("ai_chat_message")
+}
+
+model revoked_token {
+  access_token_hash String   @id @db.VarChar(255)
+  revoked_at        DateTime @default(now())
+  description       String   @db.Text
+  user_id           Int
+
+  user User @relation(fields: [user_id], references: [id])
+
+  @@map("revoked_token")
 }

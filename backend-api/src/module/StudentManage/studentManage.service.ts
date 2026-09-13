@@ -59,7 +59,7 @@ export class StudentManageService {
 
     }
 
-    @logExecution()
+  @logExecution()
   async getStudentDetail(studentId: number) {
     const student = await this.studentRepo.findStudentDetailById(studentId);
     if (!student) {

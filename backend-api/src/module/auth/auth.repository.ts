@@ -102,6 +102,29 @@ export class AuthRepository {
             data
         });
     }
+
+    @logExecution()
+    async isTokenRevoked(accessTokenHash: string) {
+        return prisma.revoked_token.findUnique({
+            where: {access_token_hash: accessTokenHash}
+        })
+    }
+
+
+    @logExecution()
+    async createRevokedToken(data: {
+        accesstokenHash: string;
+        userId:number;
+        description: string
+    }) {
+        return prisma.revoked_token.create({
+            data: {
+                access_token_hash: data.accesstokenHash,
+                user_id: data.userId,
+                description: data.description
+            }
+        });
+    }
 }
 
 export const authRepository = new AuthRepository();

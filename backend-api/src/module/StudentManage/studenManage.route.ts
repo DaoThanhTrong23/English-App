@@ -6,6 +6,7 @@ import { validate } from "../../middleware/validate.middleware.js";
 import { asyncHandler } from "../../shared/http/async-handler.js";
 import { GetStudentQuerySchema, StudentIdParamSchema } from "./studentManage.schema.js";
 import { studentManageService } from "./studentManage.service.js";
+import { Role } from "../../generated/prisma/index.js";
 
 
 const router = Router();
@@ -18,7 +19,7 @@ router.use(Authenticate, authorize(["admin"]));
  *  Lấy danh sách học viên có phân trang, tìm kiếm, tiến độ học & lần cuối hoạt động
  */
 router.get(
-  "/",
+  "/", authorize([Role.admin]),
   validate(GetStudentQuerySchema),
   asyncHandler(async (req, res) => {
     const result = await studentManageService.getStudentslist(req.query as any);
@@ -35,7 +36,7 @@ router.get(
  * @desc    Xem chi tiết tiến trình học, bài thi và nhật ký của 1 học viên
  */
 router.get(
-  "/:id",
+  "/:id",authorize([Role.admin]),
   validate(StudentIdParamSchema),
   asyncHandler(async (req, res) => {
     const studentId = Number(req.params.id);

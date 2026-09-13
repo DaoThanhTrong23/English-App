@@ -5,6 +5,7 @@ import { GoogleLoginSchema } from './auth.schema.js';
 
 import { asyncHandler } from "../../shared/http/async-handler.js";
 import { authService } from "./auth.service.js";
+import { Authenticate } from "../../middleware/authenticate.middleware.js";
 const Authrouter = Router();
 
 Authrouter.post("/register", validate(RegisterSchema), asyncHandler(async (req, res) => {
@@ -37,8 +38,8 @@ Authrouter.post('/google', validate(GoogleLoginSchema), asyncHandler(async (req:
     });
 }));
 
-
-Authrouter.post("/refresh", validate(RefreshTokenSChema), asyncHandler(async (req, res) => {
+// Thêm authentica có refresh vì bắt buộc phải đăng nhập mới được làm mới session
+Authrouter.post("/refresh", Authenticate, validate(RefreshTokenSChema), asyncHandler(async (req, res) => {
     const result = await authService.refreshToken(req.body.refreshToken);
 
     res.status(200).json({
@@ -48,8 +49,8 @@ Authrouter.post("/refresh", validate(RefreshTokenSChema), asyncHandler(async (re
     })
 }));
 
-
-Authrouter.post("/logout",validate(LogoutSchema), asyncHandler(async (req,res) => {
+// Thêm authentica cho logout vì bắt buộc phải đăng nhập mới được logout
+Authrouter.post("/logout",Authenticate,validate(LogoutSchema), asyncHandler(async (req,res) => {
     const result = await authService.logout(req.body.refreshToken);
 
     res.status(200).json({

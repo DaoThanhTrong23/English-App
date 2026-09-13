@@ -5,7 +5,7 @@ import { bcryptHash } from "../utils/hash.js";
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("🌱 Bắt đầu seeding dữ liệu tài khoản...");
+  console.log("Bắt đầu seeding dữ liệu tài khoản...");
 
   // Hash mật khẩu mẫu
   const adminPasswordHash = await bcryptHash("Admin@123")
