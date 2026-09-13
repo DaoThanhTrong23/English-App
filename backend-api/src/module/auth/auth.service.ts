@@ -80,7 +80,6 @@ export class AuthService {
     @logExecution()
     @recordActivity("GOOGLE_LOGIN", (result) => `Người dùng ${result.user.username} đăng nhập bằng Google`)
     async googleLogin(idToken: string, deviceInfo?: string, ipAddress?: string) {
-        // 1. Xác minh ID Token với Google
         const ticket = await googleClient.verifyIdToken({
             idToken,
             audience: env.GOOGLE_CLIENT_ID, 
@@ -108,7 +107,6 @@ export class AuthService {
             }) as any; 
         }
 
-        // Cứu tinh của TypeScript: Ép kiểu chắc chắn biến này không thể bị rỗng
         const currentUser = user!;
 
         // 5 & 6. Sinh Session ID và Token
@@ -116,6 +114,77 @@ export class AuthService {
         const { accessToken, refreshToken } = await this.createToken(currentUser.id, currentUser.role, sessionId, deviceInfo);
 
         // 7. Lưu Log
+        await Promise.all([
+            this.authRepo.updateLastLogin(currentUser.id),
+            this.authRepo.createLoginLog({
+                userId: currentUser.id,
+                ipAddress: ipAddress,
+                deviceInfo: deviceInfo
+            }),
+        ]);
+
+        return {
+            user: { 
+                id: currentUser.id, 
+                username: currentUser.username, 
+                email: email, 
+                role: currentUser.role, 
+                xpPoint: currentUser.xpPoints 
+            },
+            token: { 
+                accessToken, 
+                refreshToken 
+            }
+        };
+    }
+
+
+
+    @logExecution()
+    @recordActivity("FACEBOOK_LOGIN", (result) => `Người dùng ${result.user.username} đăng nhập bằng Facebook`)
+    async facebookLogin(fbAccessToken: string, deviceInfo?: string, ipAddress?: string) {
+        
+   
+        const debugTokenUrl = `https://graph.facebook.com/debug_token?input_token=${fbAccessToken}&access_token=${env.FACEBOOK_APP_ID}|${env.FACEBOOK_APP_SECRET}`;
+        const debugRes = await fetch(debugTokenUrl);
+        const debugData = await debugRes.json();
+        
+        if (!debugRes.ok || !debugData.data || debugData.data.is_valid !== true) {
+             throw new ApiError(400, "invalid_token", "Token Facebook không hợp lệ hoặc đã hết hạn!");
+        }
+        if (debugData.data.app_id !== env.FACEBOOK_APP_ID) {
+             throw new ApiError(403, "invalid_app", "Token này không được cấp cho ứng dụng của chúng tôi!");
+        }
+
+        const fbRes = await fetch(`https://graph.facebook.com/me?fields=id,name,email&access_token=${fbAccessToken}`);
+        if (!fbRes.ok) {
+            throw new ApiError(400, "invalid_token", "Không thể lấy thông tin người dùng từ Facebook!");
+        }
+        
+        const fbData = await fbRes.json();
+        
+        if (!fbData || !fbData.email) {
+            throw new ApiError(400, "email_missing", "Tài khoản Facebook của bạn không có Email, hoặc chưa cấp quyền truy cập Email!");
+        }
+        const email = fbData.email;
+        let user = await this.authRepo.findUserByEmail(email);
+
+        if (!user) {
+            const baseUsername = email.split('@')[0];
+            const randomSuffix = Math.floor(Math.random() * 10000);
+            
+            user = await this.authRepo.createUser({
+                username: `${baseUsername}${randomSuffix}`,
+                email: email,
+                passwordHash: "FACEBOOK_AUTH_NO_PASSWORD" 
+            }) as any; 
+        }
+
+        const currentUser = user!;
+
+        const sessionId = generatedSessionId();
+        const { accessToken, refreshToken } = await this.createToken(currentUser.id, currentUser.role, sessionId, deviceInfo);
+
         await Promise.all([
             this.authRepo.updateLastLogin(currentUser.id),
             this.authRepo.createLoginLog({

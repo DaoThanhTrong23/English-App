@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response, Router } from "express";
 import { validate } from "../../middleware/validate.middleware.js";
 import { LoginSchema, LogoutSchema, RefreshTokenSChema, RegisterSchema } from "./auth.schema.js";
-import { GoogleLoginSchema } from './auth.schema.js';
+import { GoogleLoginSchema, FacebookLoginSchema } from './auth.schema.js';
 
 import { asyncHandler } from "../../shared/http/async-handler.js";
 import { authService } from "./auth.service.js";
@@ -33,6 +33,18 @@ Authrouter.post('/google', validate(GoogleLoginSchema), asyncHandler(async (req:
     const result = await authService.googleLogin(idToken, deviceInfo, ipAddress);
     res.status(200).json({
         message: "Đăng nhập Google thành công",
+        data: result
+    });
+}));
+
+Authrouter.post('/facebook', validate(FacebookLoginSchema), asyncHandler(async (req: Request, res: Response) => {
+    const { accessToken, deviceInfo } = req.body;
+    const ipAddress = req.ip;
+    
+    const result = await authService.facebookLogin(accessToken, deviceInfo, ipAddress);
+    
+    res.status(200).json({
+        message: "Đăng nhập Facebook thành công",
         data: result
     });
 }));
