@@ -13,6 +13,8 @@ const envSchema = z.object({
     JWT_REFRESH_EXPIRES_IN: z.coerce.number().int().default(604800000),
 
     GOOGLE_CLIENT_ID: z.string().default(""), 
+    FACEBOOK_APP_ID: z.string().default(""),
+    FACEBOOK_APP_SECRET: z.string().default(""),
 
 });
 

@@ -50,6 +50,15 @@ export const GoogleLoginSchema = z.object({
     params: z.object({})
 });
 
+export const FacebookLoginSchema = z.object({
+    body: z.object({
+        accessToken: z.string().min(1, "Thiếu accessToken của Facebook"),
+        deviceInfo: z.string().optional()
+    }),
+    query: z.object({}),
+    params: z.object({})
+});
+
 export type RegisterInput = z.infer<typeof RegisterSchema>["body"];
 export type LoginInput = z.infer<typeof LoginSchema>["body"];
 export type LogoutInput = z.infer<typeof LogoutSchema>["body"];
