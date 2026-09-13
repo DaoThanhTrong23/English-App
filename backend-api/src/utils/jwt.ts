@@ -1,7 +1,7 @@
 import  jwt  from "jsonwebtoken";
 import { env } from "../config/env.js";
 
-export interface AccessTokenPayload  { 
+export interface AccessTokenPayload { 
     userId: number;
     role: string;
 }

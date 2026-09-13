@@ -210,49 +210,64 @@ export class AuthService {
     }
 
     @logExecution()
-    async refreshToken(oldRefreshToken: string) {
-        verifyRefreshTokenn(oldRefreshToken);
-
-        const oldRefreshTokenHash = hashSHA256(oldRefreshToken);
-        const savedToken = await this.authRepo.findRefreshTokenByHash(oldRefreshTokenHash);
-
-        if (!savedToken) {
-            throw new ApiError(401, "token_not_found", "Refresh Token không tồn tại hoặc không hợp lệ");
-        }
-
-        if (savedToken.isRevoked) {
-            await this.authRepo.revokeAllSessionToken(savedToken.sessionId);
-            throw new ApiError(401, "Token_revoked", "Phiên đăng nhập đã bị huỷ. Vui lòng đăng nhập lại");
-        }
-
-        if (new Date() > savedToken.expiresAt) {
-            throw new ApiError(401, "token_expired", "Refresh Token đã hết hạn. Vui lòng đăng nhập lại");
-        }
-
-        await this.authRepo.revokeRefreshToken(oldRefreshTokenHash);
-
-        const { accessToken, refreshToken } = await this.createToken(
-            savedToken.userId,
-            savedToken.user.role,
-            savedToken.sessionId,
-            savedToken.deviceInfo ?? undefined
-        );
-
-        return { accessToken, refreshToken };
+    async refreshToken(oldRefreshToken: string, oldAccessToken?: string) {
+         verifyRefreshTokenn(oldRefreshToken);
+    const oldRefreshTokenHash = hashSHA256(oldRefreshToken);
+    const savedToken = await this.authRepo.findRefreshTokenByHash(oldRefreshTokenHash);
+    if (!savedToken) {
+        throw new ApiError(401, "token_not_found", "Refresh Token không tồn tại hoặc không hợp lệ");
+    }
+    if (savedToken.isRevoked) {
+        await this.authRepo.revokeAllSessionToken(savedToken.sessionId);
+        throw new ApiError(401, "token_revoked", "Phiên đăng nhập đã bị huỷ. Vui lòng đăng nhập lại");
+    }
+    if (new Date() > savedToken.expiresAt) {
+        throw new ApiError(401, "token_expired", "Refresh Token đã hết hạn. Vui lòng đăng nhập lại");
+    }
+    // 1. Đánh dấu thu hồi Refresh Token cũ
+    await this.authRepo.revokeRefreshToken(oldRefreshTokenHash);
+    // 2. Thu hồi Access Token cũ (nếu có gửi kèm)
+    if (oldAccessToken) {
+        const oldAccessTokenHash = hashSHA256(oldAccessToken);
+        await this.authRepo.createRevokedToken({
+            accesstokenHash: oldAccessTokenHash,
+            userId: savedToken.userId,
+            description: "Tự động thu hồi Access Token cũ khi người dùng làm mới phiên (Refresh Token)"
+        });
+    }
+    // 3. Cấp cặp Token mới
+    const { accessToken, refreshToken } = await this.createToken(
+        savedToken.userId,
+        savedToken.user.role,
+        savedToken.sessionId,
+        savedToken.deviceInfo ?? undefined
+    );
+    return { accessToken, refreshToken };
     }
 
     @logExecution()
     @recordActivity("USER_LOGOUT", (result) => `Người dùng ${result.user?.username || 'ẩn danh'} đăng xuất thành công`)
-    async logout(refreshToken: string) {
-        const tokenHash = hashSHA256(refreshToken);
-        const existing = await this.authRepo.findRefreshTokenByHash(tokenHash);
-        if (existing) {
-            await this.authRepo.revokeRefreshToken(tokenHash);
-        }
-        return { 
-            message: "Đăng xuất thành công",
-            user: existing?.user 
-        };
+    async logout(refreshToken: string, accessToken?: string, userId?: number) {
+        // 1. Thu hồi Refresh Token trong DB
+    const tokenHash = hashSHA256(refreshToken);
+    const existing = await this.authRepo.findRefreshTokenByHash(tokenHash);
+    if (existing) {
+        await this.authRepo.revokeRefreshToken(tokenHash);
+    }
+    const currentUserId = userId || existing?.userId;
+    // 2. Nếu có Access Token và xác định được userId -> Lưu vào bảng revoked_token
+    if (accessToken && currentUserId) {
+        const accessTokenHash = hashSHA256(accessToken);
+        await this.authRepo.createRevokedToken({
+            accesstokenHash: accessTokenHash,
+            userId: currentUserId,
+            description: "Người dùng chủ động đăng xuất khỏi hệ thống"
+        });
+    }
+    return { 
+        message: "Đăng xuất thành công",
+        user: existing?.user 
+    };
     }
 
     @logExecution()
