@@ -10,6 +10,7 @@ import Authrouter from "./module/auth/auth.route.js";
 import bubbleGameRouter from "./module/bubble-game/bubble-game.route.js";
 import memoryCardRouter from "./module/memory-card/memory-card.route.js";
 import { studentManageRouter } from "./module/StudentManage/studenManage.route.js";
+import { wordRouter } from "./module/word/word.route.js";
 export function createapp()  {
     const app = express();
 
@@ -43,7 +44,7 @@ export function createapp()  {
 
     //đăng ký route quản lý học viên
     app.use("/api/admin/students",studentManageRouter);
-
+    app.use("/api/admin/word", wordRouter);
     // Đăng ký route game
     app.use("/game/bubble-game", bubbleGameRouter);
     app.use("/game/memory-card", memoryCardRouter);

@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { GoogleLogin, GoogleOAuthProvider } from '@react-oauth/google';
 
+
 const AdminLogin: React.FC = () => {
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
@@ -11,7 +12,6 @@ const AdminLogin: React.FC = () => {
 
   const navigate = useNavigate();
 
-  // --- HÀM TỰ ĐỘNG BẮT TOKEN KHI FACEBOOK CHUYỂN HƯỚNG VỀ ---
   useEffect(() => {
     // Kiểm tra xem trên thanh địa chỉ có mã access_token của FB không
     const hash = window.location.hash;
@@ -37,7 +37,7 @@ const AdminLogin: React.FC = () => {
 
           localStorage.setItem('adminToken', resultData.token.accessToken);
           localStorage.setItem('adminInfo', JSON.stringify(resultData.user));
-          navigate('/hello');
+          navigate('/admin/dashboard');
 
         }).catch(error => {
           setErrorMsg(error?.response?.data?.error?.message || "Lỗi xác thực từ Server");
@@ -74,7 +74,7 @@ const AdminLogin: React.FC = () => {
       }
 
       setTimeout(() => {
-        navigate('/hello');
+        navigate('/admin/dashboard');
       }, 500);
 
     } catch (error: any) {
@@ -160,7 +160,7 @@ const AdminLogin: React.FC = () => {
                     }
                     localStorage.setItem('adminToken', resultData.token.accessToken);
                     localStorage.setItem('adminInfo', JSON.stringify(resultData.user));
-                    navigate('/hello');
+                    navigate('/admin/dashboard');
                   } catch (error: any) {
                     setErrorMsg(error.response?.data?.error?.message || "Lỗi xác thực từ Server");
                   }

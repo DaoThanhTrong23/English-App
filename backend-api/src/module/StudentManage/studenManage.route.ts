@@ -7,6 +7,7 @@ import { asyncHandler } from "../../shared/http/async-handler.js";
 import { GetStudentQuerySchema, StudentIdParamSchema } from "./studentManage.schema.js";
 import { studentManageService } from "./studentManage.service.js";
 import { Role } from "../../generated/prisma/index.js";
+import { success } from "zod/v4";
 
 
 const router = Router();
@@ -30,6 +31,13 @@ router.get(
     });
   })
 );
+
+router.get("/totalStudent",
+  asyncHandler(async (req, res) => {
+    const result = await studentManageService.getStudentCount();
+    res.status(200).json({success: true, message: "Lấy số lượng học viên thành công", data: result});    
+  })
+)
 
 /**
  * @route   GET /api/admin/students/:id

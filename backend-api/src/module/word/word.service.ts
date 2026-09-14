@@ -24,5 +24,10 @@ export const wordService = {
 
   async deleteWord(id: string) {
     return await wordRepository.deleteWord(id);
+  },
+
+
+  async countWord(){
+    return await wordRepository.countWord();
   }
 };

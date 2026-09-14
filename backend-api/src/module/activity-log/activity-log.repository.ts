@@ -7,13 +7,14 @@ export class ActivityLogRepository {
         actionType: string;
         description?: string;
     }) {
-        return prisma.activityLog.create({
-            data: {
-                actionType: data.actionType,
-                description: data.description,
-                ...(data.userId ? { user: { connect: { id: data.userId } } } : {})
-            }
-        });
+        const payload: any = {
+            actionType: data.actionType,
+            description: data.description,
+        };
+        if (data.userId) {
+            payload.user = { connect: { id: data.userId } };
+        }
+        return prisma.activityLog.create({ data: payload });
     }
 }
 

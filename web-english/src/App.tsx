@@ -1,9 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import AdminLogin from './features/auth/AdminLogin';
-
-// Import trang quản lý từ vựng mà lúc nãy bạn tạo
-// (Nếu chưa tạo file WordManager.tsx, bạn có thể tạm thêm dấu // ở đầu dòng này để comment nó đi)
-import Hello from './features/hello'; // Nhớ trỏ đúng đường dẫn nơi bạn lưu file Hello.tsx
+import AdminLogin from './features/auth/pages/AdminLogin';
+import Dashboard from './features/dashboard/pages/Dashboard';
+import StudentList from './features/students/pages/StudentList';
 
 function App() {
   return (
@@ -15,8 +13,11 @@ function App() {
         {/* Đường dẫn của trang Đăng nhập */}
         <Route path="/admin/login" element={<AdminLogin />} />
         
-        {/* Đường dẫn của trang Quản lý từ vựng (Sẽ nhảy vào đây sau khi Đăng nhập thành công) */}
-        <Route path="/hello" element={<Hello />} />
+        {/* Đường dẫn của trang Quản lý */}
+        <Route path="/admin/dashboard" element={<Dashboard />} />
+
+        {/* Đường dẫn của trang Quản lý Học viên */}
+        <Route path="/admin/students" element={<StudentList />} />
       </Routes>
     </BrowserRouter>
   );

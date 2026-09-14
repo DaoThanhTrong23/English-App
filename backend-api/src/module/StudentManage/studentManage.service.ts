@@ -105,6 +105,14 @@ export class StudentManageService {
     };
   }
 
+  @logExecution()
+  async getStudentCount(){
+    const total = await studentManageRepository.countStudent();
+
+    return {total};
+  }
+  
+
 }
 
 export const studentManageService = new StudentManageService();

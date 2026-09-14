@@ -118,6 +118,18 @@ export class StudentManageRepository {
     });
   }
 
+  @logExecution()
+  async countStudent(){
+    return prisma.user.count({
+      where: {
+        role: "user",
+      },
+    });
+  }
+
+  
+
+
 }
 
 
