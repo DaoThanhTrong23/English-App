@@ -1,4 +1,3 @@
-﻿// Phản chiếu lại Schema của Backend để FE có nhắc code
 export interface StudentParams {
   page?: number;
   limit?: number;
@@ -7,25 +6,64 @@ export interface StudentParams {
   sortOrder?: 'asc' | 'desc';
 }
 
+export interface StudentProgress {
+  totalWordsTracked: number;
+  masteredWords: number;
+  learningWords: number;
+  completedTestCount: number;
+  achivievementsCount: number;
+}
+
 export interface Student {
   id: number;
   username: string;
   email: string;
   xpPoints: number;
   lastLoginDate: string | null;
-  createdAt: string;
+  lastActiveAt: string | null;
+  lastestActivity: string | null;
+  joinedAt: string;
+  progress: StudentProgress;
 }
 
 export interface StudentResponse {
   success: boolean;
   message: string;
   data: {
-    students: Student[];
-    meta: {
-      total: number;
-      page: number;
+    items: Student[];
+    pagination: {
+      totalItems: number;
+      currentPage: number;
       limit: number;
       totalPages: number;
+      hasNextPage: boolean;
+      hasPrevPage: boolean;
     }
+  }
+}
+
+export interface StudentDetailResponse {
+  success: boolean;
+  message: string;
+  data: {
+    profile: {
+      id: number;
+      username: string;
+      email: string;
+      xpPoints: number;
+      lastLoginDate: string | null;
+      joinedAt: string;
+    };
+    progressSummary: {
+      totalWords: number;
+      masteredWords: number;
+      learningWords: number;
+      testsCompleted: number;
+      averageTestScore: number;
+      achievementsUnlocked: number;
+    };
+    recentTests: any[];
+    recentActivities: any[];
+    achievements: any[];
   }
 }

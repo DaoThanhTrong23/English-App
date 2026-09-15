@@ -31,7 +31,7 @@ export class StudentManageService {
                 username: st.username,
                 email: st.email,
                 xpPoints: st.xpPoints,
-                lasLoginDate: st.lastLoginDate,
+                lastLoginDate: st.lastLoginDate,
                 lastActiveAt: lasttActiveAt,
                 lastestActivity: lastestActivity,
                 joinedAt: st.createdAt,

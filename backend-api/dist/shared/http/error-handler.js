@@ -1,10 +1,7 @@
-import { ErrorRequestHandler } from "express";
 import { ZodError } from "zod";
 import { ApiError } from "./api-error.js";
 import { PrismaClientInitializationError } from "@prisma/client/runtime/library";
-
-
-export const errorHandler: ErrorRequestHandler = (error, request, response, _next) => {
+export const errorHandler = (error, request, response, _next) => {
     if (error instanceof ZodError) {
         response.status(422).json({
             error: {
@@ -16,7 +13,6 @@ export const errorHandler: ErrorRequestHandler = (error, request, response, _nex
         });
         return;
     }
-
     if (error instanceof ApiError) {
         response.status(error.statuscode).json({
             error: { code: error.code, message: error.message },
@@ -24,7 +20,6 @@ export const errorHandler: ErrorRequestHandler = (error, request, response, _nex
         });
         return;
     }
-
     if (error instanceof PrismaClientInitializationError) {
         response.status(500).json({
             error: {
@@ -32,12 +27,9 @@ export const errorHandler: ErrorRequestHandler = (error, request, response, _nex
                 message: "Không trích thông tin từ cơ sở dữ liệu"
             },
             path: request.path
-        })
+        });
         return;
     }
-
-
-
     // Lỗi hệ thống
     console.error("DEBUG ERROR HANDLER:", error);
     request.log.error(error);
@@ -45,4 +37,4 @@ export const errorHandler: ErrorRequestHandler = (error, request, response, _nex
         error: { code: "internal_error", message: "Lỗi không xác định từ Server" },
         path: request.path,
     });
-}
+};
