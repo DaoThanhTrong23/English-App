@@ -15,10 +15,12 @@ export class AuthService {
 
     private async createToken(userId: number, role: string, sessionId: string, deviceInfo?: string) {
         const accessToken = signAccessToken({ userId, role });
+        const accessTokenHash = hashSHA256(accessToken);
         const refreshToken = signRefreshToken({
             userId,
             sessionId,
-            role
+            role,
+            accessTokenHash
         });
 
         const tokenHash = hashSHA256(refreshToken);
@@ -211,38 +213,82 @@ export class AuthService {
 
     @logExecution()
     async refreshToken(oldRefreshToken: string, oldAccessToken?: string) {
-         verifyRefreshTokenn(oldRefreshToken);
-    const oldRefreshTokenHash = hashSHA256(oldRefreshToken);
-    const savedToken = await this.authRepo.findRefreshTokenByHash(oldRefreshTokenHash);
-    if (!savedToken) {
-        throw new ApiError(401, "token_not_found", "Refresh Token không tồn tại hoặc không hợp lệ");
-    }
-    if (savedToken.isRevoked) {
-        await this.authRepo.revokeAllSessionToken(savedToken.sessionId);
-        throw new ApiError(401, "token_revoked", "Phiên đăng nhập đã bị huỷ. Vui lòng đăng nhập lại");
-    }
-    if (new Date() > savedToken.expiresAt) {
-        throw new ApiError(401, "token_expired", "Refresh Token đã hết hạn. Vui lòng đăng nhập lại");
-    }
-    // 1. Đánh dấu thu hồi Refresh Token cũ
-    await this.authRepo.revokeRefreshToken(oldRefreshTokenHash);
-    // 2. Thu hồi Access Token cũ (nếu có gửi kèm)
-    if (oldAccessToken) {
-        const oldAccessTokenHash = hashSHA256(oldAccessToken);
-        await this.authRepo.createRevokedToken({
-            accesstokenHash: oldAccessTokenHash,
-            userId: savedToken.userId,
-            description: "Tự động thu hồi Access Token cũ khi người dùng làm mới phiên (Refresh Token)"
-        });
-    }
-    // 3. Cấp cặp Token mới
-    const { accessToken, refreshToken } = await this.createToken(
-        savedToken.userId,
-        savedToken.user.role,
-        savedToken.sessionId,
-        savedToken.deviceInfo ?? undefined
-    );
-    return { accessToken, refreshToken };
+        const decoded = verifyRefreshTokenn(oldRefreshToken);
+        const oldRefreshTokenHash = hashSHA256(oldRefreshToken);
+        const savedToken = await this.authRepo.findRefreshTokenByHash(oldRefreshTokenHash);
+        if (!savedToken) {
+            throw new ApiError(401, "token_not_found", "Refresh Token không tồn tại hoặc không hợp lệ");
+        }
+        if (savedToken.isRevoked) {
+            await this.authRepo.revokeAllSessionToken(savedToken.sessionId);
+            throw new ApiError(401, "token_revoked", "Phiên đăng nhập đã bị huỷ. Vui lòng đăng nhập lại");
+        }
+        if (new Date() > savedToken.expiresAt) {
+            throw new ApiError(401, "token_expired", "Refresh Token đã hết hạn. Vui lòng đăng nhập lại");
+        }
+
+        // Kiểm tra số lần refresh của session trong 1 phút qua
+        const oneMinuteAgo = new Date(Date.now() - 60 * 1000);
+        const tokensInLastMinute = await this.authRepo.countTokensInSessionSince(savedToken.sessionId, oneMinuteAgo);
+
+        // Nếu session đã có >= 3 tokens được tạo trong 1 phút (tức refresh quá 3 lần)
+        if (tokensInLastMinute >= 3) {
+            // 1. Thu hồi Refresh Token hiện tại
+            await this.authRepo.revokeRefreshToken(oldRefreshTokenHash);
+
+            // 2. Thu hồi toàn bộ Session
+            await this.authRepo.revokeAllSessionToken(savedToken.sessionId);
+
+            // 3. Thu hồi Access Token Hash trong payload của Refresh Token
+            if (decoded.accessTokenHash) {
+                await this.authRepo.createRevokedToken({
+                    accesstokenHash: decoded.accessTokenHash,
+                    userId: savedToken.userId,
+                    description: "Hủy Access Token do phát hiện Session refresh quá 3 lần trong 1 phút"
+                });
+            }
+
+            // 4. Thu hồi oldAccessToken gửi kèm (nếu có)
+            if (oldAccessToken) {
+                const oldAccessTokenHash = hashSHA256(oldAccessToken);
+                await this.authRepo.createRevokedToken({
+                    accesstokenHash: oldAccessTokenHash,
+                    userId: savedToken.userId,
+                    description: "Hủy Access Token gửi kèm do Session refresh quá 3 lần trong 1 phút"
+                });
+            }
+
+            throw new ApiError(429, "too_many_refresh_requests", "Cảnh báo bảo mật: Session này đã refresh quá 3 lần trong 1 phút. Toàn bộ phiên đăng nhập đã bị thu hồi!");
+        }
+
+        // 1. Đánh dấu thu hồi Refresh Token cũ
+        await this.authRepo.revokeRefreshToken(oldRefreshTokenHash);
+
+        // 2. Thu hồi Access Token cũ (lấy hash từ payload hoặc hash từ oldAccessToken)
+        const targetAccessTokenHash = decoded.accessTokenHash || (oldAccessToken ? hashSHA256(oldAccessToken) : undefined);
+        if (targetAccessTokenHash) {
+            await this.authRepo.createRevokedToken({
+                accesstokenHash: targetAccessTokenHash,
+                userId: savedToken.userId,
+                description: "Tự động thu hồi Access Token cũ khi người dùng làm mới phiên (Refresh Token)"
+            });
+        }
+        if (oldAccessToken && decoded.accessTokenHash && hashSHA256(oldAccessToken) !== decoded.accessTokenHash) {
+            await this.authRepo.createRevokedToken({
+                accesstokenHash: hashSHA256(oldAccessToken),
+                userId: savedToken.userId,
+                description: "Thu hồi Access Token gửi kèm khi refresh"
+            });
+        }
+
+        // 3. Cấp cặp Token mới
+        const { accessToken, refreshToken } = await this.createToken(
+            savedToken.userId,
+            savedToken.user.role,
+            savedToken.sessionId,
+            savedToken.deviceInfo ?? undefined
+        );
+        return { accessToken, refreshToken };
     }
 
     @logExecution()

@@ -26,15 +26,16 @@ export const Authenticate =async (req: AuthenticateRequest, res: Response, _next
     try {
         const decoded = verifyAccessToken(token);
 
-        // const tokenHash = hashSHA256(token);
-        // const isRevoked = await authRepository.isTokenRevoked(tokenHash);
-        // if (isRevoked) {
-        //     throw new ApiError(401, 'token_revoked', 'Access Token này đã bị thu hồi/đăng xuất. Vui lòng đăng nhập lại');
-        // }
+        const tokenHash = hashSHA256(token);
+        const isRevoked = await authRepository.isTokenRevoked(tokenHash);
+        if (isRevoked) {
+            throw new ApiError(401, 'token_revoked', 'Access Token này đã bị thu hồi/đăng xuất. Vui lòng đăng nhập lại');
+        }
 
         req.user = decoded;
         return _next();
     } catch (error) {
-        throw new ApiError(401, 'token_expired_or_invalid', 'Token hết hạn hoặc không hợp lệ')
+        if (error instanceof ApiError) throw error;
+        throw new ApiError(401, 'token_expired_or_invalid', 'Token hết hạn hoặc không hợp lệ');
     }
 }

@@ -5,7 +5,7 @@ import { GoogleLoginSchema, FacebookLoginSchema } from './auth.schema.js';
 
 import { asyncHandler } from "../../shared/http/async-handler.js";
 import { authService } from "./auth.service.js";
-import { Authenticate } from "../../middleware/authenticate.middleware.js";
+import { Authenticate, AuthenticateRequest } from "../../middleware/authenticate.middleware.js";
 const Authrouter = Router();
 
 const extractBearerToken = (req: Request): string | undefined => {
@@ -60,7 +60,7 @@ Authrouter.post('/facebook', validate(FacebookLoginSchema), asyncHandler(async (
 }));
 
 
-Authrouter.post("/refresh",Authenticate, validate(RefreshTokenSChema), asyncHandler(async (req, res) => {
+Authrouter.post("/refresh", validate(RefreshTokenSChema), asyncHandler(async (req, res) => {
     const oldAccessToken = extractBearerToken(req);
     const result = await authService.refreshToken(req.body.refreshToken, oldAccessToken);
     res.status(200).json({
@@ -71,7 +71,7 @@ Authrouter.post("/refresh",Authenticate, validate(RefreshTokenSChema), asyncHand
 }));
 
 // Thêm authentica cho logout vì bắt buộc phải đăng nhập mới được logout
-Authrouter.post("/logout",Authenticate,validate(LogoutSchema), asyncHandler(async (req,res) => {
+Authrouter.post("/logout", Authenticate, validate(LogoutSchema), asyncHandler(async (req: AuthenticateRequest, res) => {
     const accessToken = extractBearerToken(req);
     const userId = req.user?.userId;
     const result = await authService.logout(req.body.refreshToken, accessToken, userId);

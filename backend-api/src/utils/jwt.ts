@@ -9,7 +9,8 @@ export interface AccessTokenPayload {
 export interface RefreshTokenPayload {
     userId: number;
     sessionId: string;
-    role: string
+    role: string;
+    accessTokenHash?: string;
 }
 
 export const signAccessToken = (payload: AccessTokenPayload): string => {

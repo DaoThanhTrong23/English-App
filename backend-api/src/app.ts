@@ -31,7 +31,7 @@ export function createapp()  {
 
     // Giới hạn 100kb/request json
     app.use(express.json({ limit: '100 kb' }));
-
+    app.set("trust proxy", 1);
     // Giới hạn 100 req 1 phút
     app.use(rateLimit({
         limit: 100,
