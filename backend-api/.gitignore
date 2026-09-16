@@ -12,3 +12,4 @@ node_modules
 .devin/
 skills-lock.json
 /src/generated/prisma
+swagger-output.json

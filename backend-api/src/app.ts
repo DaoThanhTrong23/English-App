@@ -12,6 +12,9 @@ import memoryCardRouter from "./module/memory-card/memory-card.route.js";
 import { studentManageRouter } from "./module/StudentManage/studenManage.route.js";
 import { wordRouter } from "./module/word/word.route.js";
 import { courseRouter } from "./module/course/course.route.js";
+import swaggerUi from "swagger-ui-express";
+import fs from "node:fs";
+import path from "node:path";
 export function createapp()  {
     const app = express();
 
@@ -52,6 +55,16 @@ export function createapp()  {
     // Đăng ký route game
     app.use("/game/bubble-game", bubbleGameRouter);
     app.use("/game/memory-card", memoryCardRouter);
+
+    // Đăng ký Swagger UI tài liệu API
+    const swaggerPath = fs.existsSync(path.resolve(process.cwd(), "src/swagger-output.json"))
+        ? path.resolve(process.cwd(), "src/swagger-output.json")
+        : path.resolve(process.cwd(), "dist/swagger-output.json");
+
+    if (fs.existsSync(swaggerPath)) {
+        const swaggerDocument = JSON.parse(fs.readFileSync(swaggerPath, "utf8"));
+        app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+    }
 
     app.use(errorHandler);
     return app
