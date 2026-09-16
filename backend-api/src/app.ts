@@ -11,6 +11,7 @@ import bubbleGameRouter from "./module/bubble-game/bubble-game.route.js";
 import memoryCardRouter from "./module/memory-card/memory-card.route.js";
 import { studentManageRouter } from "./module/StudentManage/studenManage.route.js";
 import { wordRouter } from "./module/word/word.route.js";
+import { courseRouter } from "./module/course/course.route.js";
 export function createapp()  {
     const app = express();
 
@@ -44,7 +45,10 @@ export function createapp()  {
 
     //đăng ký route quản lý học viên
     app.use("/api/admin/students",studentManageRouter);
+    //đăng ký route quản lý từ vựng
     app.use("/api/admin/word", wordRouter);
+    //đăng ký route quản lý khoá học
+    app.use("/api/admin/courses", courseRouter);
     // Đăng ký route game
     app.use("/game/bubble-game", bubbleGameRouter);
     app.use("/game/memory-card", memoryCardRouter);
