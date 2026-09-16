@@ -125,12 +125,13 @@ model word {
 }
 
 model Lesson {
-  id           Int      @id @default(autoincrement())
-  title        String   @db.VarChar(100)
-  description  String?  @db.Text
-  cefrLevel    String?  @map("cefr_level") @db.VarChar(10)
-  thumbnailUrl String?  @map("thumbnail_url") @db.Text
-  createdAt    DateTime @default(now()) @map("created_at")
+  id           Int       @id @default(autoincrement())
+  title        String    @db.VarChar(100)
+  description  String?   @db.Text
+  cefrLevel    String?   @map("cefr_level") @db.VarChar(10)
+  thumbnailUrl String?   @map("thumbnail_url") @db.Text
+  createdAt    DateTime  @default(now()) @map("created_at")
+  deletedAt    DateTime? @map("deleted_at")
 
   lessonWords LessonWord[]
 
