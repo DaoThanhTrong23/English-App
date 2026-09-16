@@ -1,4 +1,4 @@
-﻿
+
 .admin-login-container {
   display: flex;
   justify-content: center;
@@ -113,6 +113,8 @@
   font-size: 15px;
   border: 1px solid #d1d5db;
   border-radius: 8px;
+  background-color: #ffffff;
+  color: #111827;
   outline: none;
   transition: border-color 0.2s;
   box-sizing: border-box;

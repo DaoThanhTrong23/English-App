@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { GoogleLogin, GoogleOAuthProvider } from '@react-oauth/google';
@@ -33,7 +33,15 @@ const AdminLogin: React.FC = () => {
             return;
           }
 
-          localStorage.setItem('adminToken', resultData.token.accessToken);
+          const accessToken = resultData?.token?.accessToken || resultData?.accessToken;
+          const refreshToken = resultData?.token?.refreshToken || resultData?.refreshToken;
+
+          if (accessToken) {
+            localStorage.setItem('adminToken', accessToken);
+          }
+          if (refreshToken) {
+            localStorage.setItem('adminRefreshToken', refreshToken);
+          }
           localStorage.setItem('adminInfo', JSON.stringify(resultData.user));
           navigate('/admin/dashboard');
 
@@ -66,10 +74,15 @@ const AdminLogin: React.FC = () => {
       }
 
       const token = resultData?.token?.accessToken || resultData?.accessToken;
+      const refreshToken = resultData?.token?.refreshToken || resultData?.refreshToken;
+
       if (token) {
         localStorage.setItem('adminToken', token);
-        localStorage.setItem('adminInfo', JSON.stringify(resultData.user));
       }
+      if (refreshToken) {
+        localStorage.setItem('adminRefreshToken', refreshToken);
+      }
+      localStorage.setItem('adminInfo', JSON.stringify(resultData.user));
 
       setTimeout(() => {
         navigate('/admin/dashboard');
@@ -180,7 +193,15 @@ const AdminLogin: React.FC = () => {
                           setErrorMsg('Tài khoản Google này không có quyền quản trị!');
                           return;
                         }
-                        localStorage.setItem('adminToken', resultData.token.accessToken);
+                        const token = resultData?.token?.accessToken || resultData?.accessToken;
+                        const refreshToken = resultData?.token?.refreshToken || resultData?.refreshToken;
+
+                        if (token) {
+                          localStorage.setItem('adminToken', token);
+                        }
+                        if (refreshToken) {
+                          localStorage.setItem('adminRefreshToken', refreshToken);
+                        }
                         localStorage.setItem('adminInfo', JSON.stringify(resultData.user));
                         navigate('/admin/dashboard');
                       } catch (error: any) {
