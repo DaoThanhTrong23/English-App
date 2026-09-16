@@ -13,14 +13,14 @@ import { success } from "zod/v4";
 const router = Router();
 
 // Tất cả các route bên dưới chỉ dành cho ADMIN đã đăng nhập
-router.use(Authenticate, authorize(["admin"]));
+router.use(Authenticate, authorize([Role.admin]));
 
 /**
  *  GET /api/admin/students
  *  Lấy danh sách học viên có phân trang, tìm kiếm, tiến độ học & lần cuối hoạt động
  */
 router.get(
-  "/", authorize([Role.admin]),
+  "/",
   validate(GetStudentQuerySchema),
   asyncHandler(async (req, res) => {
     const result = await studentManageService.getStudentslist(req.query as any);
@@ -44,7 +44,7 @@ router.get("/totalStudent",
  * @desc    Xem chi tiết tiến trình học, bài thi và nhật ký của 1 học viên
  */
 router.get(
-  "/:id",authorize([Role.admin]),
+  "/:id",
   validate(StudentIdParamSchema),
   asyncHandler(async (req, res) => {
     const studentId = Number(req.params.id);

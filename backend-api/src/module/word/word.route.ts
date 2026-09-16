@@ -2,13 +2,13 @@ import { Router, Request, Response } from 'express';
 import { wordService } from './word.service.js';
 import { getWordsQuerySchema, createWordSchema, updateWordSchema } from './word.schema.js';
 import { asyncHandler } from "../../shared/http/async-handler.js";
-import { requireAuth } from "../../middleware/authenticate.middleware.js";
 import { authorize } from "../../middleware/authorize.middleware.js";
+import { Role } from '../../generated/prisma/index.js';
 
 const router = Router();
 
 // Tất cả các route quản lý từ vựng của admin yêu cầu đăng nhập và quyền Admin
-router.use(requireAuth, authorize(["admin"]));
+router.use(authorize, authorize([Role.admin]));
 
 router.get('/totalWord', asyncHandler(async (req, res) => {
   const result = await wordService.countWord();
