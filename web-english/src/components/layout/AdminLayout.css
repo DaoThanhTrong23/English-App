@@ -72,7 +72,7 @@
 
 .navbar-container {
   width: 100%;
-  max-width: 1440px; /* Limit max width for ultra-wide screens */
+  max-width: 100%;
   padding: 0 24px;
   display: flex;
   align-items: center;
@@ -110,6 +110,26 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  flex: 1;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0 10px;
+  margin: 0 10px;
+}
+
+/* Minimal scrollbar for top menu */
+.navbar-menu::-webkit-scrollbar {
+  height: 4px;
+}
+.navbar-menu::-webkit-scrollbar-track {
+  background: transparent;
+}
+.navbar-menu::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+.navbar-menu::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
 .navbar-menu-item {
@@ -125,6 +145,7 @@
   transition: all 0.2s ease;
   position: relative;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .navbar-menu-item:hover {
@@ -303,16 +324,7 @@
 }
 
 /* RESPONSIVE */
-@media (max-width: 1440px) {
-  .navbar-menu-item span {
-    display: none;
-  }
-  .navbar-menu-item {
-    padding: 10px;
-  }
-  .navbar-menu {
-    gap: 4px;
-  }
+@media (max-width: 1024px) {
   .navbar-search {
     display: none;
   }
