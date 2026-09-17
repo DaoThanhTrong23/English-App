@@ -19,12 +19,20 @@ import swaggerUi from "swagger-ui-express";
 import fs from "node:fs";
 import path from "node:path";
 
-export function createapp()  {
+export function createapp() {
     const app = express();
 
     app.disable("x-powered-by");
     app.use(pinoHttp({
         logger: loggers,
+        serializers: {
+            req(req) {
+                if (req.headers?.authorization) {
+                    req.headers.authorization = "Bearer ***HIDDEN***";
+                }
+                return req;
+            }
+        },
         customLogLevel: (req, res, err) => {
             if (res.statusCode >= 500 || err) return 'error';
             if (res.statusCode >= 400) return 'warn';
@@ -53,7 +61,7 @@ export function createapp()  {
     app.use("/api/auth", Authrouter)
 
     //đăng ký route quản lý học viên
-    app.use("/api/admin/students",studentManageRouter);
+    app.use("/api/admin/students", studentManageRouter);
     //đăng ký route quản lý từ vựng
     app.use("/api/admin/word", wordRouter);
     // Đăng ký route quản lý bài học

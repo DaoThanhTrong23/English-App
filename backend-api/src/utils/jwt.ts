@@ -16,13 +16,15 @@ export interface RefreshTokenPayload {
 
 export const signAccessToken = (payload: AccessTokenPayload): string => {
     return jwt.sign(payload, env.JWT_ACCESS_SECRET, {
-        expiresIn:Math.floor( env.JWT_ACCESS_EXPIRES_IN / 1000) 
+        expiresIn:Math.floor( env.JWT_ACCESS_EXPIRES_IN / 1000),
+        jwtid: crypto.randomUUID()
     });
 }
 
 export const signRefreshToken = (payload: RefreshTokenPayload): string => {
     return jwt.sign(payload, env.JWT_REFRESH_SECRET, {
-        expiresIn:Math.floor( env.JWT_REFRESH_EXPIRES_IN / 1000)
+        expiresIn:Math.floor( env.JWT_REFRESH_EXPIRES_IN / 1000),
+        jwtid: crypto.randomUUID()
     });
 }
 
