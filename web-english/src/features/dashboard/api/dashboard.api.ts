@@ -1,6 +1,6 @@
-import api from '../../../services/api';
+import { axiosClient } from '../../../config/axios';
 
 export const getDashboardStats = async () => {
-  const response = await api.get('/admin/dashboard/stats');
+  const response = await axiosClient.get('/admin/dashboard/stats');
   return response.data;
 };
