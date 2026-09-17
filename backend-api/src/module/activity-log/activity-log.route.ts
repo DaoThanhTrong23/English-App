@@ -14,7 +14,9 @@ router.get(
   asyncHandler(async (req, res) => {
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 20;
-    const result = await activityLogService.getActivities(page, limit);
+    const search = req.query.search ? String(req.query.search) : undefined;
+    const actionType = req.query.actionType ? String(req.query.actionType) : undefined;
+    const result = await activityLogService.getActivities(page, limit, search, actionType);
     res.status(200).json({
       success: true,
       message: "Lấy lịch sử hoạt động thành công",
@@ -28,7 +30,8 @@ router.get(
   asyncHandler(async (req, res) => {
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 20;
-    const result = await activityLogService.getLoginLogs(page, limit);
+    const search = req.query.search ? String(req.query.search) : undefined;
+    const result = await activityLogService.getLoginLogs(page, limit, search);
     res.status(200).json({
       success: true,
       message: "Lấy lịch sử đăng nhập thành công",

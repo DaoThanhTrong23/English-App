@@ -3,9 +3,9 @@ import { logExecution } from "../../shared/decorators/log.decorator.js";
 
 export class ActivityLogService {
   @logExecution()
-  async getActivities(page: number = 1, limit: number = 20) {
+  async getActivities(page: number = 1, limit: number = 20, search?: string, actionType?: string) {
     const skip = (page - 1) * limit;
-    const { total, items } = await activityLogRepository.findActivities(skip, limit);
+    const { total, items } = await activityLogRepository.findActivities(skip, limit, search, actionType);
     return {
       pagination: {
         totalItems: total,
@@ -18,9 +18,9 @@ export class ActivityLogService {
   }
 
   @logExecution()
-  async getLoginLogs(page: number = 1, limit: number = 20) {
+  async getLoginLogs(page: number = 1, limit: number = 20, search?: string) {
     const skip = (page - 1) * limit;
-    const { total, items } = await activityLogRepository.findLoginLogs(skip, limit);
+    const { total, items } = await activityLogRepository.findLoginLogs(skip, limit, search);
     return {
       pagination: {
         totalItems: total,

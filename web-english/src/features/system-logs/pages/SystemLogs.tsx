@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import { fetchActivities, fetchLoginLogs } from '../api/system-logs.api';
-import { Activity, LogIn } from 'lucide-react';
+import { Activity, LogIn, Search, Filter } from 'lucide-react';
 import '../../courses/pages/CourseList.css';
 
 const SystemLogs: React.FC = () => {
@@ -11,18 +11,20 @@ const SystemLogs: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [search, setSearch] = useState('');
+  const [actionType, setActionType] = useState('');
 
   const loadData = async (currentPage: number) => {
     setLoading(true);
     try {
       if (activeTab === 'activities') {
-        const res = await fetchActivities(currentPage, 20);
+        const res = await fetchActivities(currentPage, 20, search, actionType);
         if (res.data) {
           setActivities(res.data.items);
           setTotalPages(res.data.pagination.totalPages);
         }
       } else {
-        const res = await fetchLoginLogs(currentPage, 20);
+        const res = await fetchLoginLogs(currentPage, 20, search);
         if (res.data) {
           setLoginLogs(res.data.items);
           setTotalPages(res.data.pagination.totalPages);
@@ -39,6 +41,11 @@ const SystemLogs: React.FC = () => {
     loadData(page);
   }, [activeTab, page]);
 
+  const handleSearch = () => {
+    setPage(1);
+    loadData(1);
+  };
+
   return (
     <AdminLayout>
       <div className="course-list-container">
@@ -50,15 +57,54 @@ const SystemLogs: React.FC = () => {
           <div style={{ display: 'flex', gap: '16px', marginBottom: '24px', borderBottom: '2px solid #e2e8f0' }}>
             <button 
               style={{ padding: '12px 24px', background: 'none', border: 'none', borderBottom: activeTab === 'activities' ? '2px solid #3b82f6' : 'none', color: activeTab === 'activities' ? '#3b82f6' : '#64748b', fontWeight: 'bold', cursor: 'pointer', marginBottom: '-2px' }}
-              onClick={() => { setActiveTab('activities'); setPage(1); }}
+              onClick={() => { setActiveTab('activities'); setPage(1); setSearch(''); setActionType(''); }}
             >
               <Activity size={16} style={{ display: 'inline', marginRight: '8px' }}/> Hoạt động
             </button>
             <button 
               style={{ padding: '12px 24px', background: 'none', border: 'none', borderBottom: activeTab === 'login' ? '2px solid #3b82f6' : 'none', color: activeTab === 'login' ? '#3b82f6' : '#64748b', fontWeight: 'bold', cursor: 'pointer', marginBottom: '-2px' }}
-              onClick={() => { setActiveTab('login'); setPage(1); }}
+              onClick={() => { setActiveTab('login'); setPage(1); setSearch(''); setActionType(''); }}
             >
               <LogIn size={16} style={{ display: 'inline', marginRight: '8px' }}/> Đăng nhập
+            </button>
+          </div>
+
+          <div style={{ display: 'flex', gap: '16px', marginBottom: '24px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', background: '#f8fafc', padding: '8px 16px', borderRadius: '8px', border: '1px solid #e2e8f0', flex: 1, minWidth: '250px' }}>
+              <Search size={18} color="#94a3b8" style={{ marginRight: '8px' }} />
+              <input 
+                type="text" 
+                placeholder={activeTab === 'activities' ? 'Tìm theo email, username, chi tiết...' : 'Tìm theo email, username, IP...'} 
+                style={{ border: 'none', background: 'transparent', outline: 'none', width: '100%' }}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              />
+            </div>
+            
+            {activeTab === 'activities' && (
+              <div style={{ display: 'flex', alignItems: 'center', background: '#f8fafc', padding: '8px 16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                <Filter size={18} color="#94a3b8" style={{ marginRight: '8px' }} />
+                <select 
+                  style={{ border: 'none', background: 'transparent', outline: 'none' }}
+                  value={actionType}
+                  onChange={(e) => setActionType(e.target.value)}
+                >
+                  <option value="">Tất cả hành động</option>
+                  <option value="LOGIN">Đăng nhập</option>
+                  <option value="LOGOUT">Đăng xuất</option>
+                  <option value="CREATE">Thêm mới</option>
+                  <option value="UPDATE">Cập nhật</option>
+                  <option value="DELETE">Xóa</option>
+                </select>
+              </div>
+            )}
+            
+            <button 
+              onClick={handleSearch}
+              style={{ padding: '8px 24px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}
+            >
+              Tìm kiếm
             </button>
           </div>
 

@@ -17,10 +17,23 @@ export class ActivityLogRepository {
         return prisma.activityLog.create({ data: payload });
     }
 
-    async findActivities(skip: number, take: number) {
+    async findActivities(skip: number, take: number, search?: string, actionType?: string) {
+        const where: any = {};
+        if (actionType) {
+            where.actionType = actionType;
+        }
+        if (search) {
+            where.OR = [
+                { user: { username: { contains: search } } },
+                { user: { email: { contains: search } } },
+                { description: { contains: search } }
+            ];
+        }
+
         const [total, items] = await Promise.all([
-            prisma.activityLog.count(),
+            prisma.activityLog.count({ where }),
             prisma.activityLog.findMany({
+                where,
                 skip,
                 take,
                 orderBy: { createdAt: 'desc' },
@@ -32,10 +45,20 @@ export class ActivityLogRepository {
         return { total, items };
     }
 
-    async findLoginLogs(skip: number, take: number) {
+    async findLoginLogs(skip: number, take: number, search?: string) {
+        const where: any = {};
+        if (search) {
+            where.OR = [
+                { user: { username: { contains: search } } },
+                { user: { email: { contains: search } } },
+                { ipAddress: { contains: search } }
+            ];
+        }
+
         const [total, items] = await Promise.all([
-            prisma.loginLog.count(),
+            prisma.loginLog.count({ where }),
             prisma.loginLog.findMany({
+                where,
                 skip,
                 take,
                 orderBy: { loginTime: 'desc' },
