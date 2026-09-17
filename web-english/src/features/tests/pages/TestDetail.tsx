@@ -189,11 +189,11 @@ const TestDetail: React.FC = () => {
     <AdminLayout>
       <div className="test-detail-main">
         <button className="back-btn" onClick={() => navigate('/admin/tests')}>
-          <ArrowLeft size={16} /> Quay lại danh sách Bài thi
+          <ArrowLeft size={16} /> Quay lại danh sách bài thi
         </button>
 
         <div className="test-detail-header">
-          <h2>Quản lý Câu hỏi (Bài thi #{testId})</h2>
+          <h2>Quản lý câu hỏi (Bài thi #{testId})</h2>
           <div style={{ display: 'flex', gap: '12px' }}>
             <input 
               type="file" 
@@ -211,7 +211,7 @@ const TestDetail: React.FC = () => {
               <Upload size={18} /> {importing ? 'Đang xử lý...' : 'Nhập Excel'}
             </button>
             <button className="add-test-btn" onClick={() => handleOpenModal()}>
-              <Plus size={18} /> Thêm Câu Hỏi Mới
+              <Plus size={18} /> Thêm câu hỏi mới
             </button>
           </div>
         </div>
@@ -347,7 +347,7 @@ const TestDetail: React.FC = () => {
               </div>
 
               <div className="form-group">
-                <label>Các Đáp án {formData.questionType === 'speaking' && '(Chỉ cần 1 đáp án là câu mẫu)'}</label>
+                <label>Các đáp án {formData.questionType === 'speaking' && '(Chỉ cần 1 đáp án là câu mẫu)'}</label>
                 <div className="dynamic-answers">
                   <p style={{ fontSize: '0.85rem', color: '#64748b', marginTop: 0, marginBottom: '12px' }}>
                     Tích chọn vào ô tròn/vuông để đánh dấu đáp án đúng.

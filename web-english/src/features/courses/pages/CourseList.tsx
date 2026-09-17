@@ -109,9 +109,9 @@ const CourseList: React.FC = () => {
     <AdminLayout>
       <div className="course-list-main">
         <div className="course-list-header">
-          <h2>Quản lý Bài học</h2>
+          <h2>Quản lý bài học</h2>
           <button className="add-course-btn" onClick={() => handleOpenModal()}>
-            <Plus size={18} /> Thêm Bài học
+            <Plus size={18} /> Thêm bài học
           </button>
         </div>
 

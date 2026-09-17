@@ -71,16 +71,16 @@ const Dashboard: React.FC = () => {
           <div className="bento-container">
             {/* HERO WELCOME */}
             <div className="bento-item bento-hero">
-              <h2 style={{ fontSize: '2rem', margin: '0 0 12px 0' }}>Chào mừng trở lại, Admin! 👋</h2>
+              <h2 style={{ fontSize: '2rem', margin: '0 0 12px 0', color: 'white' }}>Chào mừng trở lại nhoa</h2>
               <p style={{ color: '#94a3b8', margin: '0 0 24px 0', fontSize: '1.1rem' }}>Đây là tổng quan tình hình hệ thống EnglishApp ngày hôm nay.</p>
               
               <div style={{ display: 'flex', gap: '32px', marginTop: 'auto' }}>
                 <div>
-                  <div style={{ color: '#94a3b8', fontSize: '0.9rem', marginBottom: '4px' }}>Tổng Học Viên</div>
+                  <div style={{ color: '#94a3b8', fontSize: '0.9rem', marginBottom: '4px' }}>Tổng học viên</div>
                   <div style={{ fontSize: '2rem', fontWeight: 'bold' }}>{totalStudents}</div>
                 </div>
                 <div>
-                  <div style={{ color: '#94a3b8', fontSize: '0.9rem', marginBottom: '4px' }}>Tổng Bài Kiểm Tra</div>
+                  <div style={{ color: '#94a3b8', fontSize: '0.9rem', marginBottom: '4px' }}>Tổng bài kiểm tra</div>
                   <div style={{ fontSize: '2rem', fontWeight: 'bold' }}>{totalTests}</div>
                 </div>
               </div>
