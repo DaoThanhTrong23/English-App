@@ -32,6 +32,7 @@ export class CourseRepository {
         orderBy: { [sortBy]: sortOrder },
         select: {
           id: true,
+          topicId: true,
           title: true,
           description: true,
           cefrLevel: true,
@@ -110,8 +111,11 @@ export class CourseRepository {
 
   @logExecution()
   async createCourse(data: {
+    topicId?: number | null;
     title: string;
     description?: string | null;
+    content?: string | null;
+    videoUrl?: string | null;
     cefrLevel?: string | null;
     thumbnailUrl?: string | null;
     wordIds?: number[];
@@ -121,8 +125,11 @@ export class CourseRepository {
     return prisma.$transaction(async (tx) => {
       const course = await tx.lesson.create({
         data: {
+          topicId: courseData.topicId ?? null,
           title: courseData.title,
           description: courseData.description ?? null,
+          content: courseData.content ?? null,
+          videoUrl: courseData.videoUrl ?? null,
           cefrLevel: courseData.cefrLevel ?? null,
           thumbnailUrl: courseData.thumbnailUrl ?? null,
         },
@@ -160,8 +167,11 @@ export class CourseRepository {
   async updateCourse(
     id: number,
     data: {
+      topicId?: number | null;
       title?: string;
       description?: string | null;
+      content?: string | null;
+      videoUrl?: string | null;
       cefrLevel?: string | null;
       thumbnailUrl?: string | null;
       wordIds?: number[];
@@ -171,8 +181,11 @@ export class CourseRepository {
 
     return prisma.$transaction(async (tx) => {
       const updatePayload: any = {};
+      if (courseData.topicId !== undefined) updatePayload.topicId = courseData.topicId;
       if (courseData.title !== undefined) updatePayload.title = courseData.title;
       if (courseData.description !== undefined) updatePayload.description = courseData.description;
+      if (courseData.content !== undefined) updatePayload.content = courseData.content;
+      if (courseData.videoUrl !== undefined) updatePayload.videoUrl = courseData.videoUrl;
       if (courseData.cefrLevel !== undefined) updatePayload.cefrLevel = courseData.cefrLevel;
       if (courseData.thumbnailUrl !== undefined) updatePayload.thumbnailUrl = courseData.thumbnailUrl;
 

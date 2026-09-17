@@ -40,8 +40,11 @@ export const CourseIdParamSchema = z.object({
  */
 export const CreateCourseSchema = z.object({
   body: z.object({
-    title: z.string().trim().min(1, "Tiêu đề không được để trống").max(100, "Tiêu đề tối đa 100 ký tự"),
+    topicId: z.coerce.number().int().positive().nullish(),
+    title: z.string().trim().min(1, "Tiêu đề không được để trống").max(100, "Tiêu đề tối đa 100 kí tự"),
     description: z.string().trim().nullish(),
+    content: z.string().trim().nullish(),
+    videoUrl: z.string().trim().url("URL video không hợp lệ").or(z.literal("")).nullish(),
     cefrLevel: z.enum(CEFR_LEVELS).nullish(),
     thumbnailUrl: z.string().trim().url("URL ảnh không hợp lệ").or(z.literal("")).nullish(),
     wordIds: z.array(z.coerce.number().int().positive("Word ID không hợp lệ")).optional().default([]),
@@ -58,8 +61,11 @@ export const UpdateCourseSchema = z.object({
     id: z.coerce.number().int().positive("ID khóa học không hợp lệ"),
   }),
   body: z.object({
-    title: z.string().trim().min(1, "Tiêu đề không được để trống").max(100, "Tiêu đề tối đa 100 ký tự").optional(),
+    topicId: z.coerce.number().int().positive().nullish(),
+    title: z.string().trim().min(1, "Tiêu đề không được để trống").max(100, "Tiêu đề tối đa 100 kí tự").optional(),
     description: z.string().trim().nullish(),
+    content: z.string().trim().nullish(),
+    videoUrl: z.string().trim().url("URL video không hợp lệ").or(z.literal("")).nullish(),
     cefrLevel: z.enum(CEFR_LEVELS).nullish(),
     thumbnailUrl: z.string().trim().url("URL ảnh không hợp lệ").or(z.literal("")).nullish(),
     wordIds: z.array(z.coerce.number().int().positive("Word ID không hợp lệ")).optional(),

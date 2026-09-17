@@ -9,8 +9,12 @@ export const fetchCourses = async (page: number, limit: number, search?: string,
   const params: any = { page, limit };
   if (search) params.search = search;
   if (cefrLevel) params.cefrLevel = cefrLevel;
-  
   const response = await axiosClient.get('/admin/courses', { params });
+  return response.data;
+};
+
+export const fetchCourseById = async (id: number) => {
+  const response = await axiosClient.get(`/admin/courses/${id}`);
   return response.data;
 };
 

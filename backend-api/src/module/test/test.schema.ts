@@ -2,6 +2,7 @@ import { z } from "zod";
 
 export const CreateTestSchema = z.object({
   body: z.object({
+    lessonId: z.number().int().positive().optional().nullable(),
     title: z.string().min(1, "Tiêu đề không được để trống").max(255),
     description: z.string().optional().nullable(),
     ceftLevel: z.string().max(10).optional().nullable(), // typo in DB: ceftLevel
@@ -13,6 +14,7 @@ export const UpdateTestSchema = z.object({
     testId: z.string().regex(/^\d+$/, "ID bài thi phải là số"),
   }),
   body: z.object({
+    lessonId: z.number().int().positive().optional().nullable(),
     title: z.string().min(1).max(255).optional(),
     description: z.string().optional().nullable(),
     ceftLevel: z.string().max(10).optional().nullable(),

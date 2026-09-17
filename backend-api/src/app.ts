@@ -13,6 +13,8 @@ import { studentManageRouter } from "./module/StudentManage/studenManage.route.j
 import { wordRouter } from "./module/word/word.route.js";
 import { courseRouter } from "./module/course/course.route.js";
 import { testRouter } from "./module/test/test.route.js";
+import { topicRouter } from "./module/topic/topic.route.js";
+import achievementRouter from "./module/achievement/achievement.route.js";
 import swaggerUi from "swagger-ui-express";
 import fs from "node:fs";
 import path from "node:path";
@@ -54,8 +56,10 @@ export function createapp()  {
     app.use("/api/admin/students",studentManageRouter);
     //đăng ký route quản lý từ vựng
     app.use("/api/admin/word", wordRouter);
-    // Đăng ký route quản lý khoá học
+    // Đăng ký route quản lý bài học
     app.use("/api/admin/courses", courseRouter);
+    app.use("/api/admin/topics", topicRouter);
+    app.use("/api/admin/achievements", achievementRouter);
     // Đăng ký route quản lý bài kiểm tra
     app.use("/api/admin/tests", testRouter);
     // Đăng ký route game

@@ -1,9 +1,10 @@
 import { axiosClient } from '../../../config/axios';
 
-export const fetchTests = async (ceftLevel?: string, search?: string) => {
+export const fetchTests = async (ceftLevel?: string, search?: string, lessonId?: number) => {
   const params: any = {};
   if (ceftLevel) params.ceftLevel = ceftLevel;
   if (search) params.search = search;
+  if (lessonId !== undefined) params.lessonId = lessonId;
   const response = await axiosClient.get('/admin/tests', { params });
   return response.data;
 };

@@ -6,8 +6,8 @@ import * as fs from "fs";
 export class TestService {
   constructor(private testRepo: TestRepository = testRepository) {}
 
-  async getAllTests(ceftLevel?: string, search?: string) {
-    return await this.testRepo.findTests(ceftLevel, search);
+  async getAllTests(ceftLevel?: string, search?: string, lessonId?: number | null) {
+    return await this.testRepo.findTests(ceftLevel, search, lessonId);
   }
 
   async createTest(data: any) {

@@ -30,7 +30,13 @@ testRouter.post("/:testId/questions/import", upload.single('file'), asyncHandler
 testRouter.get("/", asyncHandler(async (req, res) => {
   const ceftLevel = req.query.ceftLevel as string;
   const search = req.query.search as string;
-  const result = await testService.getAllTests(ceftLevel, search);
+  let lessonId: number | null | undefined = undefined;
+  if (req.query.lessonId === 'null') {
+    lessonId = null;
+  } else if (req.query.lessonId) {
+    lessonId = parseInt(req.query.lessonId as string);
+  }
+  const result = await testService.getAllTests(ceftLevel, search, lessonId);
   res.status(200).json({ success: true, message: "Lấy danh sách bài thi thành công", data: result });
 }));
 

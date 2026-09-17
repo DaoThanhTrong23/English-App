@@ -18,6 +18,7 @@ export class CourseService {
 
     const formattedCourses = courses.map((course) => ({
       id: course.id,
+      topicId: course.topicId,
       title: course.title,
       description: course.description,
       cefrLevel: course.cefrLevel,
@@ -52,8 +53,11 @@ export class CourseService {
 
     return {
       id: course.id,
+      topicId: course.topicId,
       title: course.title,
       description: course.description,
+      content: course.content,
+      videoUrl: course.videoUrl,
       cefrLevel: course.cefrLevel,
       thumbnailUrl: course.thumbnailUrl,
       createdAt: course.createdAt,
@@ -88,8 +92,11 @@ export class CourseService {
     }
 
     const newCourse = await this.courseRepo.createCourse({
+      topicId: data.topicId,
       title: data.title,
       description: data.description,
+      content: data.content,
+      videoUrl: data.videoUrl,
       cefrLevel: data.cefrLevel,
       thumbnailUrl: data.thumbnailUrl,
       wordIds: data.wordIds,
@@ -97,8 +104,11 @@ export class CourseService {
 
     return {
       id: newCourse?.id,
+      topicId: newCourse?.topicId,
       title: newCourse?.title,
       description: newCourse?.description,
+      content: newCourse?.content,
+      videoUrl: newCourse?.videoUrl,
       cefrLevel: newCourse?.cefrLevel,
       thumbnailUrl: newCourse?.thumbnailUrl,
       createdAt: newCourse?.createdAt,
@@ -130,8 +140,11 @@ export class CourseService {
     }
 
     const updated = await this.courseRepo.updateCourse(id, {
+      topicId: data.topicId,
       title: data.title,
       description: data.description,
+      content: data.content,
+      videoUrl: data.videoUrl,
       cefrLevel: data.cefrLevel,
       thumbnailUrl: data.thumbnailUrl,
       wordIds: data.wordIds,
@@ -139,8 +152,11 @@ export class CourseService {
 
     return {
       id: updated?.id,
+      topicId: updated?.topicId,
       title: updated?.title,
       description: updated?.description,
+      content: updated?.content,
+      videoUrl: updated?.videoUrl,
       cefrLevel: updated?.cefrLevel,
       thumbnailUrl: updated?.thumbnailUrl,
       createdAt: updated?.createdAt,

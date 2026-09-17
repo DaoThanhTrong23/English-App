@@ -1,7 +1,7 @@
 import { prisma } from "../../config/prisma.js";
 
 export class TestRepository {
-  async findTests(ceftLevel?: string, search?: string) {
+  async findTests(ceftLevel?: string, search?: string, lessonId?: number | null) {
     const whereClause: any = {};
     if (ceftLevel) {
       if (ceftLevel === 'A') {
@@ -17,6 +17,12 @@ export class TestRepository {
     
     if (search) {
       whereClause.title = { contains: search };
+    }
+
+    if (lessonId) {
+      whereClause.lessonId = lessonId;
+    } else if (lessonId === null) {
+      whereClause.lessonId = null;
     }
 
     return await prisma.test.findMany({

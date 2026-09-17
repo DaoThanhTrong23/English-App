@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Plus, Edit, Trash2, BookOpen } from 'lucide-react';
 import { fetchCourses, createCourse, updateCourse, deleteCourse } from '../api/course.api';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import './CourseList.css';
 
 const CourseList: React.FC = () => {
+  const navigate = useNavigate();
   const [courses, setCourses] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -28,10 +30,12 @@ const CourseList: React.FC = () => {
     setLoading(true);
     try {
       const result = await fetchCourses(page, limit, search, cefrLevel);
-      if (result.data && Array.isArray(result.data.courses)) {
+      if (result.data && Array.isArray(result.data.items)) {
+        setCourses(result.data.items);
+      } else if (result.data && Array.isArray(result.data.courses)) {
         setCourses(result.data.courses);
       } else if (Array.isArray(result.data)) {
-        setCourses(result.data); // fallback if it was already an array
+        setCourses(result.data);
       }
     } catch (error) {
       console.error("Lỗi tải danh sách bài học", error);
@@ -182,12 +186,19 @@ const CourseList: React.FC = () => {
                       </td>
                       <td>{new Date(course.createdAt).toLocaleDateString('vi-VN')}</td>
                       <td>
-                        <div className="course-actions">
-                          <button className="action-btn edit-btn" onClick={() => handleOpenModal(course)} title="Sửa">
-                            <Edit size={16} />
+                        <div className="action-buttons">
+                          <button 
+                            className="btn-edit" 
+                            title="Xem chi tiết & Quản lý"
+                            onClick={() => navigate(`/admin/courses/${course.id}`)}
+                          >
+                            <BookOpen size={18} />
                           </button>
-                          <button className="action-btn delete-btn" onClick={() => handleDelete(course.id)} title="Xóa">
-                            <Trash2 size={16} />
+                          <button className="btn-edit" onClick={() => handleOpenModal(course)}>
+                            <Edit size={18} />
+                          </button>
+                          <button className="btn-delete" onClick={() => handleDelete(course.id)}>
+                            <Trash2 size={18} />
                           </button>
                         </div>
                       </td>

@@ -5,6 +5,9 @@ import StudentList from './features/students/pages/StudentList';
 import AddWord from './features/words/pages/AddWord';
 import WordList from './features/words/pages/WordList';
 import CourseList from './features/courses/pages/CourseList';
+import CourseDetail from './features/courses/pages/CourseDetail';
+import TopicList from './features/topics/pages/TopicList';
+import AchievementList from './features/achievements/pages/AchievementList';
 import TestList from './features/tests/pages/TestList';
 import TestDetail from './features/tests/pages/TestDetail';
 import TestResults from './features/tests/pages/TestResults';
@@ -29,8 +32,13 @@ function App() {
         <Route path="/admin/words" element={<WordList />} />
         <Route path="/admin/words/add" element={<AddWord />} />
         
-        {/* Đường dẫn của trang Quản lý Bài học */}
+        {/* Đường dẫn của trang Quản lý Bài học & Chủ đề */}
+        <Route path="/admin/topics" element={<TopicList />} />
         <Route path="/admin/courses" element={<CourseList />} />
+        <Route path="/admin/courses/:courseId" element={<CourseDetail />} />
+
+        {/* Đường dẫn của trang Quản lý Danh hiệu */}
+        <Route path="/admin/achievements" element={<AchievementList />} />
 
         {/* Đường dẫn của trang Quản lý Bài Kiểm Tra */}
         <Route path="/admin/tests" element={<TestList />} />
