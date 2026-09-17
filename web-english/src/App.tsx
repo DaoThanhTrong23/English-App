@@ -8,6 +8,7 @@ import CourseList from './features/courses/pages/CourseList';
 import CourseDetail from './features/courses/pages/CourseDetail';
 import TopicList from './features/topics/pages/TopicList';
 import AchievementList from './features/achievements/pages/AchievementList';
+import SystemLogs from './features/system-logs/pages/SystemLogs';
 import TestList from './features/tests/pages/TestList';
 import TestDetail from './features/tests/pages/TestDetail';
 import TestResults from './features/tests/pages/TestResults';
@@ -44,6 +45,9 @@ function App() {
         <Route path="/admin/tests" element={<TestList />} />
         <Route path="/admin/tests/:testId" element={<TestDetail />} />
         <Route path="/admin/tests/:testId/results" element={<TestResults />} />
+
+        {/* Hệ thống */}
+        <Route path="/admin/logs" element={<SystemLogs />} />
 
         {/* Bắt lỗi các trang chưa có (Game, Cài đặt, v.v.) sẽ hiện thông báo thay vì màn hình đen */}
         <Route path="*" element={

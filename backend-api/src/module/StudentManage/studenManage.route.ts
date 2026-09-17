@@ -44,6 +44,19 @@ router.get("/totalStudent",
  * @desc    Xem chi tiết tiến trình học, bài thi và nhật ký của 1 học viên
  */
 router.get(
+  "/top",
+  asyncHandler(async (req, res) => {
+    const limit = Number(req.query.limit) || 5;
+    const result = await studentManageService.getTopStudents(limit);
+    res.status(200).json({
+      success: true,
+      message: "Lấy danh sách học viên xuất sắc thành công",
+      data: result,
+    });
+  })
+);
+
+router.get(
   "/:id",
   validate(StudentIdParamSchema),
   asyncHandler(async (req, res) => {
@@ -52,6 +65,34 @@ router.get(
     res.status(200).json({
       success: true,
       message: "Lấy chi tiết học viên thành công",
+      data: result,
+    });
+  })
+);
+
+router.get(
+  "/:id/progress",
+  validate(StudentIdParamSchema),
+  asyncHandler(async (req, res) => {
+    const id = Number(req.params.id);
+    const result = await studentManageService.getUserProgress(id);
+    res.status(200).json({
+      success: true,
+      message: "Lấy tiến độ học từ vựng thành công",
+      data: result,
+    });
+  })
+);
+
+router.get(
+  "/:id/ai-chat",
+  validate(StudentIdParamSchema),
+  asyncHandler(async (req, res) => {
+    const id = Number(req.params.id);
+    const result = await studentManageService.getUserAiChat(id);
+    res.status(200).json({
+      success: true,
+      message: "Lấy lịch sử chat AI thành công",
       data: result,
     });
   })

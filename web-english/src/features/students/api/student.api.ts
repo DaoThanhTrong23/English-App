@@ -17,3 +17,18 @@ export const getTotalStudents = async () => {
   const response = await axiosClient.get('/admin/students/totalStudent');
   return response.data.data.total; 
 };
+
+export const fetchStudentProgress = async (id: number) => {
+  const response = await axiosClient.get(`/admin/students/${id}/progress`);
+  return response.data;
+};
+
+export const fetchStudentAiChat = async (id: number) => {
+  const response = await axiosClient.get(`/admin/students/${id}/ai-chat`);
+  return response.data;
+};
+
+export const fetchTopStudents = async (limit: number = 5) => {
+  const response = await axiosClient.get(`/admin/students/top?limit=${limit}`);
+  return response.data;
+};

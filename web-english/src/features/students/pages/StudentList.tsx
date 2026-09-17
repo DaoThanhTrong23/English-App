@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-import { getStudents, getStudentDetail } from '../api/student.api';
+import { getStudents, getStudentDetail, fetchStudentProgress, fetchStudentAiChat } from '../api/student.api';
 import type { Student, StudentDetailResponse } from '../types/student.types';
 import './StudentList.css';
 import '../../words/pages/WordList.css'; // For Dashboard Layout styles
@@ -20,6 +20,9 @@ const StudentList: React.FC = () => {
 
   // Detail Modal State
   const [selectedStudent, setSelectedStudent] = useState<StudentDetailResponse['data'] | null>(null);
+  const [activeTab, setActiveTab] = useState<'tests' | 'progress' | 'chat'>('tests');
+  const [studentProgress, setStudentProgress] = useState<any[]>([]);
+  const [studentChat, setStudentChat] = useState<any[]>([]);
   
 
   const loadStudents = async () => {
@@ -44,10 +47,16 @@ const StudentList: React.FC = () => {
 
   const handleViewDetail = async (id: number) => {
     try {
+      setActiveTab('tests');
       const res = await getStudentDetail(id);
       if (res.success) {
         setSelectedStudent(res.data);
       }
+      const pRes = await fetchStudentProgress(id);
+      if (pRes.success) setStudentProgress(pRes.data);
+      
+      const cRes = await fetchStudentAiChat(id);
+      if (cRes.success) setStudentChat(cRes.data);
     } catch (error) {
       alert("Lỗi tải chi tiết học viên");
     }
@@ -225,8 +234,23 @@ const StudentList: React.FC = () => {
                 </div>
               )}
 
-              {selectedStudent.recentTests.length > 0 && (
-                <div className="detail-card" style={{ marginTop: '24px' }}>
+              <div style={{ display: 'flex', gap: '16px', marginTop: '24px', borderBottom: '2px solid #e2e8f0' }}>
+                <button 
+                  style={{ padding: '8px 16px', background: 'none', border: 'none', borderBottom: activeTab === 'tests' ? '2px solid #3b82f6' : 'none', color: activeTab === 'tests' ? '#3b82f6' : '#64748b', fontWeight: 'bold', cursor: 'pointer', marginBottom: '-2px' }}
+                  onClick={() => setActiveTab('tests')}
+                >Bài thi</button>
+                <button 
+                  style={{ padding: '8px 16px', background: 'none', border: 'none', borderBottom: activeTab === 'progress' ? '2px solid #3b82f6' : 'none', color: activeTab === 'progress' ? '#3b82f6' : '#64748b', fontWeight: 'bold', cursor: 'pointer', marginBottom: '-2px' }}
+                  onClick={() => setActiveTab('progress')}
+                >Tiến độ học</button>
+                <button 
+                  style={{ padding: '8px 16px', background: 'none', border: 'none', borderBottom: activeTab === 'chat' ? '2px solid #3b82f6' : 'none', color: activeTab === 'chat' ? '#3b82f6' : '#64748b', fontWeight: 'bold', cursor: 'pointer', marginBottom: '-2px' }}
+                  onClick={() => setActiveTab('chat')}
+                >Lịch sử Chat AI</button>
+              </div>
+
+              {activeTab === 'tests' && selectedStudent.recentTests.length > 0 && (
+                <div className="detail-card" style={{ marginTop: '16px' }}>
                   <h4>Lịch sử kiểm tra gần đây</h4>
                   <table style={{ width: '100%', fontSize: '0.9rem', borderCollapse: 'collapse' }}>
                     <thead>
@@ -248,6 +272,58 @@ const StudentList: React.FC = () => {
                       ))}
                     </tbody>
                   </table>
+                </div>
+              )}
+
+              {activeTab === 'progress' && (
+                <div className="detail-card" style={{ marginTop: '16px' }}>
+                  <h4>Tiến độ học từ vựng</h4>
+                  {studentProgress.length === 0 ? <p>Chưa có dữ liệu</p> : (
+                    <table style={{ width: '100%', fontSize: '0.9rem', borderCollapse: 'collapse' }}>
+                      <thead>
+                        <tr style={{ borderBottom: '1px solid #e2e8f0', textAlign: 'left' }}>
+                          <th style={{ padding: '8px' }}>Từ vựng</th>
+                          <th style={{ padding: '8px' }}>Trạng thái</th>
+                          <th style={{ padding: '8px' }}>Mức độ nhớ</th>
+                          <th style={{ padding: '8px' }}>Lần ôn tới</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {studentProgress.map((p, idx) => (
+                          <tr key={idx} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                            <td style={{ padding: '8px', fontWeight: 'bold' }}>{p.word?.word}</td>
+                            <td style={{ padding: '8px' }}>{p.status}</td>
+                            <td style={{ padding: '8px' }}>Level {p.memoryLevel}</td>
+                            <td style={{ padding: '8px', color: '#64748b' }}>{p.nextReviewDate ? new Date(p.nextReviewDate).toLocaleDateString('vi-VN') : '-'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              )}
+
+              {activeTab === 'chat' && (
+                <div className="detail-card" style={{ marginTop: '16px' }}>
+                  <h4>Lịch sử trò chuyện với AI</h4>
+                  {studentChat.length === 0 ? <p>Chưa có dữ liệu chat</p> : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                      {studentChat.map((session, idx) => (
+                        <div key={idx} style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '12px' }}>
+                          <div style={{ fontWeight: 'bold', marginBottom: '8px', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>
+                            Cuộc trò chuyện ngày {new Date(session.startedAt).toLocaleString('vi-VN')}
+                          </div>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '200px', overflowY: 'auto' }}>
+                            {session.messages.map((msg: any, mIdx: number) => (
+                              <div key={mIdx} style={{ alignSelf: msg.sender === 'user' ? 'flex-end' : 'flex-start', background: msg.sender === 'user' ? '#eff6ff' : '#f1f5f9', padding: '8px 12px', borderRadius: '8px', maxWidth: '80%' }}>
+                                <div style={{ fontSize: '0.9rem' }}>{msg.messageText}</div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </div>

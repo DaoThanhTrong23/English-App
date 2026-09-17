@@ -15,6 +15,7 @@ import { courseRouter } from "./module/course/course.route.js";
 import { testRouter } from "./module/test/test.route.js";
 import { topicRouter } from "./module/topic/topic.route.js";
 import achievementRouter from "./module/achievement/achievement.route.js";
+import { activityLogRouter } from "./module/activity-log/activity-log.route.js";
 import swaggerUi from "swagger-ui-express";
 import fs from "node:fs";
 import path from "node:path";
@@ -51,11 +52,11 @@ export function createapp() {
         legacyHeaders: false
     }));
 
-    app.use("/api/auth", Authrouter)
-
-    //đăng ký route quản lý học viên
+    // Đăng ký route cho module auth
+    app.use("/api/auth", Authrouter);
     app.use("/api/admin/students", studentManageRouter);
-    //đăng ký route quản lý từ vựng
+    app.use("/api/admin/logs", activityLogRouter);
+    // Đăng ký route quản lý từ vựng
     app.use("/api/admin/word", wordRouter);
     // Đăng ký route quản lý bài học
     app.use("/api/admin/courses", courseRouter);

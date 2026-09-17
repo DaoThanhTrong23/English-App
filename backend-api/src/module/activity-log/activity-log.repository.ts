@@ -16,6 +16,36 @@ export class ActivityLogRepository {
         }
         return prisma.activityLog.create({ data: payload });
     }
+
+    async findActivities(skip: number, take: number) {
+        const [total, items] = await Promise.all([
+            prisma.activityLog.count(),
+            prisma.activityLog.findMany({
+                skip,
+                take,
+                orderBy: { createdAt: 'desc' },
+                include: {
+                    user: { select: { id: true, email: true, username: true } }
+                }
+            })
+        ]);
+        return { total, items };
+    }
+
+    async findLoginLogs(skip: number, take: number) {
+        const [total, items] = await Promise.all([
+            prisma.loginLog.count(),
+            prisma.loginLog.findMany({
+                skip,
+                take,
+                orderBy: { loginTime: 'desc' },
+                include: {
+                    user: { select: { id: true, email: true, username: true } }
+                }
+            })
+        ]);
+        return { total, items };
+    }
 }
 
 export const activityLogRepository = new ActivityLogRepository();
