@@ -39,6 +39,12 @@ import {
   SaveProgressSchema,
   FinishMemoryGameSchema,
 } from "./module/memory-card/memory-card.schema.js";
+import {
+  StartWordMatchingSchema,
+  SubmitWordMatchingSchema,
+  SaveWordMatchingProgressSchema,
+} from "./module/word-matching/word-matching.schema.js";
+import { GradeEssaySchema } from "./module/AI/ai.schema.js";
 import { env } from "./config/env.js";
 
 const doc = {
@@ -350,6 +356,18 @@ if (fs.existsSync(outputFile)) {
     },
     "/game/memory-card/finish": {
       post: { schema: FinishMemoryGameSchema, summary: "Hoàn tất ván chơi Memory Card", tags: ["Game - Memory Card"] },
+    },
+    "/game/word-matching/start": {
+      get: { schema: StartWordMatchingSchema, summary: "Khởi tạo ván chơi nối từ (10 từ chia 2 cột A và B)", tags: ["Game - Word Matching"] },
+    },
+    "/game/word-matching/submit": {
+      post: { schema: SubmitWordMatchingSchema, summary: "Nộp kết quả nối từ và chấm điểm", tags: ["Game - Word Matching"] },
+    },
+    "/game/word-matching/progress": {
+      post: { schema: SaveWordMatchingProgressSchema, summary: "Lưu tiến trình tạm thời game nối từ", tags: ["Game - Word Matching"] },
+    },
+    "/api/ai/grade-essay": {
+      post: { schema: GradeEssaySchema, summary: "Chấm điểm và đánh giá bài viết tiếng Anh (AI)", tags: ["AI"] },
     },
   };
 
