@@ -9,6 +9,7 @@ import { errorHandler } from "./shared/http/error-handler.js";
 import Authrouter from "./module/auth/auth.route.js";
 import bubbleGameRouter from "./module/bubble-game/bubble-game.route.js";
 import memoryCardRouter from "./module/memory-card/memory-card.route.js";
+import wordMatchingRouter from "./module/word-matching/word-matching.route.js";
 import { studentManageRouter } from "./module/StudentManage/studenManage.route.js";
 import { wordRouter } from "./module/word/word.route.js";
 import { courseRouter } from "./module/course/course.route.js";
@@ -67,6 +68,7 @@ export function createapp() {
     // Đăng ký route game
     app.use("/game/bubble-game", bubbleGameRouter);
     app.use("/game/memory-card", memoryCardRouter);
+    app.use("/game/word-matching", wordMatchingRouter);
     // AI
     app.use("/api/ai",aiRouter)
     // Đăng ký Swagger UI tài liệu API
