@@ -79,13 +79,8 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
             ))}
           </nav>
 
-          {/* Right Section (Search, Notification, Profile) */}
+          {/* Right Section (Notification, Profile) */}
           <div className="navbar-right">
-            <div className="navbar-search">
-              <Search size={16} className="search-icon" />
-              <input type="text" placeholder="Tìm kiếm nhanh..." />
-            </div>
-            
             <button className="navbar-icon-btn notification-btn">
               <Bell size={30} />
               <span className="notification-badge">3</span> {/*sửa cái thông báo này lại*/}
