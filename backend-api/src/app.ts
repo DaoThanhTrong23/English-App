@@ -25,14 +25,6 @@ export function createapp() {
     app.disable("x-powered-by");
     app.use(pinoHttp({
         logger: loggers,
-        serializers: {
-            req(req) {
-                if (req.headers?.authorization) {
-                    req.headers.authorization = "Bearer ***HIDDEN***";
-                }
-                return req;
-            }
-        },
         customLogLevel: (req, res, err) => {
             if (res.statusCode >= 500 || err) return 'error';
             if (res.statusCode >= 400) return 'warn';
