@@ -195,7 +195,7 @@ const Settings: React.FC = () => {
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', padding: '16px', background: 'white', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
                     <span style={{ fontWeight: '600', color: '#475569' }}>Bản quyền</span>
-                    <span style={{ color: '#1e293b' }}>© 2026 KLCN. All rights reserved.</span>
+                    <span style={{ color: '#1e293b' }}>© 2026 Mấy con gà :).</span>
                   </div>
                 </div>
               </div>
