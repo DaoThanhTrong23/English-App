@@ -75,7 +75,7 @@ const SystemLogs: React.FC = () => {
               <input 
                 type="text" 
                 placeholder={activeTab === 'activities' ? 'Tìm theo email, username, chi tiết...' : 'Tìm theo email, username, IP...'} 
-                style={{ border: 'none', background: 'transparent', outline: 'none', width: '100%' }}
+                style={{ border: 'none', background: 'transparent', outline: 'none', width: '100%', color: '#1e293b' }}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -86,7 +86,7 @@ const SystemLogs: React.FC = () => {
               <div style={{ display: 'flex', alignItems: 'center', background: '#f8fafc', padding: '8px 16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                 <Filter size={18} color="#94a3b8" style={{ marginRight: '8px' }} />
                 <select 
-                  style={{ border: 'none', background: 'transparent', outline: 'none' }}
+                  style={{ border: 'none', background: 'transparent', outline: 'none', color: '#1e293b' }}
                   value={actionType}
                   onChange={(e) => setActionType(e.target.value)}
                 >
