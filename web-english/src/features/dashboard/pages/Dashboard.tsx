@@ -12,6 +12,7 @@ const Dashboard: React.FC = () => {
   const [totalStudents, setTotalStudents] = useState<number | string>('...');
   const [totalWords, setTotalWord] = useState<number | string>('...');
   const [totalCourses, setTotalCourses] = useState<number | string>('...');
+  const [totalTests, setTotalTests] = useState<number | string>('...');
   const [topStudents, setTopStudents] = useState<any[]>([]);
   
   const [trafficData, setTrafficData] = useState<any[]>([
@@ -38,6 +39,7 @@ const Dashboard: React.FC = () => {
           setTotalStudents(stats.totalStudents);
           setTotalCourses(stats.totalCourses);
           setTotalWord(stats.totalWords);
+          setTotalTests(stats.totalTests);
           setTrafficData(stats.trafficData);
           setLevelData(stats.levelData);
         }
@@ -48,6 +50,7 @@ const Dashboard: React.FC = () => {
         setTotalStudents('Lỗi');
         setTotalWord('Lỗi');
         setTotalCourses('Lỗi');
+        setTotalTests('Lỗi');
         console.error(error);
       }
     };
@@ -67,37 +70,48 @@ const Dashboard: React.FC = () => {
 
           {/* Quick Stats */}
           <div className="dashboard-grid">
-            <div className="dashboard-card" style={{ borderLeft: '4px solid #3b82f6' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span className="dashboard-card-title">Học viên</span>
-                <UsersIcon size={20} color="#3b82f6" opacity={0.8} />
+            <div className="dashboard-card" style={{ borderLeft: '4px solid #3b82f6', display: 'flex', flexDirection: 'column', width: '100%' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: '16px' }}>
+                <span className="dashboard-card-title" style={{ margin: 0 }}>Học viên</span>
+                <div style={{ padding: '8px', background: '#eff6ff', borderRadius: '8px' }}>
+                  <UsersIcon size={20} color="#3b82f6" />
+                </div>
               </div>
               <h3 className="dashboard-card-value">{totalStudents}</h3>
               <div style={{ fontSize: '0.8rem', color: '#10b981', fontWeight: 600, marginTop: '8px' }}>+12% so với tháng trước</div>
             </div>
-            <div className="dashboard-card" style={{ borderLeft: '4px solid #8b5cf6' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span className="dashboard-card-title">Bài học</span>
-                <BookOpen size={20} color="#8b5cf6" opacity={0.8} />
+            
+            <div className="dashboard-card" style={{ borderLeft: '4px solid #8b5cf6', display: 'flex', flexDirection: 'column', width: '100%' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: '16px' }}>
+                <span className="dashboard-card-title" style={{ margin: 0 }}>Bài học</span>
+                <div style={{ padding: '8px', background: '#f3e8ff', borderRadius: '8px' }}>
+                  <BookOpen size={20} color="#8b5cf6" />
+                </div>
               </div>
               <h3 className="dashboard-card-value">{totalCourses}</h3>
               <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '8px' }}>Đang hoạt động tốt</div>
             </div>
-            <div className="dashboard-card" style={{ borderLeft: '4px solid #10b981' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span className="dashboard-card-title">Từ vựng</span>
-                <BarChart2 size={20} color="#10b981" opacity={0.8} />
+            
+            <div className="dashboard-card" style={{ borderLeft: '4px solid #10b981', display: 'flex', flexDirection: 'column', width: '100%' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: '16px' }}>
+                <span className="dashboard-card-title" style={{ margin: 0 }}>Từ vựng</span>
+                <div style={{ padding: '8px', background: '#d1fae5', borderRadius: '8px' }}>
+                  <BarChart2 size={20} color="#10b981" />
+                </div>
               </div>
               <h3 className="dashboard-card-value">{totalWords}</h3>
               <div style={{ fontSize: '0.8rem', color: '#10b981', fontWeight: 600, marginTop: '8px' }}>+50 từ mới tuần này</div>
             </div>
-            <div className="dashboard-card" style={{ borderLeft: '4px solid #f59e0b' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span className="dashboard-card-title">Đánh giá</span>
-                <Activity size={20} color="#f59e0b" opacity={0.8} />
+            
+            <div className="dashboard-card" style={{ borderLeft: '4px solid #f59e0b', display: 'flex', flexDirection: 'column', width: '100%' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: '16px' }}>
+                <span className="dashboard-card-title" style={{ margin: 0 }}>Bài kiểm tra</span>
+                <div style={{ padding: '8px', background: '#fef3c7', borderRadius: '8px' }}>
+                  <Activity size={20} color="#f59e0b" />
+                </div>
               </div>
-              <h3 className="dashboard-card-value">4.8 / 5.0</h3>
-              <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '8px' }}>Từ 1.204 lượt đánh giá</div>
+              <h3 className="dashboard-card-value">{totalTests}</h3>
+              <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '8px' }}>Tổng số đề thi</div>
             </div>
           </div>
 

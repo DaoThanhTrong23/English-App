@@ -5,6 +5,7 @@ export class DashboardService {
     const totalStudents = await prisma.user.count({ where: { role: 'user' } });
     const totalCourses = await prisma.lesson.count();
     const totalWords = await prisma.word.count();
+    const totalTests = await prisma.test.count();
     
     // Level distribution
     const soCap = await prisma.user.count({ where: { role: 'user', xpPoints: { lt: 100 } } });
@@ -46,6 +47,7 @@ export class DashboardService {
       totalStudents,
       totalCourses,
       totalWords,
+      totalTests,
       levelData,
       trafficData
     };
