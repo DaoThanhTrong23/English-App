@@ -2,19 +2,14 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { env } from "../../config/env.js";
 import { EssayEvaluationResponse, GradeEssayInput } from "./ai.schema.js";
 import { logExecution } from "../../shared/decorators/log.decorator.js";
+import ollama from "ollama";
 
-const genAI = new GoogleGenerativeAI(env.GOOGLE_AI_API_KEY || '');
+
 
 class AiService {
     @logExecution()
     async gradeEssay(input: GradeEssayInput): Promise<EssayEvaluationResponse> {
-        const model = genAI.getGenerativeModel({
-            model: "gemini-3.5-flash",
-            generationConfig: {
-                responseMimeType: "application/json",
-                temperature: 0.1
-            }
-        });
+
 
         const prompt = `Bạn là giám khảo chấm thi tiếng Anh chuẩn quốc tế theo khung CEFR (A1, A2, B1, B2, C1, C2).
                         Hãy chấm điểm và đánh giá đoạn văn sau đây của người học:
@@ -42,11 +37,14 @@ class AiService {
                         "improvedVersion": "Đoạn văn viết lại hoàn chỉnh tự nhiên và mượt mà hơn"
                         }`;
 
-        const result = await model.generateContent(prompt);
-        const text = result.response.text();
-        return JSON.parse(text) as EssayEvaluationResponse;
+        const response = await ollama.chat({
+            model: "qwen2.5:7b", // hoặc "qwen2.5:3b", "llama3.2"
+            messages: [{ role: "user", content: prompt }],
+            format: "json", // Bắt buộc Ollama trả về đúng JSON
+        });
+        return JSON.parse(response.message.content) as EssayEvaluationResponse;
     }
 
 }
 
-export const aiService = new  AiService();
+export const aiService = new AiService();
