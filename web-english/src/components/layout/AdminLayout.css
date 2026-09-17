@@ -280,9 +280,6 @@
   .mobile-menu-btn {
     display: block;
   }
-  .navbar-logo, .navbar-mascot {
-    display: none;
-  }
   
   .navbar-menu {
     position: fixed;
@@ -341,5 +338,12 @@
   }
   .navbar-icon-btn {
     padding: 4px;
+  }
+  .navbar-logo {
+    font-size: 1.1rem;
+  }
+  .navbar-mascot {
+    width: 30px;
+    height: 30px;
   }
 }

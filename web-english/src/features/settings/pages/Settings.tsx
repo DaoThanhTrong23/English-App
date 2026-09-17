@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import { changePassword } from '../api/settings.api';
-import { Lock, User, Palette } from 'lucide-react';
+import { Lock, User, Palette, Info } from 'lucide-react';
 import '../../courses/pages/CourseList.css'; // Reuse container styles
 
 const Settings: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'profile' | 'appearance'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'appearance' | 'info'>('profile');
   
   // Password state
   const [oldPassword, setOldPassword] = useState('');
@@ -73,6 +73,12 @@ const Settings: React.FC = () => {
               onClick={() => setActiveTab('appearance')}
             >
               <Palette size={16} style={{ display: 'inline', marginRight: '8px' }}/> Giao diện
+            </button>
+            <button 
+              style={{ padding: '12px 24px', background: 'none', border: 'none', borderBottom: activeTab === 'info' ? '2px solid #3b82f6' : 'none', color: activeTab === 'info' ? '#3b82f6' : '#64748b', fontWeight: 'bold', cursor: 'pointer', marginBottom: '-2px' }}
+              onClick={() => setActiveTab('info')}
+            >
+              <Info size={16} style={{ display: 'inline', marginRight: '8px' }}/> Thông tin ứng dụng
             </button>
           </div>
 
@@ -163,6 +169,33 @@ const Settings: React.FC = () => {
                 {/* <p style={{ color: '#64748b', fontSize: '0.9rem', marginTop: '20px' }}>
                   * Lưu ý: Hiện tại ứng dụng đang tập trung hoàn thiện tính năng cốt lõi. Chế độ Dark mode sẽ được áp dụng đồng bộ toàn hệ thống trong các phiên bản cập nhật tới.
                 </p> */}
+              </div>
+            </div>
+          {activeTab === 'info' && (
+            <div>
+              <div style={{ background: '#f8fafc', padding: '24px', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '24px' }}>
+                <h3 style={{ marginTop: 0, marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Info size={20} /> Giới thiệu ứng dụng
+                </h3>
+                
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '16px', background: 'white', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
+                    <span style={{ fontWeight: '600', color: '#475569' }}>Tên ứng dụng</span>
+                    <span style={{ color: '#1e293b', fontWeight: 'bold' }}>EnglishApp</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '16px', background: 'white', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
+                    <span style={{ fontWeight: '600', color: '#475569' }}>Phiên bản (Version)</span>
+                    <span style={{ color: '#1e293b', fontWeight: 'bold' }}>v1.0.0</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '16px', background: 'white', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
+                    <span style={{ fontWeight: '600', color: '#475569' }}>Môi trường</span>
+                    <span style={{ color: '#1e293b' }}>Production</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '16px', background: 'white', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
+                    <span style={{ fontWeight: '600', color: '#475569' }}>Bản quyền</span>
+                    <span style={{ color: '#1e293b' }}>© 2026 KLCN. All rights reserved.</span>
+                  </div>
+                </div>
               </div>
             </div>
           )}
