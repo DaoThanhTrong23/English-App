@@ -98,6 +98,7 @@
   font-weight: 800;
   color: var(--admin-text-main);
   letter-spacing: -0.5px;
+  white-space: nowrap;
 }
 
 .navbar-logo span {
@@ -123,6 +124,7 @@
   cursor: pointer;
   transition: all 0.2s ease;
   position: relative;
+  white-space: nowrap;
 }
 
 .navbar-menu-item:hover {
@@ -244,6 +246,7 @@
 .navbar-user-info {
   display: flex;
   flex-direction: column;
+  white-space: nowrap;
 }
 
 .navbar-user-name {

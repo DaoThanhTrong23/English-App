@@ -28,6 +28,9 @@ enum Sender {
 enum QuestionType {
   multiple_choice
   fill_in_blank
+  listening
+  speaking
+  writing
 }
 
 enum LearningStatus {
@@ -70,7 +73,7 @@ model ActivityLog {
 
   user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
-  @@map("activity_log")
+  @@map("activity_logs")
 }
 
 model LoginLog {
@@ -121,7 +124,7 @@ model word {
 
   @@index([headword], map: "idx_headword")
   @@index([cefrLevel], map: "idx_cefr_level")
-  @@map("word")
+  @@map("words")
 }
 
 model Lesson {
@@ -187,6 +190,8 @@ model Question {
   quesionText  String       @map("question_text") @db.Text
   questionType QuestionType @default(multiple_choice) @map("question_type")
   points       Decimal      @default(10)
+  audioUrl     String?      @map("audio_url") @db.Text
+  imageUrl     String?      @map("image_url") @db.Text
 
   test    Test     @relation(fields: [testId], references: [id], onDelete: Cascade)
   answers Answer[]

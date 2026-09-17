@@ -34,8 +34,13 @@ export const Authenticate =async (req: AuthenticateRequest, res: Response, _next
 
         req.user = decoded;
         return _next();
-    } catch (error) {
-        if (error instanceof ApiError) throw error;
-        throw new ApiError(401, 'token_expired_or_invalid', 'Token hết hạn hoặc không hợp lệ');
+    } catch (error: any) {
+        if (error instanceof ApiError) return _next(error);
+        // Nếu là lỗi do JWT (hết hạn, sai chữ ký...)
+        if (error?.name === 'TokenExpiredError' || error?.name === 'JsonWebTokenError') {
+            return _next(new ApiError(401, 'token_expired_or_invalid', 'Token hết hạn hoặc không hợp lệ'));
+        }
+        // Nếu là lỗi hệ thống (ví dụ: Prisma lỗi) thì đưa cho ErrorHandler bắt
+        return _next(error);
     }
 }

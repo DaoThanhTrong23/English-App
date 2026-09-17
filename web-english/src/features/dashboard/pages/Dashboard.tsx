@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import { getTotalStudents } from '../../students/api/student.api';
 import { getTotalWord } from '../../words/api/words.api';
+import { getTotalCourse } from '../../courses/api/course.api';
 import './Dashboard.css';
 
 const Dashboard: React.FC = () => {
   const [totalStudents, setTotalStudents] = useState<number | string>('...');
   const [totalWords, setTotalWord] = useState<number | string>('...');
+  const [totalCourses, setTotalCourses] = useState<number | string>('...');
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -16,9 +18,13 @@ const Dashboard: React.FC = () => {
 
         const wordCount = await getTotalWord();
         setTotalWord(wordCount);
+
+        const courseCount = await getTotalCourse();
+        setTotalCourses(courseCount);
       } catch (error) {
         setTotalStudents('Lỗi');
         setTotalWord('Lỗi');
+        setTotalCourses('Lỗi');
         console.error(error);
       }
     };
@@ -38,7 +44,7 @@ const Dashboard: React.FC = () => {
             </div>
             <div className="dashboard-card">
               <span className="dashboard-card-title">Tổng bài học</span>
-              <h3 className="dashboard-card-value">48</h3>
+              <h3 className="dashboard-card-value">{totalCourses}</h3>
             </div>
             <div className="dashboard-card">
               <span className="dashboard-card-title">Tổng từ vựng</span>

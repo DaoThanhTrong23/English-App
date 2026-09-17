@@ -1,0 +1,154 @@
+.test-detail-main {
+  padding: 24px;
+  background-color: #f8fafc;
+  min-height: calc(100vh - var(--admin-navbar-height));
+}
+
+.test-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.back-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  font-size: 0.95rem;
+  padding: 0;
+  margin-bottom: 16px;
+}
+
+.back-btn:hover {
+  color: #3b82f6;
+}
+
+.test-detail-header h2 {
+  font-size: 1.5rem;
+  color: #1e293b;
+  margin: 0;
+}
+
+.question-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.question-card {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+}
+
+.question-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.question-header h4 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #1e293b;
+}
+
+.question-meta {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.question-badge {
+  padding: 4px 8px;
+  background-color: #f1f5f9;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  color: #475569;
+  font-weight: 500;
+}
+
+.answers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-left: 24px;
+}
+
+.answer-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background-color: #f8fafc;
+}
+
+.answer-item.correct {
+  border-color: #10b981;
+  background-color: rgba(16, 185, 129, 0.05);
+}
+
+.correct-badge {
+  color: #10b981;
+  font-weight: bold;
+  font-size: 0.85rem;
+  margin-left: auto;
+}
+
+.dynamic-answers {
+  border: 1px solid #e2e8f0;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.dynamic-answer-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.dynamic-answer-row input[type="text"] {
+  flex: 1;
+}
+
+.dynamic-answer-row input[type="radio"],
+.dynamic-answer-row input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.add-answer-btn {
+  background: none;
+  border: 1px dashed #cbd5e1;
+  color: #64748b;
+  width: 100%;
+  padding: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+.add-answer-btn:hover {
+  border-color: var(--admin-primary);
+  color: var(--admin-primary);
+}
+
+.remove-answer-btn {
+  background: none;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+}

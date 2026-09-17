@@ -1,5 +1,6 @@
 import  jwt  from "jsonwebtoken";
 import { env } from "../config/env.js";
+import { ApiError } from "../shared/http/api-error.js";
 
 export interface AccessTokenPayload { 
     userId: number;
@@ -30,5 +31,9 @@ export const verifyAccessToken = (token: string): AccessTokenPayload => {
 }
 
 export const verifyRefreshTokenn = (token: string): RefreshTokenPayload => {
-    return jwt.verify(token,env.JWT_REFRESH_SECRET) as RefreshTokenPayload;
+    try {
+        return jwt.verify(token, env.JWT_REFRESH_SECRET) as RefreshTokenPayload;
+    } catch (error: any) {
+        throw new ApiError(401, "token_expired_or_invalid", "Refresh Token hết hạn hoặc không hợp lệ");
+    }
 }

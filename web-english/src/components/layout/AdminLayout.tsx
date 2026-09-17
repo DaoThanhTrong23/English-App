@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, BookOpen, Library, Search, Bell, LogOut, Gamepad2Icon, SettingsIcon, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Users, BookOpen, Library, Search, Bell, LogOut, Gamepad2Icon, SettingsIcon, Menu, X, FileQuestion } from 'lucide-react';
 import mascotGif from '../../assets/images/gacon.gif';
 import './AdminLayout.css';
 
@@ -22,16 +22,17 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   const navItems = [
     { path: '/admin/dashboard', label: 'Tổng quan', icon: <LayoutDashboard size={18} /> },
     { path: '/admin/students', label: 'Học viên', icon: <Users size={18} /> },
-    { path: '/', label: 'Bài học', icon: <BookOpen size={18} /> },
+    { path: '/admin/courses', label: 'Bài học', icon: <BookOpen size={18} /> },
     { path: '/admin/words', label: 'Từ vựng', icon: <Library size={18} /> },
-    { path: '/', label: 'Game', icon: <Gamepad2Icon size={18} /> },
-    { path: '/', label: 'Cài đặt', icon: <SettingsIcon size={18} /> },
-
-
+    { path: '/admin/tests', label: 'Bài Kiểm Tra', icon: <FileQuestion size={18} /> },
+    { path: '/admin/game', label: 'Game', icon: <Gamepad2Icon size={18} /> },
+    { path: '/admin/settings', label: 'Cài đặt', icon: <SettingsIcon size={18} /> },
   ];
 
   const isActive = (path: string) => {
     if (path === '/admin/words' && location.pathname.startsWith('/admin/words')) return true;
+    if (path === '/admin/courses' && location.pathname.startsWith('/admin/courses')) return true;
+    if (path === '/admin/tests' && location.pathname.startsWith('/admin/tests')) return true;
     return location.pathname === path;
   };
 

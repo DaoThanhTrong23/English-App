@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { authorize } from "../../middleware/authorize.middleware.js";
+import { Authenticate } from "../../middleware/authenticate.middleware.js";
 import { validate } from "../../middleware/validate.middleware.js";
 import { asyncHandler } from "../../shared/http/async-handler.js";
 import { Role } from "../../generated/prisma/index.js";
@@ -15,8 +16,8 @@ import { courseService } from "./course.service.js";
 
 const router = Router();
 
-// Tất cả các route quản lý khóa học đều yêu cầu đăng nhập (requireAuth) và quyền Admin
-router.use(authorize,authorize([Role.admin]));
+// Phân quyền cho tất cả route bên dưới (yêu cầu role admin)
+router.use(Authenticate, authorize([Role.admin]));
 
 router.get(  "/totalLesson", asyncHandler(async (_req, res) => {
     const result = await courseService.getCourseCount();
