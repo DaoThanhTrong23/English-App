@@ -109,43 +109,26 @@
 .navbar-menu {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
   flex: 1;
-  overflow-x: auto;
-  overflow-y: hidden;
-  padding: 0 10px;
-  margin: 0 10px;
-}
-
-/* Minimal scrollbar for top menu */
-.navbar-menu::-webkit-scrollbar {
-  height: 4px;
-}
-.navbar-menu::-webkit-scrollbar-track {
-  background: transparent;
-}
-.navbar-menu::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 4px;
-}
-.navbar-menu::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  justify-content: center;
 }
 
 .navbar-menu-item {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px 12px;
   border-radius: 8px;
   color: var(--admin-text-muted);
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: 0.75rem;
   cursor: pointer;
   transition: all 0.2s ease;
   position: relative;
   white-space: nowrap;
-  flex-shrink: 0;
 }
 
 .navbar-menu-item:hover {
@@ -161,7 +144,7 @@
 .navbar-menu-item.active::after {
   content: '';
   position: absolute;
-  bottom: -16px; /* distance to the bottom of navbar */
+  bottom: -4px;
   left: 50%;
   transform: translateX(-50%);
   width: 30px;
@@ -362,8 +345,10 @@
   
   .navbar-menu-item {
     width: 100%;
+    flex-direction: row;
     justify-content: flex-start;
     padding: 12px 16px;
+    font-size: 0.95rem;
   }
   
   .navbar-menu-item span {
