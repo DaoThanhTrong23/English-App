@@ -70,7 +70,7 @@ const Dashboard: React.FC = () => {
 
           {/* Quick Stats */}
           <div className="dashboard-grid">
-            <div className="dashboard-card" style={{ borderLeft: '4px solid #3b82f6', display: 'flex', flexDirection: 'column', width: '100%' }}>
+            <div className="dashboard-card" style={{ borderLeft: '4px solid #3b82f6' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: '16px' }}>
                 <span className="dashboard-card-title" style={{ margin: 0 }}>Học viên</span>
                 <div style={{ padding: '8px', background: '#eff6ff', borderRadius: '8px' }}>
@@ -81,7 +81,7 @@ const Dashboard: React.FC = () => {
               <div style={{ fontSize: '0.8rem', color: '#10b981', fontWeight: 600, marginTop: '8px' }}>+12% so với tháng trước</div>
             </div>
             
-            <div className="dashboard-card" style={{ borderLeft: '4px solid #8b5cf6', display: 'flex', flexDirection: 'column', width: '100%' }}>
+            <div className="dashboard-card" style={{ borderLeft: '4px solid #8b5cf6' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: '16px' }}>
                 <span className="dashboard-card-title" style={{ margin: 0 }}>Bài học</span>
                 <div style={{ padding: '8px', background: '#f3e8ff', borderRadius: '8px' }}>
@@ -92,7 +92,7 @@ const Dashboard: React.FC = () => {
               <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '8px' }}>Đang hoạt động tốt</div>
             </div>
             
-            <div className="dashboard-card" style={{ borderLeft: '4px solid #10b981', display: 'flex', flexDirection: 'column', width: '100%' }}>
+            <div className="dashboard-card" style={{ borderLeft: '4px solid #10b981' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: '16px' }}>
                 <span className="dashboard-card-title" style={{ margin: 0 }}>Từ vựng</span>
                 <div style={{ padding: '8px', background: '#d1fae5', borderRadius: '8px' }}>
@@ -103,7 +103,7 @@ const Dashboard: React.FC = () => {
               <div style={{ fontSize: '0.8rem', color: '#10b981', fontWeight: 600, marginTop: '8px' }}>+50 từ mới tuần này</div>
             </div>
             
-            <div className="dashboard-card" style={{ borderLeft: '4px solid #f59e0b', display: 'flex', flexDirection: 'column', width: '100%' }}>
+            <div className="dashboard-card" style={{ borderLeft: '4px solid #f59e0b' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: '16px' }}>
                 <span className="dashboard-card-title" style={{ margin: 0 }}>Bài kiểm tra</span>
                 <div style={{ padding: '8px', background: '#fef3c7', borderRadius: '8px' }}>
