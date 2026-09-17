@@ -39,6 +39,7 @@ export const errorHandler: ErrorRequestHandler = (error, request, response, _nex
 
 
     // Lỗi hệ thống
+    console.error("DEBUG ERROR HANDLER:", error);
     request.log.error(error);
     response.status(500).json({
         error: { code: "internal_error", message: "Lỗi không xác định từ Server" },

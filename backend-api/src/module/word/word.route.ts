@@ -2,8 +2,21 @@ import { Router, Request, Response } from 'express';
 import { wordService } from './word.service.js';
 import { getWordsQuerySchema, createWordSchema, updateWordSchema } from './word.schema.js';
 import { asyncHandler } from "../../shared/http/async-handler.js";
+import { authorize } from "../../middleware/authorize.middleware.js";
+import { Role } from '../../generated/prisma/index.js';
+import { Authenticate } from "../../middleware/authenticate.middleware.js";
 
 const router = Router();
+
+// Tất cả các route quản lý từ vựng của admin yêu cầu đăng nhập và quyền Admin
+router.use(Authenticate, authorize([Role.admin]));
+
+router.get('/totalWord', asyncHandler(async (req, res) => {
+  const result = await wordService.countWord();
+  res.status(200).json({success: true, message: "lấy tổng từ vựng", data: result});
+
+}))
+
 
 // LẤY DS ,TÌM KIẾM
 router.get('/', asyncHandler(async (req: Request, res: Response) => {
@@ -36,4 +49,7 @@ router.delete('/:id', asyncHandler(async (req, res) => {
   await wordService.deleteWord(id);
   res.status(200).json({ message: 'Xóa từ vựng thành công' });
 }));
+
+
+
 export const wordRouter = router;
