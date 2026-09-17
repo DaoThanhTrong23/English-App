@@ -1,27 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import AdminLayout from '../../../components/layout/AdminLayout';
-import { getTotalStudents, fetchTopStudents } from '../../students/api/student.api';
-import { getTotalWord } from '../../words/api/words.api';
-import { getTotalCourse } from '../../courses/api/course.api';
+import { fetchTopStudents } from '../../students/api/student.api';
+import { getDashboardStats } from '../api/dashboard.api';
 import { Trophy, Activity, Users as UsersIcon, BookOpen, BarChart2 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell, Legend } from 'recharts';
 import './Dashboard.css';
 
-const trafficData = [
-  { name: 'T2', active: 120, new: 20 },
-  { name: 'T3', active: 150, new: 35 },
-  { name: 'T4', active: 180, new: 40 },
-  { name: 'T5', active: 140, new: 15 },
-  { name: 'T6', active: 210, new: 50 },
-  { name: 'T7', active: 250, new: 80 },
-  { name: 'CN', active: 300, new: 110 },
-];
-
-const levelData = [
-  { name: 'Sơ cấp (A1-A2)', value: 45 },
-  { name: 'Trung cấp (B1-B2)', value: 35 },
-  { name: 'Cao cấp (C1-C2)', value: 20 },
-];
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b'];
 
 const Dashboard: React.FC = () => {
@@ -29,18 +13,34 @@ const Dashboard: React.FC = () => {
   const [totalWords, setTotalWord] = useState<number | string>('...');
   const [totalCourses, setTotalCourses] = useState<number | string>('...');
   const [topStudents, setTopStudents] = useState<any[]>([]);
+  
+  const [trafficData, setTrafficData] = useState<any[]>([
+    { name: 'T2', active: 0, new: 0 },
+    { name: 'T3', active: 0, new: 0 },
+    { name: 'T4', active: 0, new: 0 },
+    { name: 'T5', active: 0, new: 0 },
+    { name: 'T6', active: 0, new: 0 },
+    { name: 'T7', active: 0, new: 0 },
+    { name: 'CN', active: 0, new: 0 },
+  ]);
+  const [levelData, setLevelData] = useState<any[]>([
+    { name: 'Sơ cấp (A1-A2)', value: 0 },
+    { name: 'Trung cấp (B1-B2)', value: 0 },
+    { name: 'Cao cấp (C1-C2)', value: 0 },
+  ]);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const studentCount = await getTotalStudents();
-        setTotalStudents(studentCount);
-
-        const wordCount = await getTotalWord();
-        setTotalWord(wordCount);
-
-        const courseCount = await getTotalCourse();
-        setTotalCourses(courseCount);
+        const statsRes = await getDashboardStats();
+        if (statsRes.data) {
+          const stats = statsRes.data;
+          setTotalStudents(stats.totalStudents);
+          setTotalCourses(stats.totalCourses);
+          setTotalWord(stats.totalWords);
+          setTrafficData(stats.trafficData);
+          setLevelData(stats.levelData);
+        }
 
         const topRes = await fetchTopStudents(5);
         if (topRes.data) setTopStudents(topRes.data);

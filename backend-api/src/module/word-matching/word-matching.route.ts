@@ -17,7 +17,7 @@ router.get(
   Authenticate,
   validate(StartWordMatchingSchema),
   asyncHandler(async (req: Request, res: Response) => {
-    const userId = Number(req.user?.userId);
+    const userId = Number((req as any).user?.userId || (req as any).user?.id);
     const result = await wordMatchingService.startGame(userId, req.query as any);
     res.status(200).json({
       success: true,
@@ -33,7 +33,7 @@ router.post(
   Authenticate,
   validate(SubmitWordMatchingSchema),
   asyncHandler(async (req: Request, res: Response) => {
-    const userId = Number(req.user?.userId);
+    const userId = Number((req as any).user?.userId || (req as any).user?.id);
     const result = await wordMatchingService.submitAnswers(userId, req.body);
     res.status(200).json({
       success: true,
@@ -49,7 +49,7 @@ router.post(
   Authenticate,
   validate(SaveWordMatchingProgressSchema),
   asyncHandler(async (req: Request, res: Response) => {
-    const userId = Number(req.user?.userId);
+    const userId = Number((req as any).user?.userId || (req as any).user?.id);
     const result = await wordMatchingService.saveProgress(userId, req.body);
     res.status(200).json({
       success: true,

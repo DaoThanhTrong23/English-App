@@ -21,6 +21,7 @@ import swaggerUi from "swagger-ui-express";
 import fs from "node:fs";
 import path from "node:path";
 import { aiRouter } from "./module/AI/ai.router.js";
+import dashboardRouter from "./module/dashboard/dashboard.route.js";
 
 export function createapp() {
     const app = express();
@@ -56,6 +57,7 @@ export function createapp() {
     // Đăng ký route cho module auth
     app.use("/api/auth", Authrouter);
     app.use("/api/admin/students", studentManageRouter);
+    app.use("/api/admin/dashboard", dashboardRouter);
     app.use("/api/admin/logs", activityLogRouter);
     // Đăng ký route quản lý từ vựng
     app.use("/api/admin/word", wordRouter);
