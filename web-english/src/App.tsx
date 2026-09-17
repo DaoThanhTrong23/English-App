@@ -9,6 +9,7 @@ import CourseDetail from './features/courses/pages/CourseDetail';
 import TopicList from './features/topics/pages/TopicList';
 import AchievementList from './features/achievements/pages/AchievementList';
 import SystemLogs from './features/system-logs/pages/SystemLogs';
+import Settings from './features/settings/pages/Settings';
 import TestList from './features/tests/pages/TestList';
 import TestDetail from './features/tests/pages/TestDetail';
 import TestResults from './features/tests/pages/TestResults';
@@ -48,8 +49,9 @@ function App() {
 
         {/* Hệ thống */}
         <Route path="/admin/logs" element={<SystemLogs />} />
+        <Route path="/admin/settings" element={<Settings />} />
 
-        {/* Bắt lỗi các trang chưa có (Game, Cài đặt, v.v.) sẽ hiện thông báo thay vì màn hình đen */}
+        {/* Bắt lỗi các trang chưa có (Game, v.v.) sẽ hiện thông báo thay vì màn hình đen */}
         <Route path="*" element={
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', flexDirection: 'column' }}>
             <h2>Chức năng này đang được phát triển!</h2>

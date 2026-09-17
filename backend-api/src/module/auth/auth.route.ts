@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response, Router } from "express";
 import { validate } from "../../middleware/validate.middleware.js";
-import { LoginSchema, LogoutSchema, RefreshTokenSChema, RegisterSchema } from "./auth.schema.js";
+import { LoginSchema, LogoutSchema, RefreshTokenSChema, RegisterSchema, ChangePasswordSchema } from "./auth.schema.js";
 import { GoogleLoginSchema, FacebookLoginSchema } from './auth.schema.js';
 
 import { asyncHandler } from "../../shared/http/async-handler.js";
@@ -79,6 +79,18 @@ Authrouter.post("/logout", Authenticate, validate(LogoutSchema), asyncHandler(as
         success: true,
         message: result.message
     });
-}))
+}));
+
+Authrouter.post("/change-password", Authenticate, validate(ChangePasswordSchema), asyncHandler(async (req: AuthenticateRequest, res: Response) => {
+    const userId = req.user?.userId;
+    if (!userId) {
+        return res.status(401).json({ success: false, message: "Không xác định được người dùng" });
+    }
+    const result = await authService.changePassword(userId, req.body);
+    res.status(200).json({
+        success: true,
+        message: result.message
+    });
+}));
 
 export default Authrouter

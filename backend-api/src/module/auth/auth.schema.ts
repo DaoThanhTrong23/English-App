@@ -59,7 +59,17 @@ export const FacebookLoginSchema = z.object({
     params: z.object({})
 });
 
+export const ChangePasswordSchema = z.object({
+    body: z.object({
+        oldPassword: z.string().min(1, "Vui lòng nhập mật khẩu cũ"),
+        newPassword: z.string().min(6, "Mật khẩu mới phải chứa ít nhất 6 ký tự").max(100)
+    }),
+    query: z.object({}),
+    params: z.object({})
+});
+
 export type RegisterInput = z.infer<typeof RegisterSchema>["body"];
 export type LoginInput = z.infer<typeof LoginSchema>["body"];
 export type LogoutInput = z.infer<typeof LogoutSchema>["body"];
-export type RefreshTokenInput = z.infer<typeof RefreshTokenSChema>["body"]
+export type RefreshTokenInput = z.infer<typeof RefreshTokenSChema>["body"];
+export type ChangePasswordInput = z.infer<typeof ChangePasswordSchema>["body"];

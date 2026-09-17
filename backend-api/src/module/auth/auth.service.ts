@@ -3,7 +3,8 @@ import { ApiError } from "../../shared/http/api-error.js";
 import { BcryptCompare, bcryptHash, generatedSessionId, hashSHA256 } from "../../utils/hash.js";
 import { signAccessToken, signRefreshToken, verifyRefreshTokenn } from "../../utils/jwt.js";
 import { authRepository, AuthRepository } from "./auth.repository.js";
-import { LoginInput, RegisterInput } from "./auth.schema.js";
+import { LoginInput, RegisterInput, ChangePasswordInput } from "./auth.schema.js";
+import { prisma } from "../../config/prisma.js";
 import { logExecution } from "../../shared/decorators/log.decorator.js";
 import { recordActivity } from "../../shared/decorators/activity.decorator.js";
 
@@ -337,6 +338,26 @@ export class AuthService {
             passwordHash,
         });
         return newUser;
+    }
+
+    async changePassword(userId: number, input: ChangePasswordInput) {
+        const user = await this.authRepo.findUserById(userId);
+        if (!user || !user.passwordHash) {
+            throw new ApiError(404, "user_not_found", "Không tìm thấy người dùng hoặc tài khoản dùng đăng nhập mạng xã hội");
+        }
+
+        const isValid = await BcryptCompare(input.oldPassword, user.passwordHash);
+        if (!isValid) {
+            throw new ApiError(400, "invalid_password", "Mật khẩu cũ không chính xác");
+        }
+
+        const newPasswordHash = await bcryptHash(input.newPassword);
+        await prisma.user.update({
+            where: { id: userId },
+            data: { passwordHash: newPasswordHash }
+        });
+
+        return { message: "Đổi mật khẩu thành công" };
     }
 }
 
