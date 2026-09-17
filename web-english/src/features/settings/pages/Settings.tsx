@@ -171,6 +171,8 @@ const Settings: React.FC = () => {
                 </p> */}
               </div>
             </div>
+          )}
+
           {activeTab === 'info' && (
             <div>
               <div style={{ background: '#f8fafc', padding: '24px', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '24px' }}>
