@@ -18,6 +18,7 @@ import achievementRouter from "./module/achievement/achievement.route.js";
 import swaggerUi from "swagger-ui-express";
 import fs from "node:fs";
 import path from "node:path";
+import { aiRouter } from "./module/AI/ai.router.js";
 
 export function createapp() {
     const app = express();
@@ -65,7 +66,8 @@ export function createapp() {
     // Đăng ký route game
     app.use("/game/bubble-game", bubbleGameRouter);
     app.use("/game/memory-card", memoryCardRouter);
-
+    // AI
+    app.use("/api/ai",aiRouter)
     // Đăng ký Swagger UI tài liệu API
     const swaggerPath = fs.existsSync(path.resolve(process.cwd(), "src/swagger-output.json"))
         ? path.resolve(process.cwd(), "src/swagger-output.json")

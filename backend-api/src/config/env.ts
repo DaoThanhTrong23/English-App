@@ -11,7 +11,7 @@ const envSchema = z.object({
     JWT_ACCESS_EXPIRES_IN: z.coerce.number().int().default(900000),
     JWT_REFRESH_SECRET: z.string().default("refresh_secret_key_default_654321"),
     JWT_REFRESH_EXPIRES_IN: z.coerce.number().int().default(604800000),
-
+    GOOGLE_AI_API_KEY: z.string().default(""),
     GOOGLE_CLIENT_ID: z.string().default(""), 
     FACEBOOK_APP_ID: z.string().default(""),
     FACEBOOK_APP_SECRET: z.string().default(""),
