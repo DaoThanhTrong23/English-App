@@ -303,13 +303,7 @@
 }
 
 /* RESPONSIVE */
-@media (max-width: 1300px) {
-  .navbar-search {
-    width: 180px;
-  }
-}
-
-@media (max-width: 1150px) {
+@media (max-width: 1440px) {
   .navbar-menu-item span {
     display: none;
   }

@@ -57,13 +57,19 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
               {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
             <img src={mascotGif} alt="Mascot" className="navbar-mascot" />
-            <div className="navbar-logo">EnglishApp<span>.</span></div>
+            <div className="navbar-logo">
+              English<span>App</span>.
+            </div>
           </div>
 
           {/* Menu Section */}
           <nav className={`navbar-menu ${isMobileMenuOpen ? 'open' : ''}`}>
             {navItems.map((item) => (
-              <div key={item.path}className={`navbar-menu-item ${isActive(item.path) ? 'active' : ''}`}onClick={() => {navigate(item.path);
+              <div key={item.path}
+                title={item.label}
+                className={`navbar-menu-item ${isActive(item.path) ? 'active' : ''}`}
+                onClick={() => {
+                  navigate(item.path);
                   setIsMobileMenuOpen(false);
                 }}
               >
