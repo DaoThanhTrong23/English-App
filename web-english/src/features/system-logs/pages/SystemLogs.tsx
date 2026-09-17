@@ -51,7 +51,7 @@ const SystemLogs: React.FC = () => {
       <div className="course-list-container">
         <div className="course-list-main">
           <div className="course-list-header">
-            <h2>Nhật ký Hệ thống</h2>
+            <h2>Nhật ký hệ thống</h2>
           </div>
 
           <div style={{ display: 'flex', gap: '16px', marginBottom: '24px', borderBottom: '2px solid #e2e8f0' }}>

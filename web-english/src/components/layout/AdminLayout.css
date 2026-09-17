@@ -303,7 +303,22 @@
 }
 
 /* RESPONSIVE */
-@media (max-width: 1024px) {
+@media (max-width: 1300px) {
+  .navbar-search {
+    width: 180px;
+  }
+}
+
+@media (max-width: 1150px) {
+  .navbar-menu-item span {
+    display: none;
+  }
+  .navbar-menu-item {
+    padding: 10px;
+  }
+  .navbar-menu {
+    gap: 4px;
+  }
   .navbar-search {
     display: none;
   }
@@ -342,10 +357,10 @@
   .navbar-menu-item {
     width: 100%;
     justify-content: flex-start;
+    padding: 12px 16px;
   }
   
   .navbar-menu-item span {
-
     display: inline-block !important; 
   }
   
@@ -360,5 +375,17 @@
   
   .navbar-user-info {
     display: none;
+  }
+}
+
+@media (max-width: 500px) {
+  .navbar-right {
+    gap: 10px;
+  }
+  .navbar-profile-section {
+    padding-left: 10px;
+  }
+  .navbar-icon-btn {
+    padding: 4px;
   }
 }

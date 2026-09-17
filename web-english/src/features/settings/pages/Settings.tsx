@@ -47,7 +47,9 @@ const Settings: React.FC = () => {
     setTheme(newTheme);
     localStorage.setItem('admin_theme', newTheme);
     // Real implementation would toggle a class on document.body here
-    setMessage({ type: 'success', text: 'Đã lưu cấu hình giao diện. Sẽ áp dụng ở phiên bản sau.' });
+    // setMessage({ type: 'success', text: 'Đã lưu cấu hình giao diện. Sẽ áp dụng ở phiên bản sau.' });
+    setMessage({ type: 'success', text: 'Chưa có làm khỏi nhấn :().' });
+
     setTimeout(() => setMessage({ type: '', text: '' }), 3000);
   };
 
@@ -56,7 +58,7 @@ const Settings: React.FC = () => {
       <div className="course-list-container">
         <div className="course-list-main" style={{ maxWidth: '800px', margin: '0 auto' }}>
           <div className="course-list-header">
-            <h2>Cài đặt Hệ thống</h2>
+            <h2>Cài đặt hệ thống</h2>
           </div>
 
           <div style={{ display: 'flex', gap: '16px', marginBottom: '24px', borderBottom: '2px solid #e2e8f0' }}>
@@ -134,7 +136,7 @@ const Settings: React.FC = () => {
           {activeTab === 'appearance' && (
             <div>
               <div style={{ background: '#f8fafc', padding: '24px', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '24px' }}>
-                <h3 style={{ marginTop: 0, marginBottom: '20px' }}>Chế độ hiển thị (Sắp ra mắt)</h3>
+                <h3 style={{ marginTop: 0, marginBottom: '20px' }}>Chế độ hiển thị (Nhìn đẹp z hoi chứ chưa làm :))))</h3>
                 
                 {message.text && (
                   <div style={{ padding: '12px', borderRadius: '8px', marginBottom: '20px', backgroundColor: message.type === 'error' ? '#fee2e2' : '#dcfce7', color: message.type === 'error' ? '#ef4444' : '#22c55e' }}>
@@ -148,19 +150,19 @@ const Settings: React.FC = () => {
                     style={{ flex: 1, padding: '20px', border: theme === 'light' ? '2px solid #3b82f6' : '1px solid #cbd5e1', borderRadius: '8px', cursor: 'pointer', textAlign: 'center', background: 'white' }}
                   >
                     <div style={{ fontSize: '24px', marginBottom: '10px' }}>☀️</div>
-                    <div style={{ fontWeight: 'bold', color: '#1e293b' }}>Giao diện Sáng</div>
+                    <div style={{ fontWeight: 'bold', color: '#1e293b' }}>Giao diện sáng</div>
                   </div>
                   <div 
                     onClick={() => handleThemeChange('dark')}
                     style={{ flex: 1, padding: '20px', border: theme === 'dark' ? '2px solid #3b82f6' : '1px solid #cbd5e1', borderRadius: '8px', cursor: 'pointer', textAlign: 'center', background: '#1e293b' }}
                   >
                     <div style={{ fontSize: '24px', marginBottom: '10px' }}>🌙</div>
-                    <div style={{ fontWeight: 'bold', color: 'white' }}>Giao diện Tối</div>
+                    <div style={{ fontWeight: 'bold', color: 'white' }}>Giao diện tối</div>
                   </div>
                 </div>
-                <p style={{ color: '#64748b', fontSize: '0.9rem', marginTop: '20px' }}>
+                {/* <p style={{ color: '#64748b', fontSize: '0.9rem', marginTop: '20px' }}>
                   * Lưu ý: Hiện tại ứng dụng đang tập trung hoàn thiện tính năng cốt lõi. Chế độ Dark mode sẽ được áp dụng đồng bộ toàn hệ thống trong các phiên bản cập nhật tới.
-                </p>
+                </p> */}
               </div>
             </div>
           )}
