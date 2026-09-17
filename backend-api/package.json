@@ -11,6 +11,9 @@
     "seed": "tsx src/prisma/seeder.ts",
     "swagger": "tsx src/swagger-gen.ts"
   },
+  "prisma": {
+    "schema": "src/prisma/schema.prisma"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
