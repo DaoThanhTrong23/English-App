@@ -73,7 +73,6 @@ const AddWord: React.FC = () => {
         imageUrl: ''
       };
 
-      // Free Dictionary API
       try {
         const dictRes = await axios.get(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(engWord)}`);
         if (dictRes.data && dictRes.data.length > 0) {

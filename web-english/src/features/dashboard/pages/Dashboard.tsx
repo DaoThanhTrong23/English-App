@@ -89,7 +89,7 @@ const Dashboard: React.FC = () => {
             {/* PIE CHART */}
             <div className="bento-item bento-pie">
               <h3 style={{ margin: '0 0 16px 0', color: '#1e293b', fontSize: '1.1rem' }}>Phân bố trình độ</h3>
-              <div style={{ width: '100%', height: '100%', minHeight: '200px' }}>
+              <div style={{ width: '100%', height: '100%', minHeight: '250px' }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie data={levelData} cx="50%" cy="50%" innerRadius={50} outerRadius={70} paddingAngle={5} dataKey="value">
