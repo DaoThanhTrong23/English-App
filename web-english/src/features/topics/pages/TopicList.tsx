@@ -156,7 +156,7 @@ const TopicList: React.FC = () => {
       {isModalOpen && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <h3>{editingTopic ? 'Sửa Chủ đề' : 'Thêm Chủ đề mới'}</h3>
+            <h3>{editingTopic ? 'Sửa chủ đề' : 'Thêm chủ đề mới'}</h3>
             <form onSubmit={handleSubmit}>
               <div className="form-group">
                 <label>Tên chủ đề (*)</label>

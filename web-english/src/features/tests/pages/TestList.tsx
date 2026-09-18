@@ -184,7 +184,7 @@ const TestList: React.FC = () => {
       {isModalOpen && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <h3>{editingTest ? 'Sửa Bài Thi' : 'Tạo Bài Thi Mới'}</h3>
+            <h3>{editingTest ? 'Sửa bài thi' : 'Tạo bài thi mới'}</h3>
             <form onSubmit={handleSubmit}>
               <div className="form-group">
                 <label>Tiêu đề Bài thi (*)</label>

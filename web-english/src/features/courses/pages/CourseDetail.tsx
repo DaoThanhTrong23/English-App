@@ -312,7 +312,7 @@ const CourseDetail: React.FC = () => {
         {activeTab === 'tests' && (
           <div style={{ background: 'white', padding: '24px', borderRadius: '12px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3>Các bài Luyện tập ({tests.length})</h3>
+              <h3>Các bài luyện tập ({tests.length})</h3>
               <button className="add-course-btn" onClick={() => setIsTestModalOpen(true)}>
                 <Plus size={18} /> Tạo bài luyện tập
               </button>

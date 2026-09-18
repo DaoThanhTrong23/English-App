@@ -232,7 +232,7 @@ const CourseList: React.FC = () => {
       {isModalOpen && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <h3>{editingCourse ? 'Sửa Bài học' : 'Thêm Bài học mới'}</h3>
+            <h3>{editingCourse ? 'Sửa bài học' : 'Thêm bài học mới'}</h3>
             <form onSubmit={handleSubmit}>
               <div className="form-group">
                 <label>Tiêu đề (*)</label>
@@ -266,7 +266,7 @@ const CourseList: React.FC = () => {
                 ></textarea>
               </div>
               <div className="form-group">
-                <label>Link Hình ảnh (Thumbnail URL)</label>
+                <label>Link hình ảnh (Thumbnail URL)</label>
                 <input 
                   type="text" 
                   value={formData.thumbnailUrl}

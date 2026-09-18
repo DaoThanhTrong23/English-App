@@ -155,7 +155,7 @@ const AchievementList: React.FC = () => {
       {isModalOpen && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <h3>{editingItem ? 'Sửa Danh hiệu' : 'Thêm Danh hiệu mới'}</h3>
+            <h3>{editingItem ? 'Sửa danh hiệu' : 'Thêm danh hiệu mới'}</h3>
             <form onSubmit={handleSubmit}>
               <div className="form-group">
                 <label>Tên danh hiệu (*)</label>
@@ -175,7 +175,7 @@ const AchievementList: React.FC = () => {
                 />
               </div>
               <div className="form-group">
-                <label>Yêu cầu Điểm XP (Để đạt được)</label>
+                <label>Yêu cầu điểm XP (Để đạt được)</label>
                 <input 
                   type="number" 
                   min="0"
@@ -184,7 +184,7 @@ const AchievementList: React.FC = () => {
                 />
               </div>
               <div className="form-group">
-                <label>Yêu cầu Chuỗi ngày học (Streak)</label>
+                <label>Yêu cầu chuỗi ngày học (Streak)</label>
                 <input 
                   type="number" 
                   min="0"
