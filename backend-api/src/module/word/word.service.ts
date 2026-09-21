@@ -18,6 +18,10 @@ export const wordService = {
     return await wordRepository.createWord(data);
   },
 
+  async createBulkWords(data: CreateWordInput[]) {
+    return await wordRepository.createBulkWords(data);
+  },
+
   async updateWord(id: string, data: UpdateWordInput) {
     return await wordRepository.updateWord(id, data);
   },
