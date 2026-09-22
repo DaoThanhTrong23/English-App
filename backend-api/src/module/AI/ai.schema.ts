@@ -24,3 +24,22 @@ export interface EssayEvaluationResponse {
   }>;
   improvedVersion: string;   // Bản viết lại mẫu tự nhiên hơn
 }
+
+// Kết quả trả về cho bài Nói (Speaking)
+export interface SpeakingEvaluationResponse {
+  transcript: string;          // Văn bản nhận diện được từ giọng nói (Speech-to-Text)
+  overallScore: number;        // Điểm tổng thang 10.0 (VD: 6.5)
+  cefrLevel: "A1" | "A2" | "B1" | "B2" | "C1" | "C2";
+  grammarScore: number;       // Điểm ngữ pháp (thang 10)
+  vocabularyScore: number;    // Điểm từ vựng (thang 10)
+  coherenceScore: number;     // Điểm độ mạch lạc, lưu loát (thang 10)
+  feedback: string;           // Nhận xét tổng quan (Tiếng Việt)
+  strengths: string[];        // Điểm làm tốt
+  improvements: string[];     // Điểm cần cải thiện
+  corrections: Array<{
+    original: string;         // Câu người học nói bị sai
+    issue: string;            // Giải thích lỗi sai
+    suggestion: string;       // Cách nói lại cho đúng
+  }>;
+  improvedVersion: string;    // Bản nói lại hoàn chỉnh mượt mà hơn
+}
