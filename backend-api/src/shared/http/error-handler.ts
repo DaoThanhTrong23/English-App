@@ -2,6 +2,7 @@ import { ErrorRequestHandler } from "express";
 import { ZodError } from "zod";
 import { ApiError } from "./api-error.js";
 import { PrismaClientInitializationError } from "@prisma/client/runtime/library";
+import multer from "multer";
 
 
 export const errorHandler: ErrorRequestHandler = (error, request, response, _next) => {
@@ -36,7 +37,17 @@ export const errorHandler: ErrorRequestHandler = (error, request, response, _nex
         return;
     }
 
+    if (error instanceof multer.MulterError) {
+        let message = error.message;
+        if (error.code === "LIMIT_FILE_SIZE") message = "File âm thanh tải lên vượt quá dung lượng cho phép tối đa"
+        if (error.code === "MISSING_FIELD_NAME") message = "Vui lòng chọn và đặt tên trường cho file tải lên";
 
+        response.status(400).json({
+            error: { code: error.code, message },
+            path: request.path
+        });
+        return;
+    }
 
     // Lỗi hệ thống
     console.error("DEBUG ERROR HANDLER:", error);

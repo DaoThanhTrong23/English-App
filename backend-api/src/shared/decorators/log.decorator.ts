@@ -36,9 +36,13 @@ function autoSanitize(val: any): any {
     if (Array.isArray(val)) {
         return val.map(autoSanitize);
     }
+    // 2.5 Nếu là Buffer / TypedArray -> Không lặp qua từng byte
+    if (Buffer.isBuffer(val) || val instanceof Uint8Array) {
+        return `<Buffer length: ${val.length} bytes>`;
+    }
     // 3. Nếu là Object -> Kiểm tra cả Tên Key và Giá Trị
     if (typeof val === "object") {
-        // Tránh can thiệp vào các Object đặc biệt như Date, RegExp, Buffer, Error
+        // Tránh can thiệp vào các Object đặc biệt như Date, RegExp, Error
         if (val instanceof Date || val instanceof RegExp || val instanceof Error) {
             return val;
         }
