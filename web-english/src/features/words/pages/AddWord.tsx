@@ -1,13 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Search, FileUp, Save, UploadCloud, Type, Image as ImageIcon, Volume2, ArrowLeft } from 'lucide-react';
+import * as XLSX from 'xlsx';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import './AddWord.css';
+import { fetchTopics } from '../api/words.api';
 
 const AddWord: React.FC = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'manual' | 'file'>('manual');
+  
+  // States for file upload
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadSuccess, setUploadSuccess] = useState<string>('');
 
   const [searchEn, setSearchEn] = useState('');
   const [searchVi, setSearchVi] = useState('');
@@ -15,6 +22,8 @@ const AddWord: React.FC = () => {
 
   const [previewImages, setPreviewImages] = useState<string[]>([]);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
+  const [loadingT, setloadingTopic] = useState(false);
+  const [topics, setTopics] = useState<any[]>([]);
 
   const [wordData, setWordData] = useState({
     headword: '',
@@ -35,6 +44,27 @@ const AddWord: React.FC = () => {
     if (len <= 10) return 'B2';
     return 'C1';
   };
+
+
+  const loadTopic = async () => {
+    setloadingTopic(true);
+    try {
+
+      const res = await fetchTopics();
+      if (res.data) setTopics(res.data);
+    } catch (err) {
+      console.error("Lỗi: không thể load danh sách chủ đề", err);
+    }
+    finally {
+      setloadingTopic(false)
+    }
+
+  };
+
+  useEffect(() => {
+
+
+  });
 
   const handleSearch = async () => {
     if (!searchEn.trim() && !searchVi.trim()) {
@@ -73,7 +103,6 @@ const AddWord: React.FC = () => {
         imageUrl: ''
       };
 
-      // Free Dictionary API
       try {
         const dictRes = await axios.get(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(engWord)}`);
         if (dictRes.data && dictRes.data.length > 0) {
@@ -183,26 +212,75 @@ const AddWord: React.FC = () => {
   };
 
   const handleSaveWord = async () => {
-    if (previewImages.length > 0 && selectedImageIndex === null) {
-      alert("Vui lòng chọn hình ảnh minh họa trước khi lưu.");
+    if (!wordData.headword) {
+      alert('Vui lòng nhập từ vựng (Headword)');
       return;
     }
+
     try {
       const { createWord } = await import('../api/words.api');
       await createWord(wordData);
-      alert(`Đã lưu từ vựng: "${wordData.headword}" thành công!`);
-      // Optional: Navigate to word list or clear form
-      setWordData({
-        headword: '', partOfSpeech: '', cefrLevel: 'A1', phonetic: '',
-        meaning: '', exampleSentence: '', audioUrl: '', imageUrl: ''
-      });
-      setPreviewImages([]);
-      setSelectedImageIndex(null);
       setSearchEn('');
       setSearchVi('');
     } catch (error: any) {
       alert("Lỗi khi lưu từ vựng: " + (error.response?.data?.message || error.message));
     }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setSelectedFile(e.target.files[0]);
+      setUploadSuccess('');
+    }
+  };
+
+  const handleFileUpload = async () => {
+    if (!selectedFile) {
+      alert('Vui lòng chọn file Excel hoặc CSV!');
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadSuccess('');
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const data = e.target?.result;
+        const workbook = XLSX.read(data, { type: 'binary' });
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+        const parsedData = XLSX.utils.sheet_to_json(sheet);
+
+        if (parsedData.length === 0) {
+          alert('File không có dữ liệu hợp lệ.');
+          setIsUploading(false);
+          return;
+        }
+
+        // Validate basic headers
+        const firstRow: any = parsedData[0];
+        if (!firstRow.headword) {
+          alert('Thiếu cột bắt buộc "headword" trong file.');
+          setIsUploading(false);
+          return;
+        }
+
+        const { createBulkWords } = await import('../api/words.api');
+        const res = await createBulkWords(parsedData as any[]);
+        
+        setUploadSuccess(`Đã upload thành công ${parsedData.length} từ vựng!`);
+        setSelectedFile(null);
+        alert(`Thêm hàng loạt ${parsedData.length} từ vựng thành công!`);
+      } catch (error) {
+        console.error('Error parsing/uploading file:', error);
+        alert('Có lỗi xảy ra khi đọc file hoặc lưu dữ liệu.');
+      } finally {
+        setIsUploading(false);
+      }
+    };
+    
+    reader.readAsBinaryString(selectedFile);
   };
 
   return (
@@ -317,6 +395,18 @@ const AddWord: React.FC = () => {
                 <textarea name="meaning" rows={2} value={wordData.meaning} onChange={handleInputChange} />
               </div>
 
+              <div className='form-group'>
+                <label>Chủ đề</label>
+                <select>
+                  {loadingT ? (
+                    <option>--Chưa xác định--</option>
+
+                  ) : (
+                    <option></option>
+                  )}
+                </select>
+              </div>
+
               <div className="form-group full-width">
                 <label>Câu ví dụ (Example)</label>
                 <textarea name="exampleSentence" rows={2} value={wordData.exampleSentence} onChange={handleInputChange} />
@@ -375,8 +465,15 @@ const AddWord: React.FC = () => {
                 </div>
                 <h3>Kéo thả tập tin vào đây</h3>
                 <p>Hỗ trợ định dạng CSV, XLS, XLSX</p>
-                <input type="file" className="file-input" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" />
+                <input 
+                  type="file" 
+                  className="file-input" 
+                  accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" 
+                  onChange={handleFileChange}
+                />
                 <button className="browse-btn"><UploadCloud size={16} /> Chọn Tập Tin</button>
+                {selectedFile && <p style={{ marginTop: '10px', color: '#10b981', fontWeight: 'bold' }}>Đã chọn: {selectedFile.name}</p>}
+                {uploadSuccess && <p style={{ marginTop: '10px', color: '#3b82f6', fontWeight: 'bold' }}>{uploadSuccess}</p>}
               </div>
 
               <div className="file-requirements">
@@ -387,7 +484,13 @@ const AddWord: React.FC = () => {
               </div>
 
               <div className="form-actions">
-                <button className="save-btn upload-btn"><Save size={18} /> Thêm dữ liệu</button>
+                <button 
+                  className="save-btn upload-btn" 
+                  onClick={handleFileUpload}
+                  disabled={isUploading || !selectedFile}
+                >
+                  <Save size={18} /> {isUploading ? 'Đang tải lên...' : 'Thêm dữ liệu'}
+                </button>
               </div>
             </div>
           )}

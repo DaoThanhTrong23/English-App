@@ -24,6 +24,10 @@ export const wordRepository = {
     return prisma.word.create({ data });
   },
 
+  async createBulkWords(data: CreateWordInput[]) {
+    return prisma.word.createMany({ data, skipDuplicates: true });
+  },
+
   // SỬA TỪ
   async updateWord(id: string, data: UpdateWordInput) {
     return await prisma.word.update({

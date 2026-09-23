@@ -86,9 +86,9 @@ const TopicList: React.FC = () => {
       <div className="course-list-container">
         <div className="course-list-main">
           <div className="course-list-header">
-            <h2>Quản lý Chủ đề (Topic)</h2>
+            <h2>Quản lý chủ đề</h2>
             <button className="add-course-btn" onClick={() => handleOpenModal()}>
-              <Plus size={18} /> Thêm Chủ đề
+              <Plus size={18} /> Thêm chủ đề
             </button>
           </div>
 
@@ -156,7 +156,7 @@ const TopicList: React.FC = () => {
       {isModalOpen && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <h3>{editingTopic ? 'Sửa Chủ đề' : 'Thêm Chủ đề mới'}</h3>
+            <h3>{editingTopic ? 'Sửa chủ đề' : 'Thêm chủ đề mới'}</h3>
             <form onSubmit={handleSubmit}>
               <div className="form-group">
                 <label>Tên chủ đề (*)</label>

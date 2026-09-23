@@ -183,7 +183,7 @@ const CourseDetail: React.FC = () => {
             <ArrowLeft size={20} /> Quay lại
           </button>
           <div className="course-header-text">
-            <h2>Chi tiết Bài học: {course.title}</h2>
+            <h2>Chi tiết bài học: {course.title}</h2>
             <p>Quản lý nội dung, từ vựng và các bài tập 4 kỹ năng</p>
           </div>
         </div>
@@ -205,7 +205,7 @@ const CourseDetail: React.FC = () => {
             style={{ padding: '12px 24px', background: 'none', border: 'none', borderBottom: activeTab === 'tests' ? '2px solid #3b82f6' : 'none', color: activeTab === 'tests' ? '#3b82f6' : '#64748b', fontWeight: 'bold', cursor: 'pointer', marginBottom: '-2px' }}
             onClick={() => setActiveTab('tests')}
           >
-            <CheckSquare size={16} style={{ display: 'inline', marginRight: '8px' }}/> Bài Luyện tập
+            <CheckSquare size={16} style={{ display: 'inline', marginRight: '8px' }}/> Bài luyện tập
           </button>
         </div>
 
@@ -213,7 +213,7 @@ const CourseDetail: React.FC = () => {
           <div style={{ background: 'white', padding: '24px', borderRadius: '12px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <h3>Thông tin Bài học</h3>
-              <button className="add-course-btn" onClick={handleSaveInfo}>Lưu Thay Đổi</button>
+              <button className="add-course-btn" onClick={handleSaveInfo}>Lưu thay đổi</button>
             </div>
             
             <div className="form-group" style={{ marginBottom: '16px' }}>
@@ -272,7 +272,7 @@ const CourseDetail: React.FC = () => {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <h3>Từ vựng trong bài ({course.words?.length || 0})</h3>
               <button className="add-course-btn" onClick={handleOpenWordModal}>
-                <Plus size={18} /> Gán thêm Từ vựng
+                <Plus size={18} /> Gán thêm từ vựng
               </button>
             </div>
             
@@ -312,9 +312,9 @@ const CourseDetail: React.FC = () => {
         {activeTab === 'tests' && (
           <div style={{ background: 'white', padding: '24px', borderRadius: '12px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3>Các bài Luyện tập ({tests.length})</h3>
+              <h3>Các bài luyện tập ({tests.length})</h3>
               <button className="add-course-btn" onClick={() => setIsTestModalOpen(true)}>
-                <Plus size={18} /> Tạo Bài Luyện tập
+                <Plus size={18} /> Tạo bài luyện tập
               </button>
             </div>
             
@@ -423,7 +423,7 @@ const CourseDetail: React.FC = () => {
       {isTestModalOpen && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <h3>Tạo Bài Luyện Tập Mới</h3>
+            <h3>Tạo bài luyện tập mới</h3>
             <form onSubmit={handleCreateTest}>
               <div className="form-group" style={{ marginBottom: '16px' }}>
                 <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>Tên bài tập (*)</label>
@@ -446,7 +446,7 @@ const CourseDetail: React.FC = () => {
               </div>
               <div className="modal-actions">
                 <button type="button" className="cancel-btn" onClick={() => setIsTestModalOpen(false)}>Hủy</button>
-                <button type="submit" className="submit-btn">Tạo Bài Luyện Tập</button>
+                <button type="submit" className="submit-btn">Tạo bài luyện tập</button>
               </div>
             </form>
           </div>

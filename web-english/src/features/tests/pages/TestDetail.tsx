@@ -28,7 +28,7 @@ const TestDetail: React.FC = () => {
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState<any>(null);
-  
+
   // Form state
   const [formData, setFormData] = useState({
     quesionText: '',
@@ -70,7 +70,7 @@ const TestDetail: React.FC = () => {
         points: Number(question.points) || 10,
         audioUrl: question.audioUrl || '',
         imageUrl: question.imageUrl || '',
-        answers: question.answers && question.answers.length > 0 
+        answers: question.answers && question.answers.length > 0
           ? question.answers.map((a: any) => ({ ...a }))
           : [{ answerText: '', isCorrect: false }, { answerText: '', isCorrect: false }]
       });
@@ -116,12 +116,12 @@ const TestDetail: React.FC = () => {
   const handleAnswerChange = (index: number, field: string, value: any) => {
     setFormData(prev => {
       const newAnswers = [...prev.answers];
-      
+
       // If multiple choice and we are setting one to true, set others to false
       if (field === 'isCorrect' && value === true && prev.questionType === 'multiple_choice') {
         newAnswers.forEach(a => a.isCorrect = false);
       }
-      
+
       newAnswers[index] = { ...newAnswers[index], [field]: value };
       return { ...prev, answers: newAnswers };
     });
@@ -129,7 +129,7 @@ const TestDetail: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validate: at least one answer must be correct
     const hasCorrectAnswer = formData.answers.some(a => a.isCorrect);
     if (!hasCorrectAnswer) {
@@ -189,21 +189,21 @@ const TestDetail: React.FC = () => {
     <AdminLayout>
       <div className="test-detail-main">
         <button className="back-btn" onClick={() => navigate('/admin/tests')}>
-          <ArrowLeft size={16} /> Quay lại danh sách Bài thi
+          <ArrowLeft size={16} /> Quay lại danh sách bài thi
         </button>
 
         <div className="test-detail-header">
-          <h2>Quản lý Câu hỏi (Bài thi #{testId})</h2>
+          <h2>Quản lý câu hỏi (Bài thi #{testId})</h2>
           <div style={{ display: 'flex', gap: '12px' }}>
-            <input 
-              type="file" 
-              accept=".xlsx, .xls" 
-              style={{ display: 'none' }} 
+            <input
+              type="file"
+              accept=".xlsx, .xls"
+              style={{ display: 'none' }}
               ref={fileInputRef}
               onChange={handleFileUpload}
             />
-            <button 
-              className="add-test-btn" 
+            <button
+              className="add-test-btn"
               style={{ backgroundColor: '#10b981' }}
               onClick={() => fileInputRef.current?.click()}
               disabled={importing}
@@ -211,7 +211,7 @@ const TestDetail: React.FC = () => {
               <Upload size={18} /> {importing ? 'Đang xử lý...' : 'Nhập Excel'}
             </button>
             <button className="add-test-btn" onClick={() => handleOpenModal()}>
-              <Plus size={18} /> Thêm Câu Hỏi Mới
+              <Plus size={18} /> Thêm câu hỏi mới
             </button>
           </div>
         </div>
@@ -264,128 +264,148 @@ const TestDetail: React.FC = () => {
       </div>
 
       {isModalOpen && (
-        <div className="modal-overlay" style={{ overflowY: 'auto' }}>
-          <div className="modal-content" style={{ margin: '40px auto' }}>
-            <h3>{editingQuestion ? 'Sửa Câu Hỏi' : 'Thêm Câu Hỏi'}</h3>
+        <div className="modal-overlay" style={{ overflowY: 'auto', width: '100%' }}>
+          <div className="modal-content" style={{ margin: '10px auto', minWidth: '50%' }}>
+            <h3>{editingQuestion ? 'Sửa câu Hỏi' : 'Thêm câu hỏi'}</h3>
             <form onSubmit={handleSubmit}>
-              <div className="form-group">
-                <label>Nội dung câu hỏi (*)</label>
-                <textarea 
-                  required
-                  value={formData.quesionText}
-                  onChange={(e) => setFormData({...formData, quesionText: e.target.value})}
-                  rows={3}
-                ></textarea>
-              </div>
-              
-              <div style={{ display: 'flex', gap: '16px' }}>
-                <div className="form-group" style={{ flex: 1 }}>
-                  <label>Loại câu hỏi</label>
-                  <select 
-                    value={formData.questionType}
-                    onChange={(e) => setFormData({...formData, questionType: e.target.value})}
-                  >
-                    <option value="multiple_choice">Đọc - Trắc nghiệm</option>
-                    <option value="fill_in_blank">Viết - Điền khuyết</option>
-                    <option value="listening">Nghe - Chọn đáp án</option>
-                    <option value="speaking">Nói - Ghi âm</option>
-                    <option value="writing">Viết - Tự do</option>
-                  </select>
-                </div>
-                <div className="form-group" style={{ width: '120px' }}>
-                  <label>Điểm</label>
-                  <input 
-                    type="number" 
-                    min="1"
-                    required
-                    value={formData.points}
-                    onChange={(e) => setFormData({...formData, points: Number(e.target.value)})}
-                  />
-                </div>
-              </div>
 
-              <div style={{ display: 'flex', gap: '16px' }}>
-                <div className="form-group" style={{ flex: 1 }}>
-                  <label>File Âm thanh (Audio MP3) - Tuỳ chọn</label>
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <input 
-                      type="text" 
-                      placeholder="URL MP3 hoặc tải lên..."
-                      value={formData.audioUrl}
-                      onChange={(e) => setFormData({...formData, audioUrl: e.target.value})}
-                    />
-                    <input type="file" id="audio-upload" style={{ display: 'none' }} accept="audio/*" onChange={async (e) => {
-                      const file = e.target.files?.[0];
-                      if (!file) return;
-                      const res = await uploadMedia(file);
-                      if (res.data?.url) setFormData({...formData, audioUrl: res.data.url});
-                    }}/>
-                    <button type="button" className="add-test-btn" onClick={() => document.getElementById('audio-upload')?.click()}>Tải lên</button>
+              <div style={{ display: 'flex' }}>
+
+                <div style={{marginRight: '10px', width: '50%'}}>
+                  <div className="form-group">
+                    <label>Nội dung câu hỏi (*)</label>
+                    <textarea
+                      required
+                      value={formData.quesionText}
+                      onChange={(e) => setFormData({ ...formData, quesionText: e.target.value })}
+                      rows={3}
+                    ></textarea>
                   </div>
-                </div>
-              </div>
 
-              <div style={{ display: 'flex', gap: '16px' }}>
-                <div className="form-group" style={{ flex: 1 }}>
-                  <label>Hình ảnh minh họa - Tuỳ chọn</label>
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <input 
-                      type="text" 
-                      placeholder="URL Hình ảnh hoặc tải lên..."
-                      value={formData.imageUrl}
-                      onChange={(e) => setFormData({...formData, imageUrl: e.target.value})}
-                    />
-                    <input type="file" id="image-upload" style={{ display: 'none' }} accept="image/*" onChange={async (e) => {
-                      const file = e.target.files?.[0];
-                      if (!file) return;
-                      const res = await uploadMedia(file);
-                      if (res.data?.url) setFormData({...formData, imageUrl: res.data.url});
-                    }}/>
-                    <button type="button" className="add-test-btn" onClick={() => document.getElementById('image-upload')?.click()}>Tải lên</button>
-                  </div>
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label>Các Đáp án {formData.questionType === 'speaking' && '(Chỉ cần 1 đáp án là câu mẫu)'}</label>
-                <div className="dynamic-answers">
-                  <p style={{ fontSize: '0.85rem', color: '#64748b', marginTop: 0, marginBottom: '12px' }}>
-                    Tích chọn vào ô tròn/vuông để đánh dấu đáp án đúng.
-                  </p>
-                  
-                  {formData.answers.map((answer, index) => (
-                    <div className="dynamic-answer-row" key={index}>
-                      <input 
-                        type={formData.questionType === 'multiple_choice' ? 'radio' : 'checkbox'} 
-                        name="isCorrect"
-                        checked={answer.isCorrect}
-                        onChange={(e) => handleAnswerChange(index, 'isCorrect', e.target.checked)}
-                      />
-                      <input 
-                        type="text" 
-                        placeholder={`Đáp án ${index + 1}`}
-                        required
-                        value={answer.answerText}
-                        onChange={(e) => handleAnswerChange(index, 'answerText', e.target.value)}
-                      />
-                      {formData.answers.length > 2 && (
-                        <button 
-                          type="button" 
-                          className="remove-answer-btn"
-                          onClick={() => handleRemoveAnswerRow(index)}
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      )}
+                  <div style={{ display: 'flex', gap: '16px' }}>
+                    <div className="form-group" style={{ flex: 1 }}>
+                      <label>Loại câu hỏi</label>
+                      <select
+                        value={formData.questionType}
+                        onChange={(e) => setFormData({ ...formData, questionType: e.target.value })}
+                      >
+                        <option value="multiple_choice">Đọc - Trắc nghiệm</option>
+                        <option value="fill_in_blank">Viết - Điền khuyết</option>
+                        <option value="listening">Nghe - Chọn đáp án</option>
+                        <option value="speaking">Nói - Ghi âm</option>
+                        <option value="writing">Viết - Tự do</option>
+                      </select>
                     </div>
-                  ))}
-                  
-                  <button type="button" className="add-answer-btn" onClick={handleAddAnswerRow}>
-                    + Thêm một đáp án
-                  </button>
+                    <div className="form-group" style={{ width: '120px' }}>
+                      <label>Điểm</label>
+                      <input
+                        type="number"
+                        min="1"
+                        required
+                        value={formData.points}
+                        onChange={(e) => setFormData({ ...formData, points: Number(e.target.value) })}
+                      />
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '16px' }}>
+                    <div className="form-group" style={{ flex: 1 }}>
+                      <label>File Âm thanh (Audio MP3) - Tuỳ chọn</label>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <input
+                          type="text"
+                          placeholder="URL MP3 hoặc tải lên..."
+                          value={formData.audioUrl}
+                          onChange={(e) => setFormData({ ...formData, audioUrl: e.target.value })}
+                        />
+                        <input type="file" id="audio-upload" style={{ display: 'none' }} accept="audio/*" onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          const res = await uploadMedia(file);
+                          if (res.data?.url) setFormData({ ...formData, audioUrl: res.data.url });
+                        }} />
+                        <button type="button" className="add-test-btn" onClick={() => document.getElementById('audio-upload')?.click()}>Tải lên</button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '16px' }}>
+                    <div className="form-group" style={{ flex: 1 }}>
+                      <label>Hình ảnh minh họa - Tuỳ chọn</label>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <input
+                          type="text"
+                          placeholder="URL Hình ảnh hoặc tải lên..."
+                          value={formData.imageUrl}
+                          onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                        />
+                        <input type="file" id="image-upload" style={{ display: 'none' }} accept="image/*" onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          const res = await uploadMedia(file);
+                          if (res.data?.url) setFormData({ ...formData, imageUrl: res.data.url });
+                        }} />
+                        <button type="button" className="add-test-btn" onClick={() => document.getElementById('image-upload')?.click()}>Tải lên</button>
+                      </div>
+                    </div>
+                  </div>
+
                 </div>
+
+
+
+
+
+
+
+
+
+
+
+                <div className="form-group" style={{marginLeft: '15px', width: '50%'}}>
+                  <label>Các đáp án {formData.questionType === 'speaking' && '(Chỉ cần 1 đáp án là câu mẫu)'}</label>
+                  <div className="dynamic-answers">
+                    <p style={{ fontSize: '0.85rem', color: '#64748b', marginTop: 0, marginBottom: '12px' }}>
+                      Tích chọn vào ô tròn/vuông để đánh dấu đáp án đúng.
+                    </p>
+
+                    {formData.answers.map((answer, index) => (
+                      <div className="dynamic-answer-row" key={index}>
+                        <input
+                          type={formData.questionType === 'multiple_choice' ? 'radio' : 'checkbox'}
+                          name="isCorrect"
+                          checked={answer.isCorrect}
+                          onChange={(e) => handleAnswerChange(index, 'isCorrect', e.target.checked)}
+                        />
+                        <input
+                          type="text"
+                          placeholder={`Đáp án ${index + 1}`}
+                          required
+                          value={answer.answerText}
+                          onChange={(e) => handleAnswerChange(index, 'answerText', e.target.value)}
+                        />
+                        {formData.answers.length > 2 && (
+                          <button
+                            type="button"
+                            className="remove-answer-btn"
+                            onClick={() => handleRemoveAnswerRow(index)}
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+
+                    <button type="button" className="add-answer-btn" onClick={handleAddAnswerRow}>
+                      + Thêm một đáp án
+                    </button>
+                  </div>
+                </div>
+
+
               </div>
-              
+
+
               <div className="modal-actions">
                 <button type="button" className="cancel-btn" onClick={handleCloseModal}>Hủy</button>
                 <button type="submit" className="submit-btn">{editingQuestion ? 'Cập nhật' : 'Tạo mới'}</button>
