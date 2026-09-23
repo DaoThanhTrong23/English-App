@@ -1,14 +1,56 @@
 import { EssayEvaluationResponse, GradeEssayInput, SpeakingEvaluationResponse } from "./ai.schema.js";
 import { logExecution } from "../../shared/decorators/log.decorator.js";
 import ollama from "ollama"
+import pkg from "wavefile";
+import { env } from "@xenova/transformers";
+import { loggers } from "../../utils/logger.js";
+import { boolean } from "zod/v4";
+const { WaveFile } = pkg;
+
 let transcriber: any = null;
+
 async function getTranscriber() {
     if (!transcriber) {
         const { pipeline } = await import("@xenova/transformers");
         // Tải model whisper-small hoặc whisper-base tự động về máy (rất nhẹ và chính xác)
-        transcriber = await pipeline("automatic-speech-recognition", "Xenova/whisper-small");
+        env.backends.onnx.logLevel = "error";
+        transcriber = await pipeline("automatic-speech-recognition", "Xenova/whisper-small.en");
     }
     return transcriber;
+}
+
+function decodeWavToFloat32(audioBuffer: Buffer): Float32Array {
+    try {
+        const wav = new WaveFile(audioBuffer);
+        wav.toBitDepth("32f");
+        wav.toSampleRate(16000);
+        let audioData: any = wav.getSamples();
+        if (Array.isArray(audioData)) {
+            if (audioData.length > 1) {
+                const SCALING_FACTOR = Math.sqrt(2);
+                for (let i = 0; i < audioData[0].length; ++i) {
+                    audioData[0][i] = (SCALING_FACTOR * (audioData[0][i] + audioData[1][i])) / 2;
+                }
+            }
+            audioData = audioData[0];
+        }
+        const float32 = new Float32Array(audioData);
+        // Chuẩn hóa âm lượng: Tìm đỉnh âm lượng lớn nhất và khuếch đại đều
+        let maxVal = 0;
+        for (let i = 0; i < float32.length; i++) {
+            const abs = Math.abs(float32[i]);
+            if (abs > maxVal) maxVal = abs;
+        }
+        if (maxVal > 0 && maxVal < 0.9) {
+            const scale = 0.95 / maxVal;
+            for (let i = 0; i < float32.length; i++) {
+                float32[i] *= scale;
+            }
+        }
+        return float32;
+    } catch (err: any) {
+        throw new Error(`Không thể giải mã file âm thanh WAV: ${err.message || err}`);
+    }
 }
 
 
@@ -40,7 +82,7 @@ class AiService {
                             "suggestion": "câu viết lại chính xác"
                             }
                         ],
-                        "improvedVersion": "Đoạn văn viết lại hoàn chỉnh tự nhiên và mượt mà hơn"
+                        "improvedVersion": "Đoạn văn viết lại hoàn chỉnh tự nhiên và mượt mà hơn bằng tiếng anh"
                         }`;
 
         const response = await ollama.chat({
@@ -50,14 +92,18 @@ class AiService {
         });
         return JSON.parse(response.message.content) as EssayEvaluationResponse;
     }
-    async transcribeAudioLocal(audioBuffer: Buffer, mimeType: string = "audio/wav"): Promise<string> {
+    async transcribeAudioLocal(audioBuffer: Buffer, mimeType: string = "audio/wav", contextPrompt?: string): Promise<string> {
         const asr = await getTranscriber();
-        // Chuyển Buffer sang chuỗi Base64 Data URI mà Whisper hỗ trợ trực tiếp
-        const base64Audio = `data:${mimeType};base64,${audioBuffer.toString("base64")}`;
+        // Giải mã Buffer âm thanh WAV thành Float32Array 16kHz chuẩn cho Whisper trong Node.js
+        const float32Samples = decodeWavToFloat32(audioBuffer);
         // Whisper nhận diện giọng nói tiếng Anh
-        const output = await asr(base64Audio, {
+        const output = await asr(float32Samples, {
             language: "english",
             task: "transcribe",
+            chunk_length_s: 30,
+            stride_length_s: 5,
+            num_beams: 2,           // Tìm kiếm theo chùm để ghép câu chuẩn xác nhất
+            initial_prompt: contextPrompt || "English pronunciation and conversation practice.", // Mỏ neo ngữ cảnh
         });
         return (output.text || "").trim();
     }
@@ -70,8 +116,11 @@ class AiService {
         topic?: string,
         targetSentence?: string
     ): Promise<SpeakingEvaluationResponse> {
+        const contextPrompt = [topic,targetSentence].filter(boolean).join(".");
+
         // Bước 1: Dùng Whisper chạy offline để bóc băng giọng nói thành văn bản
         const transcript = await this.transcribeAudioLocal(audioBuffer, mimeType);
+        loggers.info(`Đoạn văn trích từ audio: ${transcript}`);
         // Bước 2: Dùng Ollama để chấm điểm văn bản transcript
         const prompt = `Bạn là giám khảo chấm thi Nói tiếng Anh chuẩn quốc tế theo khung CEFR (A1, A2, B1, B2, C1, C2).
                 Dưới đây là lời nói của học viên đã được chuyển đổi từ bản ghi âm giọng nói thành văn bản (transcript):
@@ -98,7 +147,7 @@ class AiService {
                     "suggestion": "câu nói lại tự nhiên và đúng ngữ pháp"
                     }
                 ],
-                "improvedVersion": "Bản diễn đạt lại hoàn chỉnh tự nhiên và hay hơn cho câu trả lời trên"
+                "improvedVersion": "Bản diễn đạt lại hoàn chỉnh tự nhiên và hay hơn cho câu trả lời trên bằng tiếng anh"
                 }`;
         const response = await ollama.chat({
             model: "qwen2.5:7b",
