@@ -92,6 +92,7 @@ const routeModules: { prefix: string; file: string; defaultTag?: string }[] = [
   { prefix: "/api/admin/tests", file: "./src/module/test/test.route.ts", defaultTag: "Admin - Tests" },
   { prefix: "/game/bubble-game", file: "./src/module/bubble-game/bubble-game.route.ts", defaultTag: "Game - Bubble Game" },
   { prefix: "/game/memory-card", file: "./src/module/memory-card/memory-card.route.ts", defaultTag: "Game - Memory Card" },
+  { prefix: "/game/word-matching", file: "./src/module/word-matching/word-matching.route.ts", defaultTag: "Game - Word Matching" },
   { prefix: "/api/ai", file: "./src/module/AI/ai.router.ts", defaultTag: "AI" },
 ];
 
@@ -231,37 +232,64 @@ function extractParametersAndBody(schemaWrapper: any) {
   return { parameters, requestBody };
 }
 
-// 1. Quét từng Router và gộp kết quả với đúng URL Prefix
-const mergedPaths: Record<string, any> = {};
+async function generate() {
+  const mergedPaths: Record<string, any> = {};
 
-for (let i = 0; i < routeModules.length; i++) {
-  const mod = routeModules[i];
-  if (!fs.existsSync(mod.file)) continue;
+  // 1. Quét từng Router và gộp kết quả với đúng URL Prefix
+  for (let i = 0; i < routeModules.length; i++) {
+    const mod = routeModules[i];
+    if (!fs.existsSync(mod.file)) continue;
 
-  // Đảm bảo đúng chuẩn OpenAPI 3.0
-  swaggerDoc.openapi = "3.0.0";
-  delete swaggerDoc.swagger;
-  delete swaggerDoc.host;
-  delete swaggerDoc.basePath;
-  delete swaggerDoc.schemes;
-  swaggerDoc.servers = [
-    {
-      url: `http://localhost:${env.PORT || 3000}`,
-      description: "Development Server",
+    const tempOutputFile = `./src/swagger-temp-${i}.json`;
+    try {
+      await autogen({ openapi: "3.0.0" })(tempOutputFile, [mod.file], doc);
+      if (fs.existsSync(tempOutputFile)) {
+        const tempContent = JSON.parse(fs.readFileSync(tempOutputFile, "utf8"));
+        if (tempContent.paths) {
+          for (const [rawPath, pathItem] of Object.entries(tempContent.paths)) {
+            let cleanSubPath = rawPath.replace(/\/+$/, "");
+            if (!cleanSubPath.startsWith("/")) cleanSubPath = "/" + cleanSubPath;
+            if (cleanSubPath === "/") cleanSubPath = "";
+
+            let cleanPrefix = mod.prefix.replace(/\/+$/, "");
+            if (!cleanPrefix.startsWith("/")) cleanPrefix = "/" + cleanPrefix;
+
+            let fullPath = `${cleanPrefix}${cleanSubPath}`;
+            if (!fullPath) fullPath = "/";
+
+            mergedPaths[fullPath] = pathItem;
+          }
+        }
+        fs.unlinkSync(tempOutputFile);
+      }
+    } catch (_e) {
+      if (fs.existsSync(tempOutputFile)) fs.unlinkSync(tempOutputFile);
+    }
+  }
+
+  const finalSwaggerDoc: any = {
+    ...doc,
+    openapi: "3.0.0",
+    servers: [
+      {
+        url: `http://localhost:${env.PORT || 3000}`,
+        description: "Development Server",
+      },
+    ],
+    components: {
+      securitySchemes: {
+        BearerAuth: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
+          description: "Nhập Access Token vào đây theo dạng: Bearer <token>",
+        },
+      },
     },
-  ];
-
-  if (!swaggerDoc.components) swaggerDoc.components = {};
-  swaggerDoc.components.securitySchemes = {
-    BearerAuth: {
-      type: "http",
-      scheme: "bearer",
-      bearerFormat: "JWT",
-      description: "Nhập Access Token vào đây theo dạng: Bearer <token>",
-    },
+    paths: mergedPaths,
   };
 
-  // Schema mappings có cấu hình chi tiết
+  // 2. Cấu hình Schema & Summary chi tiết cho từng API
   const courseEndpoints = {
     get: { schema: GetCoursesQuerySchema, summary: "Lấy danh sách khóa học (phân trang, lọc cefrLevel, tìm kiếm)", tags: ["Admin - Courses"] },
     post: { schema: CreateCourseSchema, summary: "Tạo khóa học mới (kèm danh sách từ vựng)", tags: ["Admin - Courses"] },
@@ -273,37 +301,17 @@ for (let i = 0; i < routeModules.length; i++) {
     delete: { schema: CourseIdParamSchema, summary: "Xóa mềm khóa học (Soft Delete)", tags: ["Admin - Courses"] },
   };
 
-  const routeSchemaMap: Record<string, Record<string, { schema?: any; summary?: string; tags?: string[] }>> = {
-    "/api/auth/register": {
-      post: { schema: RegisterSchema, summary: "Đăng ký tài khoản mới", tags: ["Auth"] },
-    },
-    "/api/auth/login": {
-      post: { schema: LoginSchema, summary: "Đăng nhập với email/username & password", tags: ["Auth"] },
-    },
-    "/api/auth/logout": {
-      post: { schema: LogoutSchema, summary: "Đăng xuất tài khoản & hủy refresh token", tags: ["Auth"] },
-    },
-    "/api/auth/refresh": {
-      post: { schema: RefreshTokenSChema, summary: "Cấp lại Access Token mới", tags: ["Auth"] },
-    },
-    "/api/auth/google": {
-      post: { schema: GoogleLoginSchema, summary: "Đăng nhập với Google ID Token", tags: ["Auth"] },
-    },
-    "/api/auth/facebook": {
-      post: { schema: FacebookLoginSchema, summary: "Đăng nhập với Facebook Access Token", tags: ["Auth"] },
-    },
-    "/api/admin/students": {
-      get: { schema: GetStudentQuerySchema, summary: "Lấy danh sách học viên (phân trang, tìm kiếm)", tags: ["Admin - Students"] },
-    },
-    "/api/admin/students/totalStudent": {
-      get: { summary: "Thống kê tổng số học viên", tags: ["Admin - Students"] },
-    },
-    "/api/admin/students/{id}": {
-      get: { schema: StudentIdParamSchema, summary: "Xem chi tiết học viên & tiến trình học", tags: ["Admin - Students"] },
-    },
-    "/api/admin/word/totalWord": {
-      get: { summary: "Thống kê tổng số từ vựng", tags: ["Admin - Words"] },
-    },
+  const routeSchemaMap: Record<string, Record<string, { schema?: any; summary?: string; tags?: string[]; requestBody?: any }>> = {
+    "/api/auth/register": { post: { schema: RegisterSchema, summary: "Đăng ký tài khoản mới", tags: ["Auth"] } },
+    "/api/auth/login": { post: { schema: LoginSchema, summary: "Đăng nhập với email/username & password", tags: ["Auth"] } },
+    "/api/auth/logout": { post: { schema: LogoutSchema, summary: "Đăng xuất tài khoản & hủy refresh token", tags: ["Auth"] } },
+    "/api/auth/refresh": { post: { schema: RefreshTokenSChema, summary: "Cấp lại Access Token mới", tags: ["Auth"] } },
+    "/api/auth/google": { post: { schema: GoogleLoginSchema, summary: "Đăng nhập với Google ID Token", tags: ["Auth"] } },
+    "/api/auth/facebook": { post: { schema: FacebookLoginSchema, summary: "Đăng nhập với Facebook Access Token", tags: ["Auth"] } },
+    "/api/admin/students": { get: { schema: GetStudentQuerySchema, summary: "Lấy danh sách học viên (phân trang, tìm kiếm)", tags: ["Admin - Students"] } },
+    "/api/admin/students/totalStudent": { get: { summary: "Thống kê tổng số học viên", tags: ["Admin - Students"] } },
+    "/api/admin/students/{id}": { get: { schema: StudentIdParamSchema, summary: "Xem chi tiết học viên & tiến trình học", tags: ["Admin - Students"] } },
+    "/api/admin/word/totalWord": { get: { summary: "Thống kê tổng số từ vựng", tags: ["Admin - Words"] } },
     "/api/admin/word": {
       get: { schema: { shape: { query: getWordsQuerySchema } }, summary: "Lấy danh sách từ vựng", tags: ["Admin - Words"] },
       post: { schema: createWordSchema, summary: "Thêm từ vựng mới", tags: ["Admin - Words"] },
@@ -312,207 +320,110 @@ for (let i = 0; i < routeModules.length; i++) {
       put: { schema: updateWordSchema, summary: "Cập nhật từ vựng", tags: ["Admin - Words"] },
       delete: { summary: "Xóa từ vựng", tags: ["Admin - Words"] },
     },
-    "/api/admin/courses/totalLesson": {
-      get: { summary: "Thống kê tổng số bài học / khóa học", tags: ["Admin - Courses"] },
-    },
-    "/api/admin/courses/totalCourse": {
-      get: { summary: "Thống kê tổng số khóa học", tags: ["Admin - Courses"] },
-    },
+    "/api/admin/courses/totalLesson": { get: { summary: "Thống kê tổng số bài học / khóa học", tags: ["Admin - Courses"] } },
+    "/api/admin/courses/totalCourse": { get: { summary: "Thống kê tổng số khóa học", tags: ["Admin - Courses"] } },
     "/api/admin/courses": courseEndpoints,
     "/api/admin/courses/{id}": courseIdEndpoints,
-    "/api/admin/courses/{id}/restore": {
-      patch: { schema: CourseIdParamSchema, summary: "Khôi phục khóa học đã xóa mềm", tags: ["Admin - Courses"] },
-    },
-    "/api/admin/courses/{id}/words": {
-      post: { schema: AddWordsToCourseSchema, summary: "Gán thêm danh sách từ vựng vào khóa học", tags: ["Admin - Courses"] },
-    },
-    "/api/admin/courses/{id}/words/{wordId}": {
-      delete: { schema: CourseWordParamSchema, summary: "Gỡ từ vựng ra khỏi khóa học", tags: ["Admin - Courses"] },
-    },
-    "/api/admin/lessons": courseEndpoints,
-    "/api/admin/lessons/{id}": courseIdEndpoints,
-    "/api/admin/lessons/totalLesson": {
-      get: { summary: "Thống kê tổng số bài học / khóa học", tags: ["Admin - Courses"] },
-    },
-    "/game/bubble-game/start": {
-      get: { schema: StartGameSchema, summary: "Bắt đầu game Bubble (lấy danh sách từ vựng)", tags: ["Game - Bubble Game"] },
-    },
-    "/game/bubble-game/match": {
-      post: { schema: MatchPairSchema, summary: "Ghi nhận cặp từ ghép đúng trong Bubble Game", tags: ["Game - Bubble Game"] },
-    },
-    "/game/bubble-game/finish": {
-      post: { schema: FinishGameSchema, summary: "Hoàn tất ván chơi Bubble Game", tags: ["Game - Bubble Game"] },
-    },
-    "/game/memory-card/start": {
-      get: { schema: StartMemoryGameSchema, summary: "Bắt đầu game Memory Card (lấy danh sách thẻ)", tags: ["Game - Memory Card"] },
-    },
-    "/game/memory-card/progress": {
-      post: { schema: SaveProgressSchema, summary: "Lưu tiến trình tạm thời game Memory Card", tags: ["Game - Memory Card"] },
-    },
-    "/game/memory-card/finish": {
-      post: { schema: FinishMemoryGameSchema, summary: "Hoàn tất ván chơi Memory Card", tags: ["Game - Memory Card"] },
-    },
-    "/game/word-matching/start": {
-      get: { schema: StartWordMatchingSchema, summary: "Khởi tạo ván chơi nối từ (10 từ chia 2 cột A và B)", tags: ["Game - Word Matching"] },
-    },
-    "/game/word-matching/submit": {
-      post: { schema: SubmitWordMatchingSchema, summary: "Nộp kết quả nối từ và chấm điểm", tags: ["Game - Word Matching"] },
-    },
-    "/game/word-matching/progress": {
-      post: { schema: SaveWordMatchingProgressSchema, summary: "Lưu tiến trình tạm thời game nối từ", tags: ["Game - Word Matching"] },
-    },
-    "/api/ai/grade-essay": {
-      post: { schema: GradeEssaySchema, summary: "Chấm điểm và đánh giá bài viết tiếng Anh (AI)", tags: ["AI"] },
-    },
-  };
-
-          mergedPaths[fullPath] = pathItem;
-        }
-      }
-      fs.unlinkSync(tempOutputFile);
-    }
-  } catch (_e) {
-    if (fs.existsSync(tempOutputFile)) fs.unlinkSync(tempOutputFile);
-  }
-}
-
-// 2. Cấu hình Schema & Summary chi tiết cho từng API
-const courseEndpoints = {
-  get: { schema: GetCoursesQuerySchema, summary: "Lấy danh sách khóa học (phân trang, lọc cefrLevel, tìm kiếm)", tags: ["Admin - Courses"] },
-  post: { schema: CreateCourseSchema, summary: "Tạo khóa học mới (kèm danh sách từ vựng)", tags: ["Admin - Courses"] },
-};
-
-const courseIdEndpoints = {
-  get: { schema: CourseIdParamSchema, summary: "Xem chi tiết khóa học & danh sách từ vựng", tags: ["Admin - Courses"] },
-  put: { schema: UpdateCourseSchema, summary: "Cập nhật thông tin khóa học", tags: ["Admin - Courses"] },
-  delete: { schema: CourseIdParamSchema, summary: "Xóa mềm khóa học (Soft Delete)", tags: ["Admin - Courses"] },
-};
-
-const routeSchemaMap: Record<string, Record<string, { schema?: any; summary?: string; tags?: string[]; requestBody?: any }>> = {
-  "/api/auth/register": { post: { schema: RegisterSchema, summary: "Đăng ký tài khoản mới", tags: ["Auth"] } },
-  "/api/auth/login": { post: { schema: LoginSchema, summary: "Đăng nhập với email/username & password", tags: ["Auth"] } },
-  "/api/auth/logout": { post: { schema: LogoutSchema, summary: "Đăng xuất tài khoản & hủy refresh token", tags: ["Auth"] } },
-  "/api/auth/refresh": { post: { schema: RefreshTokenSChema, summary: "Cấp lại Access Token mới", tags: ["Auth"] } },
-  "/api/auth/google": { post: { schema: GoogleLoginSchema, summary: "Đăng nhập với Google ID Token", tags: ["Auth"] } },
-  "/api/auth/facebook": { post: { schema: FacebookLoginSchema, summary: "Đăng nhập với Facebook Access Token", tags: ["Auth"] } },
-  "/api/admin/students": { get: { schema: GetStudentQuerySchema, summary: "Lấy danh sách học viên (phân trang, tìm kiếm)", tags: ["Admin - Students"] } },
-  "/api/admin/students/totalStudent": { get: { summary: "Thống kê tổng số học viên", tags: ["Admin - Students"] } },
-  "/api/admin/students/{id}": { get: { schema: StudentIdParamSchema, summary: "Xem chi tiết học viên & tiến trình học", tags: ["Admin - Students"] } },
-  "/api/admin/word/totalWord": { get: { summary: "Thống kê tổng số từ vựng", tags: ["Admin - Words"] } },
-  "/api/admin/word": {
-    get: { schema: { shape: { query: getWordsQuerySchema } }, summary: "Lấy danh sách từ vựng", tags: ["Admin - Words"] },
-    post: { schema: createWordSchema, summary: "Thêm từ vựng mới", tags: ["Admin - Words"] },
-  },
-  "/api/admin/word/{id}": {
-    put: { schema: updateWordSchema, summary: "Cập nhật từ vựng", tags: ["Admin - Words"] },
-    delete: { summary: "Xóa từ vựng", tags: ["Admin - Words"] },
-  },
-  "/api/admin/courses/totalLesson": { get: { summary: "Thống kê tổng số bài học / khóa học", tags: ["Admin - Courses"] } },
-  "/api/admin/courses/totalCourse": { get: { summary: "Thống kê tổng số khóa học", tags: ["Admin - Courses"] } },
-  "/api/admin/courses": courseEndpoints,
-  "/api/admin/courses/{id}": courseIdEndpoints,
-  "/api/admin/courses/{id}/restore": { patch: { schema: CourseIdParamSchema, summary: "Khôi phục khóa học đã xóa mềm", tags: ["Admin - Courses"] } },
-  "/api/admin/courses/{id}/words": { post: { schema: AddWordsToCourseSchema, summary: "Gán thêm danh sách từ vựng vào khóa học", tags: ["Admin - Courses"] } },
-  "/api/admin/courses/{id}/words/{wordId}": { delete: { schema: CourseWordParamSchema, summary: "Gỡ từ vựng ra khỏi khóa học", tags: ["Admin - Courses"] } },
-  "/game/bubble-game/start": { get: { schema: StartGameSchema, summary: "Bắt đầu game Bubble (lấy danh sách từ vựng)", tags: ["Game - Bubble Game"] } },
-  "/game/bubble-game/match": { post: { schema: MatchPairSchema, summary: "Ghi nhận cặp từ ghép đúng trong Bubble Game", tags: ["Game - Bubble Game"] } },
-  "/game/bubble-game/finish": { post: { schema: FinishGameSchema, summary: "Hoàn tất ván chơi Bubble Game", tags: ["Game - Bubble Game"] } },
-  "/game/memory-card/start": { get: { schema: StartMemoryGameSchema, summary: "Bắt đầu game Memory Card (lấy danh sách thẻ)", tags: ["Game - Memory Card"] } },
-  "/game/memory-card/progress": { post: { schema: SaveProgressSchema, summary: "Lưu tiến trình tạm thời game Memory Card", tags: ["Game - Memory Card"] } },
-  "/game/memory-card/finish": { post: { schema: FinishMemoryGameSchema, summary: "Hoàn tất ván chơi Memory Card", tags: ["Game - Memory Card"] } },
-  "/game/word-matching/start": { get: { schema: StartWordMatchingSchema, summary: "Bắt đầu game Nối từ (lấy danh sách 2 cột A & B)", tags: ["Game - Word Matching"] } },
-  "/game/word-matching/submit": { post: { schema: SubmitWordMatchingSchema, summary: "Xác nhận nộp bài nối từ & chấm điểm", tags: ["Game - Word Matching"] } },
-  "/game/word-matching/progress": { post: { schema: SaveWordMatchingProgressSchema, summary: "Lưu tiến trình tạm thời game Nối từ", tags: ["Game - Word Matching"] } },
-  "/api/ai/grade-essay": { post: { schema: GradeEssaySchema, summary: "Chấm điểm bài viết (Writing)", tags: ["AI"] } },
-  "/api/ai/grade-speaking": {
-    post: {
-      summary: "Chấm điểm bài nói (Speaking qua File Audio ghi âm)",
-      tags: ["AI"],
-      requestBody: {
-        required: true,
-        content: {
-          "multipart/form-data": {
-            schema: {
-              type: "object",
-              properties: {
-                audio: {
-                  type: "string",
-                  format: "binary",
-                  description: "File âm thanh ghi âm (.mp3, .wav, .m4a, .webm)",
+    "/api/admin/courses/{id}/restore": { patch: { schema: CourseIdParamSchema, summary: "Khôi phục khóa học đã xóa mềm", tags: ["Admin - Courses"] } },
+    "/api/admin/courses/{id}/words": { post: { schema: AddWordsToCourseSchema, summary: "Gán thêm danh sách từ vựng vào khóa học", tags: ["Admin - Courses"] } },
+    "/api/admin/courses/{id}/words/{wordId}": { delete: { schema: CourseWordParamSchema, summary: "Gỡ từ vựng ra khỏi khóa học", tags: ["Admin - Courses"] } },
+    "/game/bubble-game/start": { get: { schema: StartGameSchema, summary: "Bắt đầu game Bubble (lấy danh sách từ vựng)", tags: ["Game - Bubble Game"] } },
+    "/game/bubble-game/match": { post: { schema: MatchPairSchema, summary: "Ghi nhận cặp từ ghép đúng trong Bubble Game", tags: ["Game - Bubble Game"] } },
+    "/game/bubble-game/finish": { post: { schema: FinishGameSchema, summary: "Hoàn tất ván chơi Bubble Game", tags: ["Game - Bubble Game"] } },
+    "/game/memory-card/start": { get: { schema: StartMemoryGameSchema, summary: "Bắt đầu game Memory Card (lấy danh sách thẻ)", tags: ["Game - Memory Card"] } },
+    "/game/memory-card/progress": { post: { schema: SaveProgressSchema, summary: "Lưu tiến trình tạm thời game Memory Card", tags: ["Game - Memory Card"] } },
+    "/game/memory-card/finish": { post: { schema: FinishMemoryGameSchema, summary: "Hoàn tất ván chơi Memory Card", tags: ["Game - Memory Card"] } },
+    "/game/word-matching/start": { get: { schema: StartWordMatchingSchema, summary: "Bắt đầu game Nối từ (lấy danh sách 2 cột A & B)", tags: ["Game - Word Matching"] } },
+    "/game/word-matching/submit": { post: { schema: SubmitWordMatchingSchema, summary: "Xác nhận nộp bài nối từ & chấm điểm", tags: ["Game - Word Matching"] } },
+    "/game/word-matching/progress": { post: { schema: SaveWordMatchingProgressSchema, summary: "Lưu tiến trình tạm thời game Nối từ", tags: ["Game - Word Matching"] } },
+    "/api/ai/grade-essay": { post: { schema: GradeEssaySchema, summary: "Chấm điểm bài viết (Writing)", tags: ["AI"] } },
+    "/api/ai/grade-speaking": {
+      post: {
+        summary: "Chấm điểm bài nói (Speaking qua File Audio ghi âm)",
+        tags: ["AI"],
+        requestBody: {
+          required: true,
+          content: {
+            "multipart/form-data": {
+              schema: {
+                type: "object",
+                properties: {
+                  audio: {
+                    type: "string",
+                    format: "binary",
+                    description: "File âm thanh ghi âm (.mp3, .wav, .m4a, .webm)",
+                  },
+                  topic: {
+                    type: "string",
+                    description: "Chủ đề bài nói (tùy chọn)",
+                    example: "Describe your favorite hobby",
+                  },
+                  targetSentence: {
+                    type: "string",
+                    description: "Câu mẫu yêu cầu đọc theo (tùy chọn nếu là bài đọc theo mẫu)",
+                    example: "I usually get up at around 6:30 in the morning.",
+                  },
                 },
-                topic: {
-                  type: "string",
-                  description: "Chủ đề bài nói (tùy chọn)",
-                  example: "Describe your favorite hobby",
-                },
-                targetSentence: {
-                  type: "string",
-                  description: "Câu mẫu yêu cầu đọc theo (tùy chọn nếu là bài đọc theo mẫu)",
-                  example: "I usually get up at around 6:30 in the morning.",
-                },
+                required: ["audio"],
               },
-              required: ["audio"],
             },
           },
         },
       },
     },
-  },
-};
+  };
 
-const finalSwaggerDoc: any = {
-  ...doc,
-  paths: mergedPaths,
-};
-
-// 3. Áp dụng schema chi tiết từ routeSchemaMap
-for (const [path, methods] of Object.entries(routeSchemaMap)) {
-  const matchedPath = finalSwaggerDoc.paths[path] ? path : finalSwaggerDoc.paths[`${path}/`] ? `${path}/` : path;
-  if (!finalSwaggerDoc.paths[matchedPath]) {
-    finalSwaggerDoc.paths[matchedPath] = {};
-  }
-
-  for (const [method, config] of Object.entries(methods)) {
-    if (!finalSwaggerDoc.paths[matchedPath][method]) {
-      finalSwaggerDoc.paths[matchedPath][method] = { responses: { "200": { description: "OK" } } };
+  // 3. Áp dụng schema chi tiết từ routeSchemaMap
+  for (const [path, methods] of Object.entries(routeSchemaMap)) {
+    const matchedPath = finalSwaggerDoc.paths[path] ? path : finalSwaggerDoc.paths[`${path}/`] ? `${path}/` : path;
+    if (!finalSwaggerDoc.paths[matchedPath]) {
+      finalSwaggerDoc.paths[matchedPath] = {};
     }
 
-    const op = finalSwaggerDoc.paths[matchedPath][method];
-    if (config.summary) op.summary = config.summary;
-    if (config.tags) op.tags = config.tags;
-    if ((config as any).requestBody) op.requestBody = (config as any).requestBody;
-
-    if (config.schema) {
-      const { parameters, requestBody } = extractParametersAndBody(config.schema);
-      if (parameters.length > 0) {
-        op.parameters = parameters;
+    for (const [method, config] of Object.entries(methods)) {
+      if (!finalSwaggerDoc.paths[matchedPath][method]) {
+        finalSwaggerDoc.paths[matchedPath][method] = { responses: { "200": { description: "OK" } } };
       }
-      if (requestBody && !(config as any).requestBody) {
-        op.requestBody = requestBody;
+
+      const op = finalSwaggerDoc.paths[matchedPath][method];
+      if (config.summary) op.summary = config.summary;
+      if (config.tags) op.tags = config.tags;
+      if ((config as any).requestBody) op.requestBody = (config as any).requestBody;
+
+      if (config.schema) {
+        const { parameters, requestBody } = extractParametersAndBody(config.schema);
+        if (parameters.length > 0) {
+          op.parameters = parameters;
+        }
+        if (requestBody && !(config as any).requestBody) {
+          op.requestBody = requestBody;
+        }
       }
     }
   }
-}
 
-// 4. Tự động gắn tag và summary cho tất cả các endpoint còn lại
-for (const [pathKey, pathItem] of Object.entries(finalSwaggerDoc.paths)) {
-  const methods = pathItem as Record<string, any>;
-  for (const [method, op] of Object.entries(methods)) {
-    if (typeof op !== "object" || !op) continue;
+  // 4. Tự động gắn tag và summary cho tất cả các endpoint còn lại
+  for (const [pathKey, pathItem] of Object.entries(finalSwaggerDoc.paths)) {
+    const methods = pathItem as Record<string, any>;
+    for (const [method, op] of Object.entries(methods)) {
+      if (typeof op !== "object" || !op) continue;
 
-    if (!op.tags || op.tags.length === 0) {
-      op.tags = [getAutoTag(pathKey)];
-    }
-    if (!op.summary) {
-      op.summary = getAutoSummary(pathKey, method);
-    }
-    if (Array.isArray(op.parameters)) {
-      op.parameters = op.parameters.filter(
-        (p: any) => p.in !== "body" && p.in !== "header"
-      );
+      if (!op.tags || op.tags.length === 0) {
+        op.tags = [getAutoTag(pathKey)];
+      }
+      if (!op.summary) {
+        op.summary = getAutoSummary(pathKey, method);
+      }
+      if (Array.isArray(op.parameters)) {
+        op.parameters = op.parameters.filter(
+          (p: any) => p.in !== "body" && p.in !== "header"
+        );
+      }
     }
   }
+
+  fs.writeFileSync(outputFile, JSON.stringify(finalSwaggerDoc, null, 2), "utf8");
+  console.log("✨ Swagger documentation generated successfully!");
 }
 
-fs.writeFileSync(outputFile, JSON.stringify(finalSwaggerDoc, null, 2), "utf8");
-console.log("✨ Swagger documentation with Auto-Grouping (Auto-Tags) generated successfully!");
+generate();
