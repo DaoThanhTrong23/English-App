@@ -5,7 +5,7 @@ import { GetCoursesQueryInput } from "./course.schema.js";
 export class CourseRepository {
   @logExecution()
   async findWithPagination(filter: GetCoursesQueryInput) {
-    const { page, limit, search, cefrLevel, isDeleted, sortBy, sortOrder } = filter;
+    const { page, limit, search, cefrLevel, isDeleted, sortBy, sortOrder, topicId } = filter;
     const skip = (page - 1) * limit;
 
     const whereCondition: any = {
@@ -19,9 +19,9 @@ export class CourseRepository {
       ];
     }
 
-    if (cefrLevel) {
-      whereCondition.cefrLevel = cefrLevel;
-    }
+    if (cefrLevel) { whereCondition.cefrLevel = cefrLevel; }
+
+    if (topicId) { whereCondition.topicId = topicId; }
 
     const [totalItems, courses] = await Promise.all([
       prisma.lesson.count({ where: whereCondition }),
@@ -39,6 +39,11 @@ export class CourseRepository {
           thumbnailUrl: true,
           createdAt: true,
           deletedAt: true,
+          topic: {
+            select: {
+              title: true
+            }
+          },
           _count: {
             select: {
               lessonWords: true,

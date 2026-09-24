@@ -1,13 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Plus, Edit, Trash2, BookOpen } from 'lucide-react';
 import { fetchCourses, createCourse, updateCourse, deleteCourse } from '../api/course.api';
+import { fetchTopics } from '../../topics/api/topic.api';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import './CourseList.css';
 
 const CourseList: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const topicIdQuery = queryParams.get('topicId') || '';
   const [courses, setCourses] = useState<any[]>([]);
+  const [topics, setTopics] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
   // Pagination & Search
@@ -15,6 +20,7 @@ const CourseList: React.FC = () => {
   const [limit] = useState(10);
   const [search, setSearch] = useState('');
   const [cefrLevel, setCefrLevel] = useState('');
+  const [filterTopicId, setFilterTopicId] = useState(topicIdQuery);
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -23,13 +29,27 @@ const CourseList: React.FC = () => {
     title: '',
     description: '',
     cefrLevel: '',
-    thumbnailUrl: ''
+    thumbnailUrl: '',
+    topicId: ''
   });
+
+  useEffect(() => {
+    loadTopics();
+  }, []);
+
+  const loadTopics = async () => {
+    try {
+      const res = await fetchTopics();
+      if (res.data) setTopics(res.data);
+    } catch (e) {
+      console.error('Error loading topics', e);
+    }
+  };
 
   const loadCourses = async () => {
     setLoading(true);
     try {
-      const result = await fetchCourses(page, limit, search, cefrLevel);
+      const result = await fetchCourses(page, limit, search, cefrLevel, filterTopicId);
       if (result.data && Array.isArray(result.data.items)) {
         setCourses(result.data.items);
       } else if (result.data && Array.isArray(result.data.courses)) {
@@ -46,7 +66,7 @@ const CourseList: React.FC = () => {
 
   useEffect(() => {
     loadCourses();
-  }, [page, limit, search, cefrLevel]);
+  }, [page, limit, search, cefrLevel, filterTopicId]);
 
   const handleOpenModal = (course?: any) => {
     if (course) {
@@ -55,7 +75,8 @@ const CourseList: React.FC = () => {
         title: course.title || '',
         description: course.description || '',
         cefrLevel: course.cefrLevel || '',
-        thumbnailUrl: course.thumbnailUrl || ''
+        thumbnailUrl: course.thumbnailUrl || '',
+        topicId: course.topicId || ''
       });
     } else {
       setEditingCourse(null);
@@ -63,7 +84,8 @@ const CourseList: React.FC = () => {
         title: '',
         description: '',
         cefrLevel: '',
-        thumbnailUrl: ''
+        thumbnailUrl: '',
+        topicId: ''
       });
     }
     setIsModalOpen(true);
@@ -77,12 +99,17 @@ const CourseList: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const payload = {
+        ...formData,
+        topicId: formData.topicId ? parseInt(formData.topicId as string) : null
+      };
+
       if (editingCourse) {
-        await updateCourse(editingCourse.id, formData);
+        await updateCourse(editingCourse.id, payload);
         alert('Cập nhật bài học thành công!');
       } else {
-        await createCourse(formData);
-        alert('Thêm bài học thành công!');
+        await createCourse(payload);
+        alert('Tạo bài học thành công!');
       }
       handleCloseModal();
       loadCourses();
@@ -116,29 +143,38 @@ const CourseList: React.FC = () => {
         </div>
 
         <div className="course-filters">
-          <input 
-            type="text" 
-            placeholder="Tìm kiếm bài học..." 
-            className="search-input"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          <select 
-            className="filter-select"
-            value={cefrLevel}
-            onChange={(e) => setCefrLevel(e.target.value)}
-          >
-            <option value="">Tất cả cấp độ</option>
-            <option value="A1">A1</option>
-            <option value="A2">A2</option>
-            <option value="B1">B1</option>
-            <option value="B2">B2</option>
-            <option value="C1">C1</option>
-            <option value="C2">C2</option>
-          </select>
-        </div>
+            <input 
+              type="text" 
+              placeholder="Tìm kiếm bài học..." 
+              className="search-input"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            <select 
+              className="filter-select"
+              value={cefrLevel}
+              onChange={(e) => setCefrLevel(e.target.value)}
+            >
+              <option value="">Tất cả cấp độ</option>
+              <option value="A1">A1</option>
+              <option value="A2">A2</option>
+              <option value="B1">B1</option>
+              <option value="B2">B2</option>
+              <option value="C1">C1</option>
+              <option value="C2">C2</option>
+            </select>
+            <select 
+              className="filter-select" 
+              value={filterTopicId} 
+              onChange={(e) => { setFilterTopicId(e.target.value); setPage(1); }} 
+              style={{ marginLeft: '10px' }}
+            >
+              <option value="">Tất cả chủ đề</option>
+              {topics.map(t => <option key={t.id} value={t.id}>{t.title}</option>)}
+            </select>
+          </div>
 
-        <div className="course-table-container">
+          <div className="course-table-container">
           {loading ? (
             <div style={{ padding: '32px', textAlign: 'center' }}>Đang tải dữ liệu...</div>
           ) : (
@@ -147,6 +183,7 @@ const CourseList: React.FC = () => {
                 <tr>
                   <th>ID</th>
                   <th>Tiêu đề</th>
+                  <th>Chủ đề</th>
                   <th>Cấp độ</th>
                   <th>Mô tả</th>
                   <th>Ngày tạo</th>
@@ -156,7 +193,7 @@ const CourseList: React.FC = () => {
               <tbody>
                 {courses.length === 0 ? (
                   <tr>
-                    <td colSpan={6} style={{ textAlign: 'center', padding: '24px' }}>Không có bài học nào.</td>
+                    <td colSpan={7} style={{ textAlign: 'center', padding: '24px' }}>Không có bài học nào.</td>
                   </tr>
                 ) : (
                   courses.map(course => (
@@ -169,6 +206,9 @@ const CourseList: React.FC = () => {
                           )}
                           <strong>{course.title}</strong>
                         </div>
+                      </td>
+                      <td>
+                        {course.topic?.title || <span style={{ color: '#94a3b8' }}>Không phân loại</span>}
                       </td>
                       <td>
                         <span style={{ 
@@ -244,12 +284,24 @@ const CourseList: React.FC = () => {
                 />
               </div>
               <div className="form-group">
+                <label>Chủ đề (Topic)</label>
+                <select 
+                  value={formData.topicId}
+                  onChange={(e) => setFormData({...formData, topicId: e.target.value})}
+                >
+                  <option value="">Tất cả chủ đề</option>
+                  {topics.map(t => (
+                    <option key={t.id} value={t.id}>{t.title} ({t.cefrLevel || 'N/A'})</option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-group">
                 <label>Cấp độ CEFR</label>
                 <select 
                   value={formData.cefrLevel}
                   onChange={(e) => setFormData({...formData, cefrLevel: e.target.value})}
                 >
-                  <option value="">Chọn cấp độ...</option>
+                  <option value="">Tất cả cấp độ</option>
                   <option value="A1">A1</option>
                   <option value="A2">A2</option>
                   <option value="B1">B1</option>

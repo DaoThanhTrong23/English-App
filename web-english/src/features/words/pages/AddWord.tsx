@@ -395,17 +395,7 @@ const AddWord: React.FC = () => {
                 <textarea name="meaning" rows={2} value={wordData.meaning} onChange={handleInputChange} />
               </div>
 
-              <div className='form-group'>
-                <label>Chủ đề</label>
-                <select>
-                  {loadingT ? (
-                    <option>--Chưa xác định--</option>
 
-                  ) : (
-                    <option></option>
-                  )}
-                </select>
-              </div>
 
               <div className="form-group full-width">
                 <label>Câu ví dụ (Example)</label>

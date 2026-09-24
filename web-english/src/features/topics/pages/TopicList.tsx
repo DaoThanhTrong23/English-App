@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import AdminLayout from '../../../components/layout/AdminLayout';
-import { Plus, Edit, Trash2 } from 'lucide-react';
+import { Plus, Edit, Trash2, BookOpen } from 'lucide-react';
 import { fetchTopics, createTopic, updateTopic, deleteTopic } from '../api/topic.api';
 import '../../courses/pages/CourseList.css';
 
 const TopicList: React.FC = () => {
+  const navigate = useNavigate();
   const [topics, setTopics] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [filterCefr, setFilterCefr] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTopic, setEditingTopic] = useState<any | null>(null);
   
@@ -19,7 +22,7 @@ const TopicList: React.FC = () => {
   const loadTopics = async () => {
     setLoading(true);
     try {
-      const res = await fetchTopics();
+      const res = await fetchTopics(filterCefr);
       if (res.data) setTopics(res.data);
     } catch (e) {
       console.error(e);
@@ -30,7 +33,7 @@ const TopicList: React.FC = () => {
 
   useEffect(() => {
     loadTopics();
-  }, []);
+  }, [filterCefr]);
 
   const handleOpenModal = (topic?: any) => {
     if (topic) {
@@ -87,9 +90,24 @@ const TopicList: React.FC = () => {
         <div className="course-list-main">
           <div className="course-list-header">
             <h2>Quản lý chủ đề</h2>
-            <button className="add-course-btn" onClick={() => handleOpenModal()}>
-              <Plus size={18} /> Thêm chủ đề
-            </button>
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+              <select 
+                className="filter-select"
+                value={filterCefr}
+                onChange={(e) => setFilterCefr(e.target.value)}
+              >
+                <option value="">Tất cả cấp độ</option>
+                <option value="A1">A1</option>
+                <option value="A2">A2</option>
+                <option value="B1">B1</option>
+                <option value="B2">B2</option>
+                <option value="C1">C1</option>
+                <option value="C2">C2</option>
+              </select>
+              <button className="add-course-btn" onClick={() => handleOpenModal()}>
+                <Plus size={18} /> Thêm chủ đề
+              </button>
+            </div>
           </div>
 
           <div className="course-table-container">
@@ -110,7 +128,7 @@ const TopicList: React.FC = () => {
                 </thead>
                 <tbody>
                   {topics.map((topic) => (
-                    <tr key={topic.id}>
+                    <tr key={topic.id} style={{ cursor: 'pointer' }} onClick={(e) => { if (e.target.closest('.action-buttons')) return; navigate('/admin/courses?topicId=' + topic.id); }}>
                       <td>{topic.id}</td>
                       <td><strong>{topic.title}</strong></td>
                       <td style={{ maxWidth: '200px' }}>
@@ -131,6 +149,9 @@ const TopicList: React.FC = () => {
                       <td>{new Date(topic.createdAt).toLocaleDateString('vi-VN')}</td>
                       <td>
                         <div className="action-buttons">
+                          <button className="btn-edit" title="Xem bài học" onClick={() => navigate('/admin/courses?topicId=' + topic.id)}>
+                            <BookOpen size={18} />
+                          </button>
                           <button className="btn-edit" onClick={() => handleOpenModal(topic)}>
                             <Edit size={18} />
                           </button>

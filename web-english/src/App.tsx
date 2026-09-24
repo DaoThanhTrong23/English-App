@@ -15,6 +15,7 @@ import TestDetail from './features/tests/pages/TestDetail';
 import TestResults from './features/tests/pages/TestResults';
 import AiChatList from './features/ai-chat/pages/AiChatList';
 import GameStats from './features/game/pages/GameStats';
+import GameList from './features/game/pages/GameList';
 
 function App() {
   return (
@@ -53,7 +54,7 @@ function App() {
         <Route path="/admin/logs" element={<SystemLogs />} />
         <Route path="/admin/settings" element={<Settings />} />
         <Route path="/admin/ai-chat" element={<AiChatList />} />
-        <Route path="/admin/game" element={<GameStats />} />
+        <Route path="/admin/game" element={<GameList />} />
 
         {/* Bắt lỗi các trang chưa có (Game, v.v.) sẽ hiện thông báo thay vì màn hình đen */}
         <Route path="*" element={
