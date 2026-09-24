@@ -84,3 +84,29 @@ Nếu trong tương lai server được nâng cấp dung lượng RAM và bạn 
    backend-api/bin/whisper/models/ggml-small.en.bin
    ```
 2. Hệ thống `AiService` đã có hàm `resolveWhisperModel()` tự động phát hiện và ưu tiên nạp model chất lượng cao nhất hiện có trong thư mục mà **không cần chỉnh sửa lại mã nguồn**.
+
+---
+
+## 6. 📚 Nguồn Tham Khảo & Trích Dẫn Khoa Học (References & Sources)
+
+Các số liệu benchmark, tỷ lệ lỗi từ (WER) và mức tiêu thụ tài nguyên trong tài liệu này được tổng hợp từ các nguồn nghiên cứu và tài liệu kỹ thuật chính thức sau:
+
+1. **Bài báo nghiên cứu khoa học chính thức của OpenAI (Paper gốc):**
+   - **Tác giả:** Alec Radford, Jong Wook Kim, Tao Xu, Greg Brockman, Christine McLeavey, Ilya Sutskever (OpenAI).
+   - **Tên bài báo:** *"Robust Speech Recognition via Large-Scale Weak Supervision"* (arXiv:2212.04356, tháng 12/2022).
+   - **Link bài báo:** [https://arxiv.org/abs/2212.04356](https://arxiv.org/abs/2212.04356)
+   - *Số liệu trích xuất:* Bảng WER theo từng kích thước mô hình (Tiny, Base, Small, Medium, Large) trên tập kiểm thử chuẩn LibriSpeech (Section 3 & Table 1, Table 2).
+
+2. **Kho mã nguồn & Công bố kỹ thuật của OpenAI Whisper:**
+   - **GitHub Repository:** [https://github.com/openai/whisper](https://github.com/openai/whisper)
+   - **Blog công bố:** [https://openai.com/index/whisper/](https://openai.com/index/whisper/)
+
+3. **Dự án Engine Whisper.cpp (Georgi Gerganov & GGML Team):**
+   - **GitHub Repository:** [https://github.com/ggml-org/whisper.cpp](https://github.com/ggml-org/whisper.cpp)
+   - *Số liệu trích xuất:* Bảng đo lường RAM, Disk và tốc độ xử lý Inference trên CPU/GPU trong phần *Memory Usage* và công cụ *`whisper-bench`*.
+
+4. **Tập dữ liệu chuẩn đối chuẩn ASR (LibriSpeech ASR Corpus):**
+   - **Tác giả:** Vassil Panayotov, Guoguo Chen, Daniel Povey, Sanjeev Khudanpur (ICASSP 2015).
+   - **Dataset:** *LibriSpeech: An ASR corpus based on public domain audio books* (OpenSLR 12).
+   - **Link:** [https://www.openslr.org/12](https://www.openslr.org/12)
+
