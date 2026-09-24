@@ -31,7 +31,7 @@ export class StudentManageService {
                 username: st.username,
                 email: st.email,
                 xpPoints: st.xpPoints,
-                lasLoginDate: st.lastLoginDate,
+                lastLoginDate: st.lastLoginDate,
                 lastActiveAt: lasttActiveAt,
                 lastestActivity: lastestActivity,
                 joinedAt: st.createdAt,
@@ -105,6 +105,35 @@ export class StudentManageService {
     };
   }
 
+  @logExecution()
+  async getStudentCount(){
+    const total = await studentManageRepository.countStudent();
+
+    return {total};
+  }
+  
+  @logExecution()
+  async getUserProgress(userId: number) {
+    const student = await studentManageRepository.findStudentDetailById(userId);
+    if (!student) {
+      throw new ApiError(404, "not_found", "Không tìm thấy người dùng");
+    }
+    return studentManageRepository.findUserProgress(userId);
+  }
+
+  @logExecution()
+  async getUserAiChat(userId: number) {
+    const student = await studentManageRepository.findStudentDetailById(userId);
+    if (!student) {
+      throw new ApiError(404, "not_found", "Không tìm thấy người dùng");
+    }
+    return studentManageRepository.findUserAiChat(userId);
+  }
+
+  @logExecution()
+  async getTopStudents(limit: number = 5) {
+    return studentManageRepository.getTopStudents(limit);
+  }
 }
 
 export const studentManageService = new StudentManageService();

@@ -1,5 +1,6 @@
 import  jwt  from "jsonwebtoken";
 import { env } from "../config/env.js";
+import { ApiError } from "../shared/http/api-error.js";
 
 export interface AccessTokenPayload { 
     userId: number;
@@ -9,18 +10,21 @@ export interface AccessTokenPayload {
 export interface RefreshTokenPayload {
     userId: number;
     sessionId: string;
-    role: string
+    role: string;
+    accessTokenHash?: string;
 }
 
 export const signAccessToken = (payload: AccessTokenPayload): string => {
     return jwt.sign(payload, env.JWT_ACCESS_SECRET, {
-        expiresIn:Math.floor( env.JWT_ACCESS_EXPIRES_IN / 1000) 
+        expiresIn:Math.floor( env.JWT_ACCESS_EXPIRES_IN / 1000),
+        jwtid: crypto.randomUUID()
     });
 }
 
 export const signRefreshToken = (payload: RefreshTokenPayload): string => {
     return jwt.sign(payload, env.JWT_REFRESH_SECRET, {
-        expiresIn:Math.floor( env.JWT_REFRESH_EXPIRES_IN / 1000)
+        expiresIn:Math.floor( env.JWT_REFRESH_EXPIRES_IN / 1000),
+        jwtid: crypto.randomUUID()
     });
 }
 
@@ -29,5 +33,9 @@ export const verifyAccessToken = (token: string): AccessTokenPayload => {
 }
 
 export const verifyRefreshTokenn = (token: string): RefreshTokenPayload => {
-    return jwt.verify(token,env.JWT_REFRESH_SECRET) as RefreshTokenPayload;
+    try {
+        return jwt.verify(token, env.JWT_REFRESH_SECRET) as RefreshTokenPayload;
+    } catch (error: any) {
+        throw new ApiError(401, "token_expired_or_invalid", "Refresh Token hết hạn hoặc không hợp lệ");
+    }
 }

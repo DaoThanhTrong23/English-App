@@ -7,19 +7,20 @@ import { asyncHandler } from "../../shared/http/async-handler.js";
 import { GetStudentQuerySchema, StudentIdParamSchema } from "./studentManage.schema.js";
 import { studentManageService } from "./studentManage.service.js";
 import { Role } from "../../generated/prisma/index.js";
+import { success } from "zod/v4";
 
 
 const router = Router();
 
 // Tất cả các route bên dưới chỉ dành cho ADMIN đã đăng nhập
-router.use(Authenticate, authorize(["admin"]));
+router.use(Authenticate, authorize([Role.admin]));
 
 /**
  *  GET /api/admin/students
  *  Lấy danh sách học viên có phân trang, tìm kiếm, tiến độ học & lần cuối hoạt động
  */
 router.get(
-  "/", authorize([Role.admin]),
+  "/",
   validate(GetStudentQuerySchema),
   asyncHandler(async (req, res) => {
     const result = await studentManageService.getStudentslist(req.query as any);
@@ -31,12 +32,32 @@ router.get(
   })
 );
 
+router.get("/totalStudent",
+  asyncHandler(async (req, res) => {
+    const result = await studentManageService.getStudentCount();
+    res.status(200).json({success: true, message: "Lấy số lượng học viên thành công", data: result});    
+  })
+)
+
 /**
  * @route   GET /api/admin/students/:id
  * @desc    Xem chi tiết tiến trình học, bài thi và nhật ký của 1 học viên
  */
 router.get(
-  "/:id",authorize([Role.admin]),
+  "/top",
+  asyncHandler(async (req, res) => {
+    const limit = Number(req.query.limit) || 5;
+    const result = await studentManageService.getTopStudents(limit);
+    res.status(200).json({
+      success: true,
+      message: "Lấy danh sách học viên xuất sắc thành công",
+      data: result,
+    });
+  })
+);
+
+router.get(
+  "/:id",
   validate(StudentIdParamSchema),
   asyncHandler(async (req, res) => {
     const studentId = Number(req.params.id);
@@ -44,6 +65,34 @@ router.get(
     res.status(200).json({
       success: true,
       message: "Lấy chi tiết học viên thành công",
+      data: result,
+    });
+  })
+);
+
+router.get(
+  "/:id/progress",
+  validate(StudentIdParamSchema),
+  asyncHandler(async (req, res) => {
+    const id = Number(req.params.id);
+    const result = await studentManageService.getUserProgress(id);
+    res.status(200).json({
+      success: true,
+      message: "Lấy tiến độ học từ vựng thành công",
+      data: result,
+    });
+  })
+);
+
+router.get(
+  "/:id/ai-chat",
+  validate(StudentIdParamSchema),
+  asyncHandler(async (req, res) => {
+    const id = Number(req.params.id);
+    const result = await studentManageService.getUserAiChat(id);
+    res.status(200).json({
+      success: true,
+      message: "Lấy lịch sử chat AI thành công",
       data: result,
     });
   })

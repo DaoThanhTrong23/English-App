@@ -104,21 +104,34 @@ export class AuthRepository {
     }
 
     @logExecution()
-    async isTokenRevoked(accessTokenHash: string) {
-        return prisma.revoked_token.findUnique({
-            where: {access_token_hash: accessTokenHash}
-        })
+    async countTokensInSessionSince(sessionId: string, since: Date) {
+        return prisma.refreshToken.count({
+            where: {
+                sessionId,
+                createdAt: {
+                    gte: since
+                }
+            }
+        });
     }
 
+    @logExecution()
+    async isTokenRevoked(accessTokenHash: string) {
+        return prisma.revoked_token.findUnique({
+            where: { access_token_hash: accessTokenHash }
+        });
+    }
 
     @logExecution()
     async createRevokedToken(data: {
         accesstokenHash: string;
-        userId:number;
-        description: string
+        userId: number;
+        description: string;
     }) {
-        return prisma.revoked_token.create({
-            data: {
+        return prisma.revoked_token.upsert({
+            where: { access_token_hash: data.accesstokenHash },
+            update: { description: data.description },
+            create: {
                 access_token_hash: data.accesstokenHash,
                 user_id: data.userId,
                 description: data.description

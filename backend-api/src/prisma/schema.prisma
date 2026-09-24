@@ -28,6 +28,9 @@ enum Sender {
 enum QuestionType {
   multiple_choice
   fill_in_blank
+  listening
+  speaking
+  writing
 }
 
 enum LearningStatus {
@@ -70,7 +73,7 @@ model ActivityLog {
 
   user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
-  @@map("activity_log")
+  @@map("activity_logs")
 }
 
 model LoginLog {
@@ -121,19 +124,37 @@ model word {
 
   @@index([headword], map: "idx_headword")
   @@index([cefrLevel], map: "idx_cefr_level")
-  @@map("word")
+  @@map("words")
+}
+
+model Topic {
+  id          Int       @id @default(autoincrement())
+  title       String    @db.VarChar(255)
+  description String?   @db.Text
+  cefrLevel   String?   @map("cefr_level") @db.VarChar(10)
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  lessons     Lesson[]
+  @@map("topic")
 }
 
 model Lesson {
-  id           Int      @id @default(autoincrement())
-  title        String   @db.VarChar(100)
-  description  String?  @db.Text
-  cefrLevel    String?  @map("cefr_level") @db.VarChar(10)
-  thumbnailUrl String?  @map("thumbnail_url") @db.Text
-  createdAt    DateTime @default(now()) @map("created_at")
+  id           Int       @id @default(autoincrement())
+  topicId      Int?      @map("topic_id")
+  title        String    @db.VarChar(100)
+  description  String?   @db.Text
+  content      String?   @db.Text           // Lý thuyết (Rich Text / HTML)
+  videoUrl     String?   @map("video_url") @db.Text  // Link Video bài giảng
+  cefrLevel    String?   @map("cefr_level") @db.VarChar(10)
+  thumbnailUrl String?   @map("thumbnail_url") @db.Text
+  createdAt    DateTime  @default(now()) @map("created_at")
+  deletedAt    DateTime? @map("deleted_at")
 
-  lessonWords LessonWord[]
+  topic        Topic?    @relation(fields: [topicId], references: [id], onDelete: SetNull)
+  lessonWords  LessonWord[]
+  tests        Test[]
 
+  @@index([topicId], map: "topic_id")
   @@map("lesson")
 }
 
@@ -170,13 +191,16 @@ model UserProgress {
 // Nhóm bài kiểm tra 
 model Test {
   id          Int     @id @default(autoincrement())
+  lessonId    Int?    @map("lesson_id")
   title       String  @db.VarChar(255)
   description String? @db.Text
   ceftLevel   String? @map("ceft_level") @db.VarChar(10)
 
+  lesson           Lesson?          @relation(fields: [lessonId], references: [id], onDelete: Cascade)
   questions        Question[]
   userTesstResults UserTestResult[]
 
+  @@index([lessonId], map: "lesson_id")
   @@map("test")
 }
 
@@ -186,6 +210,8 @@ model Question {
   quesionText  String       @map("question_text") @db.Text
   questionType QuestionType @default(multiple_choice) @map("question_type")
   points       Decimal      @default(10)
+  audioUrl     String?      @map("audio_url") @db.Text
+  imageUrl     String?      @map("image_url") @db.Text
 
   test    Test     @relation(fields: [testId], references: [id], onDelete: Cascade)
   answers Answer[]
@@ -269,8 +295,7 @@ model AiChatMessage {
   messageText String   @map("message_text") @db.Text
   createdAt   DateTime @default(now()) @map("created_at")
 
-  aiChatSession   AiChatSession? @relation(fields: [aiChatSessionId], references: [id])
-  aiChatSessionId Int?
+  aiChatSession AiChatSession @relation(fields: [sessionId], references: [id])
 
   @@index([sessionId], map: "session_id")
   @@map("ai_chat_message")
@@ -285,4 +310,37 @@ model revoked_token {
   user User @relation(fields: [user_id], references: [id])
 
   @@map("revoked_token")
+}
+
+
+// ==========================================
+// GAME MANAGEMENT
+// ==========================================
+
+model Game {
+  id          Int           @id @default(autoincrement())
+  name        String
+  code        String        @unique // e.g. MEMORY, MATCHING, BUBBLE
+  description String?       @db.Text
+  isActive    Boolean       @default(true)
+  settings    GameSetting[]
+  
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model GameSetting {
+  id            Int      @id @default(autoincrement())
+  gameId        Int
+  difficulty    String   // EASY, NORMAL, HARD
+  itemCount     Int      // Số lượng từ (VD: 6, 10, 15)
+  pointsPerItem Int      // Điểm mỗi câu đúng
+  timeLimit     Int?     // Giới hạn thời gian (giây) - nullable
+  
+  game          Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([gameId, difficulty])
 }

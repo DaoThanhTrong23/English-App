@@ -1,7 +1,6 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../../config/prisma.js';
 import { CreateWordInput, UpdateWordInput } from './word.schema.js';
-
-const prisma = new PrismaClient(); 
+import { logExecution } from '../../shared/decorators/log.decorator.js'; 
 
 export const wordRepository = {
   async getWords(page: number, limit: number, cefrLevel?: string, search?: string) {
@@ -20,9 +19,22 @@ export const wordRepository = {
     return { words, total };
   },
 
-  // THÊM TỪ
+  async findExactWord(headword: string, partOfSpeech?: string | null) {
+    return prisma.word.findFirst({
+      where: {
+        headword: headword,
+        partOfSpeech: partOfSpeech || null
+      }
+    });
+  },
+
+  // THÊM TỪ MỚI
   async createWord(data: CreateWordInput) {
     return prisma.word.create({ data });
+  },
+
+  async createBulkWords(data: CreateWordInput[]) {
+    return prisma.word.createMany({ data, skipDuplicates: true });
   },
 
   // SỬA TỪ
@@ -38,5 +50,9 @@ export const wordRepository = {
     return await prisma.word.delete({
       where: { id: Number(id) }
     });
+  },
+
+  async countWord(){
+    return prisma.word.count();
   }
 };

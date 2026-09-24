@@ -118,7 +118,52 @@ export class StudentManageRepository {
     });
   }
 
-}
+  @logExecution()
+  async countStudent(){
+    return prisma.user.count({
+      where: {
+        role: "user",
+      },
+    });
+  }
 
+  async findUserProgress(userId: number) {
+    return prisma.userProgress.findMany({
+      where: { userId },
+      include: {
+        word: true
+      },
+      orderBy: { updatedAt: 'desc' }
+    });
+  }
+
+  async findUserAiChat(userId: number) {
+    return prisma.aiChatSession.findMany({
+      where: { userId },
+      include: {
+        messages: {
+          orderBy: { createdAt: 'asc' }
+        }
+      },
+      orderBy: { startedAt: 'desc' }
+    });
+  }
+
+  async getTopStudents(limit: number = 5) {
+    return prisma.user.findMany({
+      where: { role: 'user' },
+      orderBy: [
+        { xpPoints: 'desc' }
+      ],
+      take: limit,
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        xpPoints: true,
+      }
+    });
+  }
+}
 
 export const studentManageRepository = new StudentManageRepository();

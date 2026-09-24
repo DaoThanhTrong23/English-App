@@ -9,8 +9,22 @@ import { errorHandler } from "./shared/http/error-handler.js";
 import Authrouter from "./module/auth/auth.route.js";
 import bubbleGameRouter from "./module/bubble-game/bubble-game.route.js";
 import memoryCardRouter from "./module/memory-card/memory-card.route.js";
+import wordMatchingRouter from "./module/word-matching/word-matching.route.js";
 import { studentManageRouter } from "./module/StudentManage/studenManage.route.js";
-export function createapp()  {
+import { wordRouter } from "./module/word/word.route.js";
+import { courseRouter } from "./module/course/course.route.js";
+import { testRouter } from "./module/test/test.route.js";
+import { topicRouter } from "./module/topic/topic.route.js";
+import achievementRouter from "./module/achievement/achievement.route.js";
+import { activityLogRouter } from "./module/activity-log/activity-log.route.js";
+import swaggerUi from "swagger-ui-express";
+import fs from "node:fs";
+import path from "node:path";
+import { aiRouter } from "./module/AI/ai.router.js";
+import { gameRouter } from "./module/game/game.route.js";
+import dashboardRouter from "./module/dashboard/dashboard.route.js";
+
+export function createapp() {
     const app = express();
 
     app.disable("x-powered-by");
@@ -30,23 +44,46 @@ export function createapp()  {
 
     // Giới hạn 100kb/request json
     app.use(express.json({ limit: '100 kb' }));
-
-    // Giới hạn 100 req 1 phút
+    app.use(express.urlencoded({ extended: true }));
+    app.use("/uploads", express.static("uploads")); // Phục vụ file ảnh/âm thanh
+    app.set("trust proxy", 1);
+    // Giới hạn 1000 req trong 1 phút (tăng lên để tránh lỗi 429 khi code frontend)
     app.use(rateLimit({
-        limit: 100,
+        limit: 1000,
         windowMs: 60_000,
         standardHeaders: 'draft-8',
         legacyHeaders: false
     }));
 
-    app.use("/api/auth", Authrouter)
-
-    //đăng ký route quản lý học viên
-    app.use("/api/admin/students",studentManageRouter);
-
+    // Đăng ký route cho module auth
+    app.use("/api/auth", Authrouter);
+    app.use("/api/admin/students", studentManageRouter);
+    app.use("/api/admin/dashboard", dashboardRouter);
+    app.use("/api/admin/logs", activityLogRouter);
+    // Đăng ký route quản lý từ vựng
+    app.use("/api/admin/word", wordRouter);
+    // Đăng ký route quản lý bài học
+    app.use("/api/admin/courses", courseRouter);
+    app.use("/api/admin/topics", topicRouter);
+    app.use("/api/admin/achievements", achievementRouter);
+    // Đăng ký route quản lý bài kiểm tra
+    app.use("/api/admin/tests", testRouter);
     // Đăng ký route game
     app.use("/game/bubble-game", bubbleGameRouter);
     app.use("/game/memory-card", memoryCardRouter);
+    app.use("/game/word-matching", wordMatchingRouter);
+    // AI
+    app.use("/api/ai",aiRouter)
+    app.use("/api/games", gameRouter)
+    // Đăng ký Swagger UI tài liệu API
+    const swaggerPath = fs.existsSync(path.resolve(process.cwd(), "src/swagger-output.json"))
+        ? path.resolve(process.cwd(), "src/swagger-output.json")
+        : path.resolve(process.cwd(), "dist/swagger-output.json");
+
+    if (fs.existsSync(swaggerPath)) {
+        const swaggerDocument = JSON.parse(fs.readFileSync(swaggerPath, "utf8"));
+        app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+    }
 
     app.use(errorHandler);
     return app

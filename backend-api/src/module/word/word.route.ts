@@ -1,15 +1,35 @@
 import { Router, Request, Response } from 'express';
 import { wordService } from './word.service.js';
-import { getWordsQuerySchema, createWordSchema, updateWordSchema } from './word.schema.js';
+import { getWordsQuerySchema, createWordSchema, updateWordSchema, createBulkWordSchema } from './word.schema.js';
 import { asyncHandler } from "../../shared/http/async-handler.js";
+import { authorize } from "../../middleware/authorize.middleware.js";
+import { Role } from '../../generated/prisma/index.js';
+import { Authenticate } from "../../middleware/authenticate.middleware.js";
 
 const router = Router();
+
+// Tất cả các route quản lý từ vựng của admin yêu cầu đăng nhập và quyền Admin
+router.use(Authenticate, authorize([Role.admin]));
+
+router.get('/totalWord', asyncHandler(async (req, res) => {
+  const result = await wordService.countWord();
+  res.status(200).json({success: true, message: "lấy tổng từ vựng", data: result});
+
+}))
+
 
 // LẤY DS ,TÌM KIẾM
 router.get('/', asyncHandler(async (req: Request, res: Response) => {
   const query = getWordsQuerySchema.parse(req.query);
   const result = await wordService.fetchWords(parseInt(query.page), parseInt(query.limit), query.cefrLevel, query.search);
   res.status(200).json({ success: true, ...result });
+}));
+
+// THÊM HÀNG LOẠT
+router.post('/bulk', asyncHandler(async (req, res) => {
+  const data = createBulkWordSchema.parse(req.body);
+  const result = await wordService.createBulkWords(data);
+  res.status(201).json({ message: 'Thêm hàng loạt từ vựng thành công', data: result });
 }));
 
 // THÊM MỚI
@@ -36,4 +56,7 @@ router.delete('/:id', asyncHandler(async (req, res) => {
   await wordService.deleteWord(id);
   res.status(200).json({ message: 'Xóa từ vựng thành công' });
 }));
+
+
+
 export const wordRouter = router;

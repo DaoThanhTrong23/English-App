@@ -1,0 +1,9 @@
+.game-stats-container { padding: 20px; }
+.leaderboard-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-top: 20px; }
+.leaderboard-table { width: 100%; border-collapse: collapse; }
+.leaderboard-table th, .leaderboard-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+.rank-badge { display: inline-flex; width: 30px; height: 30px; border-radius: 50%; align-items: center; justify-content: center; font-weight: bold; color: white; }
+.rank-1 { background: #fbbf24; }
+.rank-2 { background: #94a3b8; }
+.rank-3 { background: #b45309; }
+.rank-other { background: #3b82f6; }

@@ -9,15 +9,17 @@ export const getWordsQuerySchema = z.object({
 
 export const createWordSchema = z.object({
   headword: z.string().min(1, 'Không được để trống headword'),
-  partOfSpeech: z.string().optional(),
-  cefrLevel: z.string().optional(),
-  phonetic: z.string().optional(),
-  audioUrl: z.string().optional(),
-  imageUrl: z.string().optional(),
-  meaning: z.string().min(1, 'Meaning không được để trống'),
-  exampleSentence: z.string().optional(),
+  partOfSpeech: z.string().nullish(),
+  cefrLevel: z.string().nullish(),
+  phonetic: z.string().nullish(),
+  audioUrl: z.string().nullish(),
+  imageUrl: z.string().nullish(),
+  meaning: z.string().min(1, 'Meaning không được để trống').nullish(),
+  exampleSentence: z.string().nullish(),
 });
 
 export const updateWordSchema = createWordSchema.partial();
+export const createBulkWordSchema = z.array(createWordSchema);
+
 export type CreateWordInput = z.infer<typeof createWordSchema>;
 export type UpdateWordInput = z.infer<typeof updateWordSchema>;
