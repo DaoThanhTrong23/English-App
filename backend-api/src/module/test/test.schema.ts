@@ -34,7 +34,7 @@ export const CreateQuestionSchema = z.object({
     answers: z.array(z.object({
       answerText: z.string().min(1, "Đáp án không được để trống"),
       isCorrect: z.boolean().default(false),
-    })).min(1, "Cần ít nhất 1 đáp án"),
+    })).optional(),
   }),
 });
 

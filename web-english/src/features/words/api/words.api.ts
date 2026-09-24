@@ -5,9 +5,10 @@ export const getTotalWord = async () => {
   return response.data.data; 
 };
 
-export const fetchWords = async (page: number, limit: number, search?: string) => {
+export const fetchWords = async (page: number, limit: number, search?: string, cefrLevel?: string) => {
   const params: any = { page, limit };
   if (search) params.search = search;
+  if (cefrLevel) params.cefrLevel = cefrLevel;
   const response = await axiosClient.get('/admin/word', { params });
   return response.data;
 };

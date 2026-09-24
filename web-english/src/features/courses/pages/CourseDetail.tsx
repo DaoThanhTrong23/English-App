@@ -105,9 +105,9 @@ const CourseDetail: React.FC = () => {
 
   const loadAvailableWords = async () => {
     try {
-      const res = await fetchWords(1, 100, searchWord);
-      if (res.data && Array.isArray(res.data.data)) {
-        setAvailableWords(res.data.data);
+      const res = await fetchWords(1, 100, searchWord, course?.cefrLevel);
+      if (res.data && Array.isArray(res.data)) {
+        setAvailableWords(res.data);
       }
     } catch (error) {
       console.error(error);
@@ -288,19 +288,22 @@ const CourseDetail: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {course.words.map((word: any) => (
-                    <tr key={word.id}>
-                      <td>{word.id}</td>
-                      <td><strong>{word.english}</strong></td>
-                      <td>{word.vietnamese}</td>
-                      <td>{word.type}</td>
-                      <td>
-                        <button className="btn-delete" onClick={() => handleRemoveWord(word.id)}>
-                          <Trash2 size={18} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                  {course.words.map((wordObj: any) => {
+                    const word = wordObj.word || wordObj;
+                    return (
+                      <tr key={word.id || wordObj.id}>
+                        <td>{word.id || wordObj.id}</td>
+                        <td><strong>{word.headword}</strong></td>
+                        <td>{word.meaning}</td>
+                        <td>{word.partOfSpeech}</td>
+                        <td>
+                          <button className="btn-delete" onClick={() => handleRemoveWord(word.id || wordObj.id)}>
+                            <Trash2 size={18} />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             ) : (
@@ -312,11 +315,22 @@ const CourseDetail: React.FC = () => {
         {activeTab === 'tests' && (
           <div style={{ background: 'white', padding: '24px', borderRadius: '12px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3>Các bài luyện tập ({tests.length})</h3>
-              <button className="add-course-btn" onClick={() => setIsTestModalOpen(true)}>
-                <Plus size={18} /> Tạo bài luyện tập
-              </button>
-            </div>
+                <h3>Các bài luyện tập ({tests.length})</h3>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button className="add-course-btn" style={{ background: '#3b82f6' }} onClick={() => { setTestForm({...testForm, title: 'Bài Luyện Nghe'}); setIsTestModalOpen(true); }}>
+                    <Plus size={16} /> Luyện Nghe
+                  </button>
+                  <button className="add-course-btn" style={{ background: '#10b981' }} onClick={() => { setTestForm({...testForm, title: 'Bài Luyện Nói'}); setIsTestModalOpen(true); }}>
+                    <Plus size={16} /> Luyện Nói
+                  </button>
+                  <button className="add-course-btn" style={{ background: '#f59e0b' }} onClick={() => { setTestForm({...testForm, title: 'Bài Luyện Đọc'}); setIsTestModalOpen(true); }}>
+                    <Plus size={16} /> Luyện Đọc
+                  </button>
+                  <button className="add-course-btn" style={{ background: '#ef4444' }} onClick={() => { setTestForm({...testForm, title: 'Bài Luyện Viết'}); setIsTestModalOpen(true); }}>
+                    <Plus size={16} /> Luyện Viết
+                  </button>
+                </div>
+              </div>
             
             {tests.length > 0 ? (
               <table className="course-table">
@@ -359,7 +373,7 @@ const CourseDetail: React.FC = () => {
       {isWordModalOpen && (
         <div className="modal-overlay">
           <div className="modal-content" style={{ maxWidth: '600px' }}>
-            <h3>Chọn từ vựng từ Kho</h3>
+            <h3>Chọn từ vựng từ Kho {course?.cefrLevel ? `(Cấp độ: ${course.cefrLevel})` : '(Tất cả cấp độ)'}</h3>
             <div style={{ marginBottom: '16px' }}>
               <input 
                 type="text" 
@@ -392,8 +406,8 @@ const CourseDetail: React.FC = () => {
                     onClick={() => !isAlreadyInCourse && toggleWordSelection(word.id)}
                   >
                     <div>
-                      <strong>{word.english}</strong> <span style={{ color: '#64748b' }}>({word.type})</span>
-                      <div style={{ fontSize: '14px', color: '#64748b' }}>{word.vietnamese}</div>
+                      <strong>{word.headword}</strong> <span style={{ color: '#64748b' }}>({word.partOfSpeech})</span>
+                      <div style={{ fontSize: '14px', color: '#64748b' }}>{word.meaning}</div>
                     </div>
                     {isAlreadyInCourse ? (
                       <span style={{ fontSize: '12px', color: '#10b981', fontWeight: 'bold' }}>Đã thêm</span>

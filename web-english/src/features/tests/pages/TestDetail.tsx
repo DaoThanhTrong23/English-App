@@ -130,19 +130,25 @@ const TestDetail: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate: at least one answer must be correct
-    const hasCorrectAnswer = formData.answers.some(a => a.isCorrect);
-    if (!hasCorrectAnswer) {
-      alert("Vui lòng chọn ít nhất 1 đáp án đúng!");
-      return;
+    let finalFormData = { ...formData };
+
+    if (formData.questionType === 'speaking' || formData.questionType === 'writing') {
+      finalFormData.answers = [];
+    } else {
+      // Validate: at least one answer must be correct for non-speaking/writing
+      const hasCorrectAnswer = formData.answers.some(a => a.isCorrect);
+      if (!hasCorrectAnswer) {
+        alert("Vui lòng chọn ít nhất 1 đáp án đúng!");
+        return;
+      }
     }
 
     try {
       if (editingQuestion) {
-        await updateQuestion(testId!, editingQuestion.id, formData);
+        await updateQuestion(testId!, editingQuestion.id, finalFormData);
         alert('Cập nhật câu hỏi thành công!');
       } else {
-        await createQuestion(testId!, formData);
+        await createQuestion(testId!, finalFormData);
         alert('Tạo câu hỏi thành công!');
       }
       handleCloseModal();
@@ -357,51 +363,47 @@ const TestDetail: React.FC = () => {
 
 
 
+                {formData.questionType !== 'speaking' && formData.questionType !== 'writing' && (
+                  <div className="form-group" style={{marginLeft: '15px', width: '50%'}}>
+                    <label>Các đáp án</label>
+                    <div className="dynamic-answers">
+                      <p style={{ fontSize: '0.85rem', color: '#64748b', marginTop: 0, marginBottom: '12px' }}>
+                        Tích chọn vào ô tròn/vuông để đánh dấu đáp án đúng.
+                      </p>
 
+                      {formData.answers.map((answer, index) => (
+                        <div className="dynamic-answer-row" key={index}>
+                          <input
+                            type={formData.questionType === 'multiple_choice' ? 'radio' : 'checkbox'}
+                            name="isCorrect"
+                            checked={answer.isCorrect}
+                            onChange={(e) => handleAnswerChange(index, 'isCorrect', e.target.checked)}
+                          />
+                          <input
+                            type="text"
+                            placeholder={`Đáp án ${index + 1}`}
+                            required
+                            value={answer.answerText}
+                            onChange={(e) => handleAnswerChange(index, 'answerText', e.target.value)}
+                          />
+                          {formData.answers.length > 2 && (
+                            <button
+                              type="button"
+                              className="remove-answer-btn"
+                              onClick={() => handleRemoveAnswerRow(index)}
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          )}
+                        </div>
+                      ))}
 
-
-
-
-                <div className="form-group" style={{marginLeft: '15px', width: '50%'}}>
-                  <label>Các đáp án {formData.questionType === 'speaking' && '(Chỉ cần 1 đáp án là câu mẫu)'}</label>
-                  <div className="dynamic-answers">
-                    <p style={{ fontSize: '0.85rem', color: '#64748b', marginTop: 0, marginBottom: '12px' }}>
-                      Tích chọn vào ô tròn/vuông để đánh dấu đáp án đúng.
-                    </p>
-
-                    {formData.answers.map((answer, index) => (
-                      <div className="dynamic-answer-row" key={index}>
-                        <input
-                          type={formData.questionType === 'multiple_choice' ? 'radio' : 'checkbox'}
-                          name="isCorrect"
-                          checked={answer.isCorrect}
-                          onChange={(e) => handleAnswerChange(index, 'isCorrect', e.target.checked)}
-                        />
-                        <input
-                          type="text"
-                          placeholder={`Đáp án ${index + 1}`}
-                          required
-                          value={answer.answerText}
-                          onChange={(e) => handleAnswerChange(index, 'answerText', e.target.value)}
-                        />
-                        {formData.answers.length > 2 && (
-                          <button
-                            type="button"
-                            className="remove-answer-btn"
-                            onClick={() => handleRemoveAnswerRow(index)}
-                          >
-                            <Trash2 size={18} />
-                          </button>
-                        )}
-                      </div>
-                    ))}
-
-                    <button type="button" className="add-answer-btn" onClick={handleAddAnswerRow}>
-                      + Thêm một đáp án
-                    </button>
+                      <button type="button" className="add-answer-btn" onClick={handleAddAnswerRow}>
+                        + Thêm một đáp án
+                      </button>
+                    </div>
                   </div>
-                </div>
-
+                )}
 
               </div>
 

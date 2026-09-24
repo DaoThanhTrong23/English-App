@@ -19,7 +19,16 @@ export const wordRepository = {
     return { words, total };
   },
 
-  // THÊM TỪ
+  async findExactWord(headword: string, partOfSpeech?: string | null) {
+    return prisma.word.findFirst({
+      where: {
+        headword: headword,
+        partOfSpeech: partOfSpeech || null
+      }
+    });
+  },
+
+  // THÊM TỪ MỚI
   async createWord(data: CreateWordInput) {
     return prisma.word.create({ data });
   },
