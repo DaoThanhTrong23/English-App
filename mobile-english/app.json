@@ -8,7 +8,10 @@
     "scheme": "mobileenglish",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "Ứng dụng cần quyền truy cập micro để kiểm tra và chấm điểm phát âm tiếng Anh."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -17,6 +20,9 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ],
       "predictiveBackGestureEnabled": false
     },
     "web": {
