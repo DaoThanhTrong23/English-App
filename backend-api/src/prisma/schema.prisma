@@ -52,14 +52,21 @@ model User {
   createdAt     DateTime  @default(now()) @map("created_at")
 
   // Các mối quan hệ liên kết đến user
-  refreshtokens    RefreshToken[]
-  acctivitylogs    ActivityLog[]
-  loginLogs        LoginLog[]
-  aiChatSessions   AiChatSession[]
-  userAchievements UserAchievement[]
-  userProgress     UserProgress[]
-  userTestResults  UserTestResult[]
-  revokedTokens    revoked_token[]
+  refreshtokens       RefreshToken[]
+  acctivitylogs       ActivityLog[]
+  loginLogs           LoginLog[]
+  aiChatSessions      AiChatSession[]
+  userAchievements    UserAchievement[]
+  userProgress        UserProgress[]
+  userTestResults     UserTestResult[]
+  revokedTokens       revoked_token[]
+  assessmentHistories AssessmentHistory[]
+
+  // FAME-KT Multi-dimensional Assessment
+  grammarElo      Int     @default(1200) @map("grammar_elo")
+  vocabElo        Int     @default(1200) @map("vocab_elo")
+  readingElo      Int     @default(1200) @map("reading_elo")
+  preferredTopics String? @map("preferred_topics") @db.VarChar(255) // VD: "Technology,Travel"
 
   @@map("users")
 }
@@ -128,13 +135,14 @@ model word {
 }
 
 model Topic {
-  id          Int       @id @default(autoincrement())
-  title       String    @db.VarChar(255)
-  description String?   @db.Text
-  cefrLevel   String?   @map("cefr_level") @db.VarChar(10)
-  createdAt   DateTime  @default(now()) @map("created_at")
+  id          Int      @id @default(autoincrement())
+  title       String   @db.VarChar(255)
+  description String?  @db.Text
+  cefrLevel   String?  @map("cefr_level") @db.VarChar(10)
+  createdAt   DateTime @default(now()) @map("created_at")
 
-  lessons     Lesson[]
+  lessons Lesson[]
+
   @@map("topic")
 }
 
@@ -143,16 +151,16 @@ model Lesson {
   topicId      Int?      @map("topic_id")
   title        String    @db.VarChar(100)
   description  String?   @db.Text
-  content      String?   @db.Text           // Lý thuyết (Rich Text / HTML)
-  videoUrl     String?   @map("video_url") @db.Text  // Link Video bài giảng
+  content      String?   @db.Text // Lý thuyết (Rich Text / HTML)
+  videoUrl     String?   @map("video_url") @db.Text // Link Video bài giảng
   cefrLevel    String?   @map("cefr_level") @db.VarChar(10)
   thumbnailUrl String?   @map("thumbnail_url") @db.Text
   createdAt    DateTime  @default(now()) @map("created_at")
   deletedAt    DateTime? @map("deleted_at")
 
-  topic        Topic?    @relation(fields: [topicId], references: [id], onDelete: SetNull)
-  lessonWords  LessonWord[]
-  tests        Test[]
+  topic       Topic?       @relation(fields: [topicId], references: [id], onDelete: SetNull)
+  lessonWords LessonWord[]
+  tests       Test[]
 
   @@index([topicId], map: "topic_id")
   @@map("lesson")
@@ -213,8 +221,14 @@ model Question {
   audioUrl     String?      @map("audio_url") @db.Text
   imageUrl     String?      @map("image_url") @db.Text
 
-  test    Test     @relation(fields: [testId], references: [id], onDelete: Cascade)
-  answers Answer[]
+  test                Test                @relation(fields: [testId], references: [id], onDelete: Cascade)
+  answers             Answer[]
+  assessmentHistories AssessmentHistory[]
+
+  // FAME-KT Assessment Data
+  difficultyElo Int     @default(1200) @map("difficulty_elo")
+  skillCategory String? @map("skill_category") @db.VarChar(50) // Grammar, Vocabulary, Reading
+  topic         String? @db.VarChar(100)
 
   @@index([testId], map: "test_id")
   @@map("question")
@@ -312,7 +326,6 @@ model revoked_token {
   @@map("revoked_token")
 }
 
-
 // ==========================================
 // GAME MANAGEMENT
 // ==========================================
@@ -324,23 +337,41 @@ model Game {
   description String?       @db.Text
   isActive    Boolean       @default(true)
   settings    GameSetting[]
-  
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model GameSetting {
-  id            Int      @id @default(autoincrement())
+  id            Int    @id @default(autoincrement())
   gameId        Int
-  difficulty    String   // EASY, NORMAL, HARD
-  itemCount     Int      // Số lượng từ (VD: 6, 10, 15)
-  pointsPerItem Int      // Điểm mỗi câu đúng
-  timeLimit     Int?     // Giới hạn thời gian (giây) - nullable
-  
-  game          Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
-  
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  difficulty    String // EASY, NORMAL, HARD
+  itemCount     Int // Số lượng từ (VD: 6, 10, 15)
+  pointsPerItem Int // Điểm mỗi câu đúng
+  timeLimit     Int? // Giới hạn thời gian (giây) - nullable
+
+  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([gameId, difficulty])
+}
+
+// Lịch sử Đánh giá Thích ứng (FAME-KT Test History)
+model AssessmentHistory {
+  id          Int      @id @default(autoincrement())
+  userId      Int      @map("user_id")
+  questionId  Int      @map("question_id")
+  isCorrect   Boolean  @map("is_correct")
+  timeTakenMs Int      @map("time_taken_ms")
+  avgEloAfter Int      @map("avg_elo_after")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "user_id")
+  @@index([questionId], map: "question_id")
+  @@map("assessment_history")
 }

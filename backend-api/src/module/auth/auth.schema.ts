@@ -7,7 +7,13 @@ export const RegisterSchema = z.object({
                     .max(50,"Tài khoản dài tối đa 50 ký tự")
                     .regex(/^[a-zA-Z0-9_]+$/,"Username chỉ chứa chữ, số và dấu gạch dưới"),
         email: z.string().email("Email không đúng định dạng").max(100),
-        password: z.string().min(6,"mật khẩu phải chứa ít nhất 6 ký tự").max(100)
+        password: z.string()
+            .min(8, "Mật khẩu phải dài ít nhất 8 ký tự")
+            .regex(/[a-z]/, "Mật khẩu phải chứa ít nhất 1 chữ thường")
+            .regex(/[A-Z]/, "Mật khẩu phải chứa ít nhất 1 chữ hoa")
+            .regex(/[0-9]/, "Mật khẩu phải chứa ít nhất 1 chữ số")
+            .regex(/[\W_]/, "Mật khẩu phải chứa ít nhất 1 ký tự đặc biệt")
+            .max(100)
     }),
     query: z.object({}),
     params: z.object({})
@@ -62,7 +68,13 @@ export const FacebookLoginSchema = z.object({
 export const ChangePasswordSchema = z.object({
     body: z.object({
         oldPassword: z.string().min(1, "Vui lòng nhập mật khẩu cũ"),
-        newPassword: z.string().min(6, "Mật khẩu mới phải chứa ít nhất 6 ký tự").max(100)
+        newPassword: z.string()
+            .min(8, "Mật khẩu phải dài ít nhất 8 ký tự")
+            .regex(/[a-z]/, "Mật khẩu phải chứa ít nhất 1 chữ thường")
+            .regex(/[A-Z]/, "Mật khẩu phải chứa ít nhất 1 chữ hoa")
+            .regex(/[0-9]/, "Mật khẩu phải chứa ít nhất 1 chữ số")
+            .regex(/[\W_]/, "Mật khẩu phải chứa ít nhất 1 ký tự đặc biệt")
+            .max(100)
     }),
     query: z.object({}),
     params: z.object({})

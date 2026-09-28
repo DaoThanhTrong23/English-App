@@ -49,7 +49,7 @@ const AiChatList: React.FC = () => {
   return (
     <AdminLayout>
       <div className="ai-chat-container">
-        <h2><MessageSquare style={{ marginRight: 8, verticalAlign: 'middle' }} /> Quản lý Hội thoại AI Chat</h2>
+        <h2><MessageSquare style={{ marginRight: 8, verticalAlign: 'middle' }} /> Quản lý hội thoại AI Chat</h2>
         <p style={{ color: '#64748b', marginBottom: 20 }}>Xem và quản lý các đoạn chat giữa học viên và AI.</p>
         
         {loading ? (
