@@ -45,6 +45,17 @@ import {
   SaveWordMatchingProgressSchema,
 } from "./module/word-matching/word-matching.schema.js";
 import { GradeEssaySchema } from "./module/AI/ai.schema.js";
+import {
+  GetStudentVocabularyQuerySchema,
+  StudentVocabularyIdParamSchema,
+  AddStudentVocabularySchema,
+  UpdateStudentVocabularySchema,
+} from "./module/student-vocabulary/student-vocabulary.schema.js";
+import {
+  GetStudentCoursesQuerySchema,
+  StudentCourseIdParamSchema,
+  StudentLessonIdParamSchema,
+} from "./module/student-lesson/student-lesson.schema.js";
 import { env } from "./config/env.js";
 
 const doc = {
@@ -94,6 +105,9 @@ const routeModules: { prefix: string; file: string; defaultTag?: string }[] = [
   { prefix: "/game/memory-card", file: "./src/module/memory-card/memory-card.route.ts", defaultTag: "Game - Memory Card" },
   { prefix: "/game/word-matching", file: "./src/module/word-matching/word-matching.route.ts", defaultTag: "Game - Word Matching" },
   { prefix: "/api/ai", file: "./src/module/AI/ai.router.ts", defaultTag: "AI" },
+  { prefix: "/api/student/vocabulary", file: "./src/module/student-vocabulary/student-vocabulary.route.ts", defaultTag: "Student - Vocabulary" },
+  { prefix: "/api/student/courses", file: "./src/module/student-lesson/student-lesson.route.ts", defaultTag: "Student - Courses" },
+  { prefix: "/api/student/lessons", file: "./src/module/student-lesson/student-lesson.route.ts", defaultTag: "Student - Lessons" },
 ];
 
 const autogen = (swaggerAutogen as any).default || swaggerAutogen;
@@ -132,6 +146,13 @@ function getAutoTag(path: string): string {
       .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
       .join(" ");
     return `Game - ${gameName}`;
+  }
+
+  if (segments[0] === "api" && segments[1] === "student" && segments[2]) {
+    if (segments[2] === "courses") return "Student - Courses";
+    if (segments[2] === "lessons") return "Student - Lessons";
+    if (segments[2] === "vocabulary") return "Student - Vocabulary";
+    return `Student - ${segments[2].charAt(0).toUpperCase() + segments[2].slice(1)}`;
   }
 
   if (segments[0] === "api" && segments[1]) {
@@ -370,6 +391,30 @@ async function generate() {
           },
         },
       },
+    },
+    "/api/student/vocabulary": {
+      get: { schema: GetStudentVocabularyQuerySchema, summary: "Lấy danh sách từ vựng cá nhân của học viên (Lazy Loading)", tags: ["Student - Vocabulary"] },
+      post: { schema: AddStudentVocabularySchema, summary: "Thêm từ vựng vào danh sách của học viên", tags: ["Student - Vocabulary"] },
+    },
+    "/api/student/vocabulary/{id}": {
+      get: { schema: StudentVocabularyIdParamSchema, summary: "Xem chi tiết từ vựng theo ID", tags: ["Student - Vocabulary"] },
+      put: { schema: UpdateStudentVocabularySchema, summary: "Cập nhật trạng thái / thông tin từ vựng của học viên", tags: ["Student - Vocabulary"] },
+      delete: { schema: StudentVocabularyIdParamSchema, summary: "Xóa từ vựng khỏi danh sách của học viên", tags: ["Student - Vocabulary"] },
+    },
+    "/api/student/courses": {
+      get: { schema: GetStudentCoursesQuerySchema, summary: "Lấy danh sách khóa học kèm tiến độ học viên", tags: ["Student - Courses"] },
+    },
+    "/api/student/courses/{courseId}": {
+      get: { schema: StudentCourseIdParamSchema, summary: "Xem chi tiết khóa học kèm danh sách bài học", tags: ["Student - Courses"] },
+    },
+    "/api/student/courses/{courseId}/lessons": {
+      get: { schema: StudentCourseIdParamSchema, summary: "Lấy danh sách bài học thuộc khóa học", tags: ["Student - Courses"] },
+    },
+    "/api/student/lessons/{id}": {
+      get: { schema: StudentLessonIdParamSchema, summary: "Xem chi tiết bài học (Lý thuyết, Video, Từ vựng, Bài test)", tags: ["Student - Lessons"] },
+    },
+    "/api/student/lessons/{id}/complete": {
+      post: { schema: StudentLessonIdParamSchema, summary: "Đánh dấu hoàn thành bài học và nhận điểm thưởng XP", tags: ["Student - Lessons"] },
     },
   };
 
