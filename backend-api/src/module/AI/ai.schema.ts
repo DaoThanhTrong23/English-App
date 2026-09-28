@@ -43,3 +43,37 @@ export interface SpeakingEvaluationResponse {
   }>;
   improvedVersion: string;    // Bản nói lại hoàn chỉnh mượt mà hơn
 }
+
+// Chi tiết điểm số từng âm vị theo thuật toán GOP (Goodness of Pronunciation)
+export interface PhonemeScoreDetail {
+  phoneme: string;            // Âm vị mục tiêu (VD: "/h/", "/oʊ/")
+  score: number;              // Điểm % độ chuẩn xác (0 - 100)
+  status: "correct" | "poor" | "silent_insertion";
+  heardAs: string;            // Âm mà hệ thống nghe thấy người học phát âm
+  feedback: string;           // Nhận xét ngắn về âm này
+}
+
+// Kết quả trả về cho tính năng Chấm điểm phát âm chi tiết (GOP & Phonetic Assessment)
+export interface PronunciationEvaluationResponse {
+  targetWord: string;         // Từ mục tiêu (VD: "Hello")
+  targetIpa: string;          // Phiên âm chuẩn IPA (VD: "/həˈloʊ/")
+  spokenText: string;         // Âm/từ nhận diện được từ giọng nói học viên (VD: "He - lơ", hoặc "abcd")
+  overallScore: number;       // Điểm số % tổng quát (0 - 100%)
+  cefrLevel: "A1" | "A2" | "B1" | "B2" | "C1" | "C2";
+  
+  details: {
+    vowelAccuracy: number;     // Độ chuẩn nguyên âm (0 - 100)
+    consonantAccuracy: number; // Độ chuẩn phụ âm & âm đuôi (0 - 100)
+    stressAccuracy: number;    // Độ chuẩn trọng âm (0 - 100)
+    fluencyScore: number;      // Độ liền mạch, không ngắt quãng (0 - 100)
+  };
+
+  phonemeScores: PhonemeScoreDetail[]; // Đánh giá chi tiết từng âm vị (GOP Breakdown)
+  silentLetterErrors: string[];        // Danh sách các lỗi đọc chữ câm (nếu có)
+  
+  explanation: string;         // Giải thích vì sao học viên phát âm ra như vậy
+  improvement: {
+    mouthShape: string;        // Hướng dẫn khẩu hình môi & vị trí lưỡi
+    practiceTip: string;       // Mẹo luyện tập từng bước
+  };
+}

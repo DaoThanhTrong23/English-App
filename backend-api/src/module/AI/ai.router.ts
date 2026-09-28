@@ -6,13 +6,16 @@ import { aiService } from "./ai.service.js";
 import { authorize } from "../../middleware/authorize.middleware.js";
 import multer from "multer";
 import { ApiError } from "../../shared/http/api-error.js";
+import { prisma } from '../../config/prisma.js';
+import { Authenticate } from "../../middleware/authenticate.middleware.js";
+import { Role } from '../../generated/prisma/index.js';
 
 const router = Router();
 
-// Cấu hình Multer nhận file âm thanh (đặc biệt là .wav, .mp3, .m4a, .webm, .ogg)
+// Cấu hình Multer nhận file âm thanh (.wav, .mp3, .m4a, .webm, .ogg)
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 20 * 1024 * 1024 }, // Tăng giới hạn lên 20MB (WAV thường nặng hơn mp3)
+  limits: { fileSize: 20 * 1024 * 1024 }, // 20MB
   fileFilter: (_req, file, cb) => {
     const isAudioMime = file.mimetype.startsWith("audio/") || 
                         file.mimetype.includes("webm") || 
@@ -28,7 +31,8 @@ const upload = multer({
   },
 });
 
-// router.use(authorize);
+
+// Chấm bài viết (Writing Essay)
 router.post(
   "/grade-essay",
   validate(GradeEssaySchema),
@@ -42,6 +46,7 @@ router.post(
   })
 );
 
+// Chấm bài nói tự do (Speaking Evaluation)
 router.post(
   "/grade-speaking",
   upload.any(),
@@ -73,5 +78,68 @@ router.post(
   })
 );
 
+// THUẬT TOÁN CHẤM ĐIỂM PHÁT ÂM GOP & PHÂN GIẢI NGỮ ÂM HỌC
+router.post(
+  "/evaluate-pronunciation",
+  upload.any(),
+  asyncHandler(async (req, res) => {
+    const files = req.files as Express.Multer.File[] | undefined;
+    const uploadedFile = files && files.length > 0 ? files[0] : req.file;
+
+    if (!uploadedFile) {
+      throw new ApiError(400, "missing_file", "Vui lòng tải lên file âm thanh ghi âm (field 'audio')");
+    }
+
+    const { targetWord, targetIpa } = req.body;
+    if (!targetWord || !targetIpa) {
+      throw new ApiError(400, "missing_params", "Vui lòng cung cấp targetWord và targetIpa");
+    }
+
+    const result = await aiService.evaluatePronunciationGOP(
+      uploadedFile.buffer,
+      targetWord,
+      targetIpa
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Chấm điểm phát âm thành công",
+      data: result,
+    });
+  })
+);
+
+// Admin: Lấy danh sách hội thoại
+router.get(
+  "/admin/sessions",
+  Authenticate,
+  authorize([Role.admin]),
+  asyncHandler(async (req, res) => {
+    const sessions = await prisma.aiChatSession.findMany({
+      include: {
+        user: { select: { username: true, email: true } },
+        _count: { select: { messages: true } }
+      },
+      orderBy: { startedAt: 'desc' },
+      take: 50
+    });
+    res.status(200).json({ success: true, data: sessions });
+  })
+);
+
+// Admin: Lấy chi tiết tin nhắn của một phiên
+router.get(
+  "/admin/sessions/:id/messages",
+  Authenticate,
+  authorize([Role.admin]),
+  asyncHandler(async (req, res) => {
+    const sessionId = parseInt(req.params.id as string);
+    const messages = await prisma.aiChatMessage.findMany({
+      where: { sessionId: sessionId },
+      orderBy: { createdAt: 'asc' }
+    });
+    res.status(200).json({ success: true, data: messages });
+  })
+);
 
 export const aiRouter = router;

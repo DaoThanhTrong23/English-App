@@ -72,7 +72,8 @@ export function createapp() {
     app.use("/game/memory-card", memoryCardRouter);
     app.use("/game/word-matching", wordMatchingRouter);
     // AI
-    app.use("/api/ai",aiRouter)
+    app.use("/api/ai", aiRouter);
+    app.use("/api/v1/ai", aiRouter);
     // Đăng ký Swagger UI tài liệu API
     const swaggerPath = fs.existsSync(path.resolve(process.cwd(), "src/swagger-output.json"))
         ? path.resolve(process.cwd(), "src/swagger-output.json")
