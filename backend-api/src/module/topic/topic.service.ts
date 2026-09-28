@@ -4,8 +4,8 @@ import { ApiError } from "../../shared/http/api-error.js";
 export class TopicService {
   constructor(private topicRepo: TopicRepository) {}
 
-  async getAllTopics() {
-    return await this.topicRepo.findAll();
+  async getAllTopics(cefrLevel?: string) {
+    return await this.topicRepo.findAll(cefrLevel);
   }
 
   async getTopicById(id: number) {

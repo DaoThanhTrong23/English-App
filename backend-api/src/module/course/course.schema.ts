@@ -10,6 +10,7 @@ export const GetCoursesQuerySchema = z.object({
     page: z.coerce.number().int().min(1, "Page phải lớn hơn 0").default(1),
     limit: z.coerce.number().int().min(1).max(100, "Limit tối đa 100").default(10),
     search: z.string().trim().optional(),
+    topicId: z.coerce.number().int().positive().optional(),
     cefrLevel: z.enum(CEFR_LEVELS, {
       errorMap: () => ({ message: "cefrLevel phải thuộc A1, A2, B1, B2, C1 hoặc C2" }),
     }).optional(),

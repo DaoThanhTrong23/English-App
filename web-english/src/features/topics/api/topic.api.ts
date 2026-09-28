@@ -1,7 +1,8 @@
 import { axiosClient } from '../../../config/axios';
 
-export const fetchTopics = async () => {
-  const response = await axiosClient.get('/admin/topics');
+export const fetchTopics = async (cefrLevel?: string) => {
+  const params = cefrLevel ? { cefrLevel } : {};
+  const response = await axiosClient.get('/admin/topics', { params });
   return response.data;
 };
 

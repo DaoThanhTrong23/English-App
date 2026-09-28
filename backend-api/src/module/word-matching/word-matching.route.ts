@@ -1,5 +1,5 @@
-import { Router, Request, Response } from "express";
-import { Authenticate } from "../../middleware/authenticate.middleware.js";
+import { Router, Response } from "express";
+import { Authenticate, AuthenticateRequest } from "../../middleware/authenticate.middleware.js";
 import { validate } from "../../middleware/validate.middleware.js";
 import { asyncHandler } from "../../shared/http/async-handler.js";
 import {
@@ -16,8 +16,8 @@ router.get(
   "/start",
   Authenticate,
   validate(StartWordMatchingSchema),
-  asyncHandler(async (req: Request, res: Response) => {
-    const userId = Number((req as any).user?.userId || (req as any).user?.id);
+  asyncHandler(async (req: AuthenticateRequest, res: Response) => {
+    const userId = Number(req.user?.userId);
     const result = await wordMatchingService.startGame(userId, req.query as any);
     res.status(200).json({
       success: true,
@@ -32,8 +32,8 @@ router.post(
   "/submit",
   Authenticate,
   validate(SubmitWordMatchingSchema),
-  asyncHandler(async (req: Request, res: Response) => {
-    const userId = Number((req as any).user?.userId || (req as any).user?.id);
+  asyncHandler(async (req: AuthenticateRequest, res: Response) => {
+    const userId = Number(req.user?.userId);
     const result = await wordMatchingService.submitAnswers(userId, req.body);
     res.status(200).json({
       success: true,
@@ -48,8 +48,8 @@ router.post(
   "/progress",
   Authenticate,
   validate(SaveWordMatchingProgressSchema),
-  asyncHandler(async (req: Request, res: Response) => {
-    const userId = Number((req as any).user?.userId || (req as any).user?.id);
+  asyncHandler(async (req: AuthenticateRequest, res: Response) => {
+    const userId = Number(req.user?.userId);
     const result = await wordMatchingService.saveProgress(userId, req.body);
     res.status(200).json({
       success: true,
