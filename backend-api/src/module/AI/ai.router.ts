@@ -12,10 +12,10 @@ import { Role } from '../../generated/prisma/index.js';
 
 const router = Router();
 
-// Cấu hình Multer nhận file âm thanh (đặc biệt là .wav, .mp3, .m4a, .webm, .ogg)
+// Cấu hình Multer nhận file âm thanh (.wav, .mp3, .m4a, .webm, .ogg)
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 20 * 1024 * 1024 }, // Tăng giới hạn lên 20MB (WAV thường nặng hơn mp3)
+  limits: { fileSize: 20 * 1024 * 1024 }, // 20MB
   fileFilter: (_req, file, cb) => {
     const isAudioMime = file.mimetype.startsWith("audio/") || 
                         file.mimetype.includes("webm") || 
@@ -31,7 +31,8 @@ const upload = multer({
   },
 });
 
-// router.use(authorize);
+
+// Chấm bài viết (Writing Essay)
 router.post(
   "/grade-essay",
   validate(GradeEssaySchema),
@@ -45,6 +46,7 @@ router.post(
   })
 );
 
+// Chấm bài nói tự do (Speaking Evaluation)
 router.post(
   "/grade-speaking",
   upload.any(),
@@ -102,7 +104,7 @@ router.get(
   asyncHandler(async (req, res) => {
     const sessionId = parseInt(req.params.id as string);
     const messages = await prisma.aiChatMessage.findMany({
-      where: { sessionId: sessionId }, // Using sessionId directly
+      where: { sessionId: sessionId },
       orderBy: { createdAt: 'asc' }
     });
     res.status(200).json({ success: true, data: messages });
