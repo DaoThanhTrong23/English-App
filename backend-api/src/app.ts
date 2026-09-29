@@ -21,6 +21,7 @@ import swaggerUi from "swagger-ui-express";
 import fs from "node:fs";
 import path from "node:path";
 import { aiRouter } from "./module/AI/ai.router.js";
+import { onboardingRouter } from "./module/onboarding/onboarding.route.js";
 import { gameRouter } from "./module/game/game.route.js";
 import dashboardRouter from "./module/dashboard/dashboard.route.js";
 import { studentVocabularyRouter } from "./module/student-vocabulary/student-vocabulary.route.js";

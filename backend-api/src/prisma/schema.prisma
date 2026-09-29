@@ -46,6 +46,10 @@ model User {
   email         String    @unique @db.VarChar(100)
   passwordHash  String    @map("password_hash") @db.VarChar(255)
   role          Role      @default(user)
+    job           String?   @db.VarChar(100)
+    interests     String?   @db.Text
+    cefrLevel     String?   @map("cefr_level") @db.VarChar(10)
+    onboardingCompleted Boolean @default(false) @map("onboarding_completed")
   xpPoints      Int       @default(0) @map("xp_points")
   //Bỏ last streak day vì sẽ tính từ lastlogin date thay vì lưu thông tin
   lastLoginDate DateTime? @map("last_login_date")
