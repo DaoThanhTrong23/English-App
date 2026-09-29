@@ -111,4 +111,35 @@ router.get(
   })
 );
 
+router.post(
+  "/evaluate-pronunciation",
+  upload.any(),
+  asyncHandler(async (req, res) => {
+    const files = req.files as Express.Multer.File[] | undefined;
+    const uploadedFile = files && files.length > 0 ? files[0] : req.file;
+
+    if (!uploadedFile) {
+      throw new ApiError(400, "missing_file", "Vui lòng tải lên file âm thanh ghi âm (field 'audio')");
+    }
+
+    const { targetWord, targetIpa } = req.body;
+    if (!targetWord || !targetIpa) {
+      throw new ApiError(400, "missing_params", "Vui lòng cung cấp targetWord và targetIpa");
+    }
+
+    const result = await aiService.evaluatePronunciationGOP(
+      uploadedFile.buffer,
+      targetWord,
+      targetIpa
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Chấm điểm phát âm thành công",
+      data: result,
+    });
+  })
+);
+
+
 export const aiRouter = router;
