@@ -11,7 +11,7 @@ import { Authenticate } from "../../middleware/authenticate.middleware.js";
 import { Role } from '../../generated/prisma/index.js';
 
 const router = Router();
-
+router.use(Authenticate);
 // Cấu hình Multer nhận file âm thanh (.wav, .mp3, .m4a, .webm, .ogg)
 const upload = multer({
   storage: multer.memoryStorage(),
