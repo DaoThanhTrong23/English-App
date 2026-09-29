@@ -295,8 +295,7 @@ model AiChatMessage {
   messageText String   @map("message_text") @db.Text
   createdAt   DateTime @default(now()) @map("created_at")
 
-  aiChatSession   AiChatSession? @relation(fields: [aiChatSessionId], references: [id])
-  aiChatSessionId Int?
+  aiChatSession AiChatSession @relation(fields: [sessionId], references: [id])
 
   @@index([sessionId], map: "session_id")
   @@map("ai_chat_message")
@@ -311,4 +310,37 @@ model revoked_token {
   user User @relation(fields: [user_id], references: [id])
 
   @@map("revoked_token")
+}
+
+
+// ==========================================
+// GAME MANAGEMENT
+// ==========================================
+
+model Game {
+  id          Int           @id @default(autoincrement())
+  name        String
+  code        String        @unique // e.g. MEMORY, MATCHING, BUBBLE
+  description String?       @db.Text
+  isActive    Boolean       @default(true)
+  settings    GameSetting[]
+  
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model GameSetting {
+  id            Int      @id @default(autoincrement())
+  gameId        Int
+  difficulty    String   // EASY, NORMAL, HARD
+  itemCount     Int      // Số lượng từ (VD: 6, 10, 15)
+  pointsPerItem Int      // Điểm mỗi câu đúng
+  timeLimit     Int?     // Giới hạn thời gian (giây) - nullable
+  
+  game          Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([gameId, difficulty])
 }

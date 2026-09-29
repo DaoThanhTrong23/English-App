@@ -301,6 +301,7 @@
   
   .navbar-menu.open {
     left: 0;
+    justify-content: start;
   }
   
   .navbar-menu-item {
@@ -327,6 +328,7 @@
   .navbar-user-info {
     display: none;
   }
+
 }
 
 @media (max-width: 500px) {

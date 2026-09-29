@@ -84,7 +84,7 @@ const Settings: React.FC = () => {
 
           {activeTab === 'profile' && (
             <div>
-              <div style={{ background: '#f8fafc', padding: '24px', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '24px' }}>
+              <div style={{ background: '#f8fafc', padding: '24px', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '24px', width: '100%' }}>
                 <h3 style={{ marginTop: 0, marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Lock size={20} /> Đổi mật khẩu Admin
                 </h3>
@@ -95,12 +95,12 @@ const Settings: React.FC = () => {
                   </div>
                 )}
 
-                <form onSubmit={handleChangePassword} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <form onSubmit={handleChangePassword} style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
                   <div>
                     <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#475569' }}>Mật khẩu hiện tại</label>
                     <input 
                       type="password" 
-                      style={{ width: '100%', padding: '10px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }} 
+                      style={{ width: '95%', padding: '10px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }} 
                       value={oldPassword}
                       onChange={(e) => setOldPassword(e.target.value)}
                       required
@@ -110,7 +110,7 @@ const Settings: React.FC = () => {
                     <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#475569' }}>Mật khẩu mới</label>
                     <input 
                       type="password" 
-                      style={{ width: '100%', padding: '10px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }} 
+                      style={{ width: '95%', padding: '10px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }} 
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
                       required
@@ -120,7 +120,7 @@ const Settings: React.FC = () => {
                     <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#475569' }}>Xác nhận mật khẩu mới</label>
                     <input 
                       type="password" 
-                      style={{ width: '100%', padding: '10px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }} 
+                      style={{ width: '95%', padding: '10px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }} 
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       required

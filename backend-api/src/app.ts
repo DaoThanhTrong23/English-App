@@ -21,7 +21,10 @@ import swaggerUi from "swagger-ui-express";
 import fs from "node:fs";
 import path from "node:path";
 import { aiRouter } from "./module/AI/ai.router.js";
+import { gameRouter } from "./module/game/game.route.js";
 import dashboardRouter from "./module/dashboard/dashboard.route.js";
+import { studentVocabularyRouter } from "./module/student-vocabulary/student-vocabulary.route.js";
+import { studentCourseRouter, studentLessonRouter } from "./module/student-lesson/student-lesson.route.js";
 
 export function createapp() {
     const app = express();
@@ -72,8 +75,13 @@ export function createapp() {
     app.use("/game/memory-card", memoryCardRouter);
     app.use("/game/word-matching", wordMatchingRouter);
     // AI
-    app.use("/api/ai", aiRouter);
-    app.use("/api/v1/ai", aiRouter);
+    app.use("/api/ai",aiRouter)
+    app.use("/api/games", gameRouter)
+    // Đăng ký route quản lý từ vựng cá nhân của học viên
+    app.use("/api/student/vocabulary", studentVocabularyRouter);
+    // Đăng ký route học tập: Khóa học -> Bài học -> Chi tiết bài học cho học viên
+    app.use("/api/student/courses", studentCourseRouter);
+    app.use("/api/student/lessons", studentLessonRouter);
     // Đăng ký Swagger UI tài liệu API
     const swaggerPath = fs.existsSync(path.resolve(process.cwd(), "src/swagger-output.json"))
         ? path.resolve(process.cwd(), "src/swagger-output.json")

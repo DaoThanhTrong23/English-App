@@ -12,7 +12,8 @@ const topicRouter = Router();
 topicRouter.use(Authenticate, authorize([Role.admin]));
 
 topicRouter.get("/", asyncHandler(async (req, res) => {
-  const topics = await topicService.getAllTopics();
+  const cefrLevel = req.query.cefrLevel as string;
+  const topics = await topicService.getAllTopics(cefrLevel);
   res.status(200).json({ success: true, data: topics });
 }));
 

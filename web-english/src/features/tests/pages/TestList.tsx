@@ -113,9 +113,9 @@ const TestList: React.FC = () => {
     <AdminLayout>
       <div className="test-list-main">
         <div className="test-list-header">
-          <h2>Quản lý Bài Kiểm Tra</h2>
+          <h2>Quản lý bài kiểm tra</h2>
           <button className="add-test-btn" onClick={() => handleOpenModal()}>
-            <Plus size={18} /> Tạo Bài Thi Mới
+            <Plus size={18} /> Tạo bài thi mới
           </button>
         </div>
 
@@ -132,7 +132,7 @@ const TestList: React.FC = () => {
             value={levelGroup}
             onChange={(e) => setLevelGroup(e.target.value)}
           >
-            <option value="">Tất cả Nhóm Cấp Độ</option>
+            <option value="">Tất cả nhóm cấp độ</option>
             <option value="A">Nhóm A (A1, A2)</option>
             <option value="B">Nhóm B (B1, B2)</option>
             <option value="C">Nhóm C (C1, C2)</option>
@@ -172,7 +172,7 @@ const TestList: React.FC = () => {
                     className="test-manage-questions-btn"
                     onClick={() => navigate(`/admin/tests/${test.id}`)}
                   >
-                    <BookOpen size={16} /> Quản lý Câu Hỏi
+                    <BookOpen size={16} /> Quản lý câu hỏi
                   </button>
                 </div>
               ))
@@ -184,7 +184,7 @@ const TestList: React.FC = () => {
       {isModalOpen && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <h3>{editingTest ? 'Sửa Bài Thi' : 'Tạo Bài Thi Mới'}</h3>
+            <h3>{editingTest ? 'Sửa bài thi' : 'Tạo bài thi mới'}</h3>
             <form onSubmit={handleSubmit}>
               <div className="form-group">
                 <label>Tiêu đề Bài thi (*)</label>

@@ -62,66 +62,82 @@ const Dashboard: React.FC = () => {
       <div className="dashboard-animated-wrapper">
         <div className="dashboard-main-content">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-            <h2 className="dashboard-title" style={{ margin: 0 }}>Tổng quan Hệ thống</h2>
+            <h2 className="dashboard-title" style={{ margin: 0 }}>Tổng quan hệ thống</h2>
             <div style={{ padding: '8px 16px', background: 'white', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 600, color: '#64748b', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
               Cập nhật lúc: {new Date().toLocaleTimeString('vi-VN')}
             </div>
           </div>
 
-          {/* Quick Stats */}
-          <div className="dashboard-grid">
-            <div className="dashboard-card" style={{ borderLeft: '4px solid #3b82f6' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: '16px' }}>
-                <span className="dashboard-card-title" style={{ margin: 0 }}>Học viên</span>
-                <div style={{ padding: '8px', background: '#eff6ff', borderRadius: '8px' }}>
-                  <UsersIcon size={20} color="#3b82f6" />
+          <div className="bento-container">
+            {/* HERO WELCOME */}
+            <div className="bento-item bento-hero">
+              <h2 style={{ fontSize: '2rem', margin: '0 0 12px 0', color: 'white' }}>Chào mừng trở lại nhoa</h2>
+              <p style={{ color: '#94a3b8', margin: '0 0 24px 0', fontSize: '1.1rem' }}>Đây là tổng quan tình hình hệ thống EnglishApp ngày hôm nay.</p>
+              
+              <div style={{ display: 'flex', gap: '32px', marginTop: 'auto' }}>
+                <div>
+                  <div style={{ color: '#94a3b8', fontSize: '0.9rem', marginBottom: '4px' }}>Tổng học viên</div>
+                  <div style={{ fontSize: '2rem', fontWeight: 'bold' }}>{totalStudents}</div>
+                </div>
+                <div>
+                  <div style={{ color: '#94a3b8', fontSize: '0.9rem', marginBottom: '4px' }}>Tổng bài kiểm tra</div>
+                  <div style={{ fontSize: '2rem', fontWeight: 'bold' }}>{totalTests}</div>
                 </div>
               </div>
-              <h3 className="dashboard-card-value">{totalStudents}</h3>
-              <div style={{ fontSize: '0.8rem', color: '#10b981', fontWeight: 600, marginTop: '8px' }}>+12% so với tháng trước</div>
             </div>
-            
-            <div className="dashboard-card" style={{ borderLeft: '4px solid #8b5cf6' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: '16px' }}>
-                <span className="dashboard-card-title" style={{ margin: 0 }}>Bài học</span>
-                <div style={{ padding: '8px', background: '#f3e8ff', borderRadius: '8px' }}>
-                  <BookOpen size={20} color="#8b5cf6" />
-                </div>
-              </div>
-              <h3 className="dashboard-card-value">{totalCourses}</h3>
-              <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '8px' }}>Đang hoạt động tốt</div>
-            </div>
-            
-            <div className="dashboard-card" style={{ borderLeft: '4px solid #10b981' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: '16px' }}>
-                <span className="dashboard-card-title" style={{ margin: 0 }}>Từ vựng</span>
-                <div style={{ padding: '8px', background: '#d1fae5', borderRadius: '8px' }}>
-                  <BarChart2 size={20} color="#10b981" />
-                </div>
-              </div>
-              <h3 className="dashboard-card-value">{totalWords}</h3>
-              <div style={{ fontSize: '0.8rem', color: '#10b981', fontWeight: 600, marginTop: '8px' }}>+50 từ mới tuần này</div>
-            </div>
-            
-            <div className="dashboard-card" style={{ borderLeft: '4px solid #f59e0b' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: '16px' }}>
-                <span className="dashboard-card-title" style={{ margin: 0 }}>Bài kiểm tra</span>
-                <div style={{ padding: '8px', background: '#fef3c7', borderRadius: '8px' }}>
-                  <Activity size={20} color="#f59e0b" />
-                </div>
-              </div>
-              <h3 className="dashboard-card-value">{totalTests}</h3>
-              <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '8px' }}>Tổng số đề thi</div>
-            </div>
-          </div>
 
-          {/* Charts Row */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '24px', marginTop: '32px' }}>
-            
-            {/* Main Chart */}
-            <div style={{ background: 'white', padding: '24px', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', flex: '2 1 400px' }}>
-              <h3 style={{ marginTop: 0, marginBottom: '20px', color: '#1e293b', fontSize: '1.1rem' }}>Lưu lượng truy cập (7 ngày)</h3>
-              <div style={{ width: '100%', height: '300px' }}>
+            {/* PIE CHART */}
+            <div className="bento-item bento-pie">
+              <h3 style={{ margin: '0 0 16px 0', color: '#1e293b', fontSize: '1.1rem' }}>Phân bố trình độ</h3>
+              <div style={{ width: '100%', height: '100%', minHeight: '250px' }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={levelData} cx="50%" cy="50%" innerRadius={50} outerRadius={70} paddingAngle={5} dataKey="value">
+                      {levelData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <RechartsTooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }} />
+                    <Legend iconType="circle" layout="vertical" verticalAlign="bottom" align="center" />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* QUICK STATS */}
+            <div className="bento-item bento-stat">
+              <div className="stat-icon-wrapper" style={{ background: '#eff6ff' }}>
+                <UsersIcon size={24} color="#3b82f6" />
+              </div>
+              <h3 style={{ margin: '0 0 4px 0', fontSize: '1.8rem', color: '#0f172a' }}>{totalStudents}</h3>
+              <span style={{ color: '#64748b', fontSize: '0.9rem', fontWeight: 600 }}>Học viên đăng ký</span>
+            </div>
+            <div className="bento-item bento-stat">
+              <div className="stat-icon-wrapper" style={{ background: '#f3e8ff' }}>
+                <BookOpen size={24} color="#8b5cf6" />
+              </div>
+              <h3 style={{ margin: '0 0 4px 0', fontSize: '1.8rem', color: '#0f172a' }}>{totalCourses}</h3>
+              <span style={{ color: '#64748b', fontSize: '0.9rem', fontWeight: 600 }}>Bài học sẵn sàng</span>
+            </div>
+            <div className="bento-item bento-stat">
+              <div className="stat-icon-wrapper" style={{ background: '#d1fae5' }}>
+                <BarChart2 size={24} color="#10b981" />
+              </div>
+              <h3 style={{ margin: '0 0 4px 0', fontSize: '1.8rem', color: '#0f172a' }}>{totalWords}</h3>
+              <span style={{ color: '#64748b', fontSize: '0.9rem', fontWeight: 600 }}>Từ vựng hệ thống</span>
+            </div>
+            <div className="bento-item bento-stat">
+              <div className="stat-icon-wrapper" style={{ background: '#fef3c7' }}>
+                <Activity size={24} color="#f59e0b" />
+              </div>
+              <h3 style={{ margin: '0 0 4px 0', fontSize: '1.8rem', color: '#0f172a' }}>{totalTests}</h3>
+              <span style={{ color: '#64748b', fontSize: '0.9rem', fontWeight: 600 }}>Đề kiểm tra thi</span>
+            </div>
+
+            {/* TRAFFIC AREA CHART */}
+            <div className="bento-item bento-traffic">
+              <h3 style={{ margin: '0 0 20px 0', color: '#1e293b', fontSize: '1.1rem' }}>Lưu lượng truy cập (7 ngày)</h3>
+              <div style={{ width: '100%', flex: 1, minHeight: '250px' }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={trafficData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                     <defs>
@@ -134,13 +150,10 @@ const Dashboard: React.FC = () => {
                         <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} dy={10} />
-                    <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} />
-                    <RechartsTooltip 
-                      contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}
-                      itemStyle={{ fontWeight: 'bold' }}
-                    />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} dy={10} />
+                    <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} />
+                    <RechartsTooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }} itemStyle={{ fontWeight: 'bold' }} />
                     <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }}/>
                     <Area type="monotone" name="User Online" dataKey="active" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorActive)" />
                     <Area type="monotone" name="Đăng ký mới" dataKey="new" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorNew)" />
@@ -149,62 +162,29 @@ const Dashboard: React.FC = () => {
               </div>
             </div>
 
-            {/* Pie Chart & Leaderboard */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', flex: '1 1 300px' }}>
-              <div style={{ background: 'white', padding: '24px', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}>
-                <h3 style={{ marginTop: 0, marginBottom: '0', color: '#1e293b', fontSize: '1.1rem' }}>Phân bố trình độ</h3>
-                <div style={{ width: '100%', height: '220px' }}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={levelData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={60}
-                        outerRadius={80}
-                        paddingAngle={5}
-                        dataKey="value"
-                      >
-                        {levelData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <RechartsTooltip 
-                        contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}
-                      />
-                      <Legend iconType="circle" layout="vertical" verticalAlign="middle" align="right" />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-
-              <div style={{ background: 'white', padding: '24px', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', flex: 1 }}>
-                <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '0 0 16px 0', color: '#1e293b', fontSize: '1.1rem' }}>
-                  <Trophy size={18} color="#f59e0b" /> Vinh danh Top 5
-                </h3>
-                {topStudents.length === 0 ? <p style={{ color: '#64748b', fontSize: '0.9rem' }}>Chưa có dữ liệu</p> : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    {topStudents.map((student, index) => (
-                      <div key={student.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px', background: index === 0 ? '#fffbeb' : '#f8fafc', borderRadius: '8px', border: index === 0 ? '1px solid #fde68a' : '1px solid transparent' }}>
-                        <div style={{ 
-                          width: '28px', height: '28px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', 
-                          fontWeight: 'bold', fontSize: '0.85rem',
-                          background: index === 0 ? '#f59e0b' : index === 1 ? '#94a3b8' : index === 2 ? '#b45309' : '#e2e8f0',
-                          color: index < 3 ? 'white' : '#64748b'
-                        }}>
-                          {index + 1}
-                        </div>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontWeight: 600, color: '#1e293b', fontSize: '0.9rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{student.username || student.fullName}</div>
-                          <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{student.email}</div>
-                        </div>
-                        <div style={{ fontWeight: 'bold', color: '#3b82f6', fontSize: '0.9rem' }}>{student.xpPoints} XP</div>
+            {/* LEADERBOARD */}
+            <div className="bento-item bento-leaderboard">
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '0 0 20px 0', color: '#1e293b', fontSize: '1.1rem' }}>
+                <Trophy size={20} color="#f59e0b" /> Vinh danh Top 5
+              </h3>
+              {topStudents.length === 0 ? <p style={{ color: '#64748b', fontSize: '0.9rem' }}>Chưa có dữ liệu</p> : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', overflowY: 'auto' }}>
+                  {topStudents.map((student, index) => (
+                    <div key={student.id} style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                      <div style={{ width: '36px', height: '36px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '1rem', background: index === 0 ? '#fef3c7' : index === 1 ? '#f1f5f9' : index === 2 ? '#ffedd5' : '#f8fafc', color: index === 0 ? '#f59e0b' : index === 1 ? '#64748b' : index === 2 ? '#ea580c' : '#94a3b8' }}>
+                        {index + 1}
                       </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontWeight: 600, color: '#1e293b', fontSize: '0.95rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{student.username || student.fullName}</div>
+                        <div style={{ fontSize: '0.8rem', color: '#64748b' }}>{student.email}</div>
+                      </div>
+                      <div style={{ fontWeight: 'bold', color: '#3b82f6', fontSize: '1rem', background: '#eff6ff', padding: '6px 12px', borderRadius: '20px' }}>{student.xpPoints} XP</div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
+
           </div>
         </div>
       </div>

@@ -19,5 +19,7 @@ export const createWordSchema = z.object({
 });
 
 export const updateWordSchema = createWordSchema.partial();
+export const createBulkWordSchema = z.array(createWordSchema);
+
 export type CreateWordInput = z.infer<typeof createWordSchema>;
 export type UpdateWordInput = z.infer<typeof updateWordSchema>;

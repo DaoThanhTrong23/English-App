@@ -1,8 +1,13 @@
 import { prisma } from "../../config/prisma.js";
 
 export class TopicRepository {
-  async findAll() {
+  async findAll(cefrLevel?: string) {
+    const whereCondition: any = {};
+    if (cefrLevel) {
+      whereCondition.cefrLevel = cefrLevel;
+    }
     return await prisma.topic.findMany({
+      where: whereCondition,
       include: { lessons: true }
     });
   }

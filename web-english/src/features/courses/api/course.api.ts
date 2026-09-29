@@ -5,10 +5,11 @@ export const getTotalCourse = async () => {
   return response.data.data.total;
 };
 
-export const fetchCourses = async (page: number, limit: number, search?: string, cefrLevel?: string) => {
+export const fetchCourses = async (page: number, limit: number, search?: string, cefrLevel?: string, topicId?: string | number) => {
   const params: any = { page, limit };
   if (search) params.search = search;
   if (cefrLevel) params.cefrLevel = cefrLevel;
+  if (topicId) params.topicId = topicId;
   const response = await axiosClient.get('/admin/courses', { params });
   return response.data;
 };
