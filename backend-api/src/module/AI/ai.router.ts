@@ -111,4 +111,60 @@ router.get(
   })
 );
 
+
+// User: Chat với AI Bot
+router.post(
+  "/chat",
+  Authenticate,
+  asyncHandler(async (req: any, res) => {
+    const { message, sessionId } = req.body;
+    const userId = req.user.userId;
+    if (!message) throw new ApiError(400, "missing_message", "Vui lòng nhập tin nhắn");
+    
+    const result = await aiService.chatWithBot(userId, message, sessionId);
+    res.status(200).json({
+      success: true,
+      message: "Chat thành công",
+      data: result,
+    });
+  })
+);
+
+// User: Lấy danh sách lịch sử chat của mình
+router.get(
+  "/chat/sessions",
+  Authenticate,
+  asyncHandler(async (req: any, res) => {
+    const userId = req.user.userId;
+    const sessions = await prisma.aiChatSession.findMany({
+      where: { userId },
+      orderBy: { startedAt: 'desc' },
+      take: 20
+    });
+    res.status(200).json({ success: true, data: sessions });
+  })
+);
+
+// User: Lấy tin nhắn trong 1 session
+router.get(
+  "/chat/sessions/:id",
+  Authenticate,
+  asyncHandler(async (req: any, res) => {
+    const sessionId = parseInt(req.params.id as string);
+    const userId = req.user.userId;
+    
+    // Check ownership
+    const session = await prisma.aiChatSession.findUnique({ where: { id: sessionId } });
+    if (!session || session.userId !== userId) {
+      throw new ApiError(403, "forbidden", "Không có quyền truy cập đoạn chat này");
+    }
+
+    const messages = await prisma.aiChatMessage.findMany({
+      where: { sessionId: sessionId },
+      orderBy: { createdAt: 'asc' }
+    });
+    res.status(200).json({ success: true, data: messages });
+  })
+);
+
 export const aiRouter = router;

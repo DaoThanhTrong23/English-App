@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import { getAiSessions, getAiSessionMessages } from '../api/ai-chat.api';
 import { MessageSquare, X, User as UserIcon, Bot } from 'lucide-react';

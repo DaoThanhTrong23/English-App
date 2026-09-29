@@ -1,3 +1,5 @@
+import { prisma } from "../../config/prisma.js";
+import { ApiError } from "../../shared/http/api-error.js";
 import {
   EssayEvaluationResponse,
   GradeEssayInput,
@@ -453,6 +455,29 @@ ${input.topic ? `Chủ đề: "${input.topic}"` : ""}
       },
     };
   }
-}
 
+  @logExecution()
+  async chatWithBot(userId: number, message: string, sessionId?: number): Promise<{ response: string, sessionId: number }> {
+    let currentSessionId = sessionId;
+    if (!currentSessionId) {
+      const newSession = await prisma.aiChatSession.create({
+        data: { userId, title: message.substring(0, 30) + '...' }
+      });
+      currentSessionId = newSession.id;
+    }
+    await prisma.aiChatMessage.create({ data: { sessionId: currentSessionId!, sender: 'user', messageText: message } });
+    const recentMessages = await prisma.aiChatMessage.findMany({ where: { sessionId: currentSessionId! }, orderBy: { createdAt: 'asc' }, take: -6 });
+    const ollamaMessages = recentMessages.map((msg: any) => ({ role: msg.sender === 'user' ? 'user' : 'assistant', content: msg.messageText }));
+    ollamaMessages.unshift({ role: 'system', content: 'Bạn tên là Gà. Bạn là một gia sư Tiếng Anh vô cùng thân thiện, vui tính và nhiệt tình. Bạn luôn trả lời ngắn gọn, dễ hiểu và sẵn sàng sửa lỗi sai Tiếng Anh cho người dùng. Bạn có thể giao tiếp bằng cả Tiếng Việt và Tiếng Anh tùy theo ngữ cảnh.' });
+    try {
+      const ollamaResponse = await ollama.chat({ model: env.AiModel || 'llama3.2', messages: ollamaMessages as any });
+      const aiReply = ollamaResponse.message.content;
+      await prisma.aiChatMessage.create({ data: { sessionId: currentSessionId!, sender: 'ai', messageText: aiReply } });
+      return { response: aiReply, sessionId: currentSessionId! };
+    } catch (error) {
+      throw new ApiError(500, 'ai_error', 'Bot đang bận.');
+    }
+  }
+
+}
 export const aiService = new AiService();
