@@ -78,39 +78,36 @@ router.post(
   })
 );
 
-// Admin: Lấy danh sách hội thoại
-router.get(
-  "/admin/sessions",
-  Authenticate,
-  authorize([Role.admin]),
+// Đánh giá phát âm (GOP)
+router.post(
+  "/evaluate-pronunciation",
+  upload.any(),
   asyncHandler(async (req, res) => {
-    const sessions = await prisma.aiChatSession.findMany({
-      include: {
-        user: { select: { username: true, email: true } },
-        _count: { select: { messages: true } }
-      },
-      orderBy: { startedAt: 'desc' },
-      take: 50
+    const files = req.files as Express.Multer.File[] | undefined;
+    const uploadedFile = files && files.length > 0 ? files[0] : req.file;
+
+    if (!uploadedFile) {
+      throw new ApiError(400, "missing_file", "Vui lòng tải lên file âm thanh ghi âm (field 'audio')");
+    }
+
+    const { targetWord, targetIpa } = req.body;
+    if (!targetWord || !targetIpa) {
+      throw new ApiError(400, "missing_params", "Vui lòng cung cấp targetWord và targetIpa");
+    }
+
+    const result = await aiService.evaluatePronunciationGOP(
+      uploadedFile.buffer,
+      targetWord,
+      targetIpa
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Chấm điểm phát âm thành công",
+      data: result,
     });
-    res.status(200).json({ success: true, data: sessions });
   })
 );
-
-// Admin: Lấy chi tiết tin nhắn của một phiên
-router.get(
-  "/admin/sessions/:id/messages",
-  Authenticate,
-  authorize([Role.admin]),
-  asyncHandler(async (req, res) => {
-    const sessionId = parseInt(req.params.id as string);
-    const messages = await prisma.aiChatMessage.findMany({
-      where: { sessionId: sessionId },
-      orderBy: { createdAt: 'asc' }
-    });
-    res.status(200).json({ success: true, data: messages });
-  })
-);
-
 
 // User: Chat với AI Bot
 router.post(
@@ -159,6 +156,39 @@ router.get(
       throw new ApiError(403, "forbidden", "Không có quyền truy cập đoạn chat này");
     }
 
+    const messages = await prisma.aiChatMessage.findMany({
+      where: { sessionId: sessionId },
+      orderBy: { createdAt: 'asc' }
+    });
+    res.status(200).json({ success: true, data: messages });
+  })
+);
+
+// Admin: Lấy danh sách hội thoại
+router.get(
+  "/admin/sessions",
+  Authenticate,
+  authorize([Role.admin]),
+  asyncHandler(async (req, res) => {
+    const sessions = await prisma.aiChatSession.findMany({
+      include: {
+        user: { select: { username: true, email: true } },
+        _count: { select: { messages: true } }
+      },
+      orderBy: { startedAt: 'desc' },
+      take: 50
+    });
+    res.status(200).json({ success: true, data: sessions });
+  })
+);
+
+// Admin: Lấy chi tiết tin nhắn của một phiên
+router.get(
+  "/admin/sessions/:id/messages",
+  Authenticate,
+  authorize([Role.admin]),
+  asyncHandler(async (req, res) => {
+    const sessionId = parseInt(req.params.id as string);
     const messages = await prisma.aiChatMessage.findMany({
       where: { sessionId: sessionId },
       orderBy: { createdAt: 'asc' }
