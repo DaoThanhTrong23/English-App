@@ -1,35 +1,43 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 
 export default function ProfileScreen() {
   const router = useRouter();
   const [userInfo, setUserInfo] = useState<any>(null);
+  const [avatarUri, setAvatarUri] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const storedUser = await SecureStore.getItemAsync('userInfo');
-        if (storedUser) {
-          setUserInfo(JSON.parse(storedUser));
+  useFocusEffect(
+    useCallback(() => {
+      const fetchUserData = async () => {
+        try {
+          const storedUser = await SecureStore.getItemAsync('userInfo');
+          if (storedUser) {
+            setUserInfo(JSON.parse(storedUser));
+          }
+          const storedAvatar = await SecureStore.getItemAsync('userAvatar');
+          if (storedAvatar) {
+            setAvatarUri(storedAvatar);
+          }
+        } catch (error) {
+          console.log("Error fetching profile data:", error);
+        } finally {
+          setLoading(false);
         }
-      } catch (error) {
-        console.log("Error fetching profile data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchUserData();
-  }, []);
+      };
+      fetchUserData();
+    }, [])
+  );
 
   const handleLogout = async () => {
     await SecureStore.deleteItemAsync('accessToken');
     await SecureStore.deleteItemAsync('refreshToken');
     await SecureStore.deleteItemAsync('userInfo');
+    await SecureStore.deleteItemAsync('userAvatar');
     router.replace('/(auth)/login');
   };
 
@@ -56,7 +64,10 @@ export default function ProfileScreen() {
         </View>
 
         <View style={styles.profileSection}>
-          <Image source={require('../../../assets/images/gacon.gif')} style={styles.avatar} />
+          <Image 
+            source={{ uri: avatarUri || 'https://cdn-icons-png.flaticon.com/512/149/149071.png' }} 
+            style={styles.avatar} 
+          />
           <Text style={styles.name}>{username}</Text>
           <Text style={styles.email}>{email}</Text>
           <TouchableOpacity style={styles.editBtn} onPress={() => { /* @ts-ignore */ router.push('/edit-profile')}}>

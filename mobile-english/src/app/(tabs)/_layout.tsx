@@ -1,10 +1,29 @@
 import { Tabs, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet, View, TouchableOpacity } from 'react-native';
+import { useEffect } from 'react';
+import * as SecureStore from 'expo-secure-store';
 
 export default function TabLayout() {
   const router = useRouter();
   
+  useEffect(() => {
+    const checkOnboarding = async () => {
+      try {
+        const userInfoStr = await SecureStore.getItemAsync('userInfo');
+        if (userInfoStr) {
+          const user = JSON.parse(userInfoStr);
+          if (user.onboardingCompleted === false) {
+            // Force user to placement test
+            router.replace('/onboarding');
+          }
+        }
+      } catch (e) {
+        console.log('Error checking onboarding status', e);
+      }
+    };
+    checkOnboarding();
+  }, []);  
   return (
     <View style={{ flex: 1 }}>
       <Tabs

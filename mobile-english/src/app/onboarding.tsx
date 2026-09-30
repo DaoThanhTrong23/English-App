@@ -3,14 +3,26 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator,
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { axiosClient } from '../../api/axiosClient';
+import { axiosClient } from '../api/axiosClient';
 import * as SecureStore from 'expo-secure-store';
 
 export default function OnboardingScreen() {
   const router = useRouter();
+
+  const JOB_OPTIONS = ['Học sinh / Sinh viên', 'Người đi làm', 'Giáo viên', 'Khác'];
+  const INTEREST_OPTIONS = ['Công nghệ (IT)', 'Du lịch', 'Kinh doanh', 'Giải trí / Game', 'Văn hóa nghệ thuật', 'Giao tiếp hàng ngày', 'Kỹ năng mềm', 'Học thuật'];
+
+  const toggleInterest = (val: string) => {
+    if (interests.includes(val)) {
+      setInterests(interests.filter(i => i !== val));
+    } else {
+      setInterests([...interests, val]);
+    }
+  };
+
   const [step, setStep] = useState(1);
-  const [job, setJob] = useState('');
-  const [interests, setInterests] = useState('');
+  const [job, setJob] = useState('Sinh viên');
+  const [interests, setInterests] = useState<string[]>([]);
   
   // Test Data
   const [questions, setQuestions] = useState<any[]>([]);
@@ -54,7 +66,7 @@ export default function OnboardingScreen() {
     try {
       const res = await axiosClient.post('/onboarding/submit', {
         job,
-        interests,
+        interests: interests.join(', '),
         answers: finalAnswers
       });
       
@@ -94,27 +106,36 @@ export default function OnboardingScreen() {
           <Text style={styles.subtitle}>Hãy cho chúng tôi biết một chút về bạn để xây dựng lộ trình học phù hợp nhất nhé.</Text>
           
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Nghề nghiệp / Công việc hiện tại:</Text>
-            <TextInput 
-              style={styles.input}
-              placeholder="VD: Sinh viên, Lập trình viên, Kế toán..."
-              value={job}
-              onChangeText={setJob}
-            />
+            <Text style={styles.label}>Nghề nghiệp hiện tại của bạn:</Text>
+            <View style={styles.chipContainer}>
+              {JOB_OPTIONS.map((opt) => (
+                <TouchableOpacity 
+                  key={opt}
+                  style={[styles.chip, job === opt && styles.chipSelected]}
+                  onPress={() => setJob(opt)}
+                >
+                  <Text style={[styles.chipText, job === opt && styles.chipTextSelected]}>{opt}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Sở thích cá nhân:</Text>
-            <TextInput 
-              style={[styles.input, { height: 80, textAlignVertical: 'top' }]}
-              placeholder="VD: Du lịch, Chơi game, Đọc sách kinh tế..."
-              multiline
-              value={interests}
-              onChangeText={setInterests}
-            />
+            <Text style={styles.label}>Sở thích cá nhân (Chọn nhiều):</Text>
+            <View style={styles.chipContainer}>
+              {INTEREST_OPTIONS.map((opt) => (
+                <TouchableOpacity 
+                  key={opt}
+                  style={[styles.chip, interests.includes(opt) && styles.chipSelected]}
+                  onPress={() => toggleInterest(opt)}
+                >
+                  <Text style={[styles.chipText, interests.includes(opt) && styles.chipTextSelected]}>{opt}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
 
-          <TouchableOpacity style={styles.btnPrimary} onPress={startTest}>
+          <TouchableOpacity style={styles.btnPrimary} onPress={startTest} disabled={interests.length === 0}>
             <Text style={styles.btnText}>Làm bài Test năng lực</Text>
             <Ionicons name="arrow-forward" size={20} color="#fff" style={{marginLeft: 8}} />
           </TouchableOpacity>
@@ -126,7 +147,7 @@ export default function OnboardingScreen() {
         <View style={styles.content}>
           <Text style={styles.progressText}>Câu hỏi {currentQIndex + 1} / {questions.length}</Text>
           <View style={styles.progressBar}>
-            <View style={[styles.progressFill, { width: \`\${((currentQIndex + 1) / questions.length) * 100}%\` }]} />
+            <View style={[styles.progressFill, { width: `${((currentQIndex + 1) / questions.length) * 100}%` }]} />
           </View>
           
           <Text style={styles.questionText}>{questions[currentQIndex].question}</Text>
@@ -190,6 +211,12 @@ const styles = StyleSheet.create({
   input: { backgroundColor: '#f1f5f9', borderRadius: 12, padding: 16, fontSize: 15, color: '#0f172a' },
   btnPrimary: { backgroundColor: '#2563eb', borderRadius: 12, padding: 16, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 10 },
   btnText: { color: '#ffffff', fontSize: 16, fontWeight: 'bold' },
+  chipContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 5 },
+  chip: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 20, backgroundColor: '#f1f5f9', borderWidth: 1, borderColor: '#e2e8f0' },
+  chipSelected: { backgroundColor: '#eff6ff', borderColor: '#3b82f6' },
+  chipText: { color: '#475569', fontSize: 14, fontWeight: '500' },
+  chipTextSelected: { color: '#2563eb', fontWeight: 'bold' },
+
   
   progressText: { fontSize: 14, fontWeight: '600', color: '#64748b', marginBottom: 8 },
   progressBar: { height: 6, backgroundColor: '#e2e8f0', borderRadius: 3, marginBottom: 30 },
