@@ -3,13 +3,31 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIn
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
+import { useCallback } from 'react';
 import * as SecureStore from 'expo-secure-store';
 import { axiosClient } from '../../api/axiosClient';
 
 export default function HomeScreen() {
   const router = useRouter();
   const [userInfo, setUserInfo] = useState<any>(null);
+  const [avatarUri, setAvatarUri] = useState<string | null>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      const fetchAvatar = async () => {
+        try {
+          const storedAvatar = await SecureStore.getItemAsync('userAvatar');
+          if (storedAvatar) {
+            setAvatarUri(storedAvatar);
+          }
+        } catch (error) {
+          console.log("Error fetching avatar data:", error);
+        }
+      };
+      fetchAvatar();
+    }, [])
+  );
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -52,7 +70,7 @@ export default function HomeScreen() {
         {/* HEADER */}
         <View style={styles.header}>
           <View style={styles.userInfo}>
-            <Image source={require('../../../assets/images/gacon.gif')} style={styles.avatar} />
+            <Image source={{ uri: avatarUri || 'https://cdn-icons-png.flaticon.com/512/149/149071.png' }} style={styles.avatar} />
             <View>
               <Text style={styles.greeting}>Xin chào, {username}!</Text>
               <View style={[styles.streakBadge, {backgroundColor: '#e5e7eb'}]}>
@@ -134,7 +152,7 @@ const styles = StyleSheet.create({
   scrollContent: { padding: 20, paddingBottom: 40 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 25 },
   userInfo: { flexDirection: 'row', alignItems: 'center' },
-  avatar: { width: 45, height: 45, borderRadius: 25, backgroundColor: '#f3f4f6', marginRight: 12 },
+  avatar: { width: 45, height: 45, borderRadius: 25, backgroundColor: 'transparent', marginRight: 12 },
   greeting: { fontSize: 16, fontWeight: 'bold', color: '#111827' },
   streakBadge: { backgroundColor: '#fef3c7', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12, marginTop: 4, alignSelf: 'flex-start' },
   streakText: { color: '#d97706', fontSize: 11, fontWeight: 'bold' },

@@ -71,7 +71,9 @@ export class AuthService {
                 username: user.username,
                 email: user.email,
                 role: user.role,
-                xpPoint: user.xpPoints
+                xpPoint: user.xpPoints,
+                onboardingCompleted: user.onboardingCompleted,
+                cefrLevel: user.cefrLevel
             },
             token: {
                 accessToken,
@@ -131,8 +133,10 @@ export class AuthService {
                 id: currentUser.id, 
                 username: currentUser.username, 
                 email: email, 
-                role: currentUser.role, 
-                xpPoint: currentUser.xpPoints 
+                role: currentUser.role,
+                xpPoint: currentUser.xpPoints,
+                onboardingCompleted: currentUser.onboardingCompleted,
+                cefrLevel: currentUser.cefrLevel 
             },
             token: { 
                 accessToken, 
@@ -202,8 +206,10 @@ export class AuthService {
                 id: currentUser.id, 
                 username: currentUser.username, 
                 email: email, 
-                role: currentUser.role, 
-                xpPoint: currentUser.xpPoints 
+                role: currentUser.role,
+                xpPoint: currentUser.xpPoints,
+                onboardingCompleted: currentUser.onboardingCompleted,
+                cefrLevel: currentUser.cefrLevel 
             },
             token: { 
                 accessToken, 

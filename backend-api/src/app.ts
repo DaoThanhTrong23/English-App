@@ -60,6 +60,7 @@ export function createapp() {
 
     // Đăng ký route cho module auth
     app.use("/api/auth", Authrouter);
+app.use("/api/onboarding", onboardingRouter);
     app.use("/api/admin/students", studentManageRouter);
     app.use("/api/admin/dashboard", dashboardRouter);
     app.use("/api/admin/logs", activityLogRouter);
