@@ -1,7 +1,1 @@
-*.onnx
-*.bin
-*.tar.gz
-*.zip
-node_modules/
-dist/
-.env
+adaptive-algo-demo/

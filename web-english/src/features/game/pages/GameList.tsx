@@ -96,7 +96,7 @@ const GameList: React.FC = () => {
               min={1}
               value={s.itemCount} 
               onChange={e => handleSettingChange(difficulty, 'itemCount', parseInt(e.target.value) || 0)}
-              style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '14px' }}
+              style={{ width: '90%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '14px' }}
             />
           </div>
           <div>
@@ -106,7 +106,7 @@ const GameList: React.FC = () => {
               min={0}
               value={s.pointsPerItem} 
               onChange={e => handleSettingChange(difficulty, 'pointsPerItem', parseInt(e.target.value) || 0)}
-              style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '14px' }}
+              style={{ width: '90%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '14px' }}
             />
           </div>
           <div>
@@ -116,7 +116,7 @@ const GameList: React.FC = () => {
               min={0}
               value={s.timeLimit || 0} 
               onChange={e => handleSettingChange(difficulty, 'timeLimit', parseInt(e.target.value) || 0)}
-              style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '14px' }}
+              style={{ width: '90%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '14px' }}
             />
           </div>
         </div>

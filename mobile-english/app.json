@@ -39,7 +39,10 @@
           "imageWidth": 76
         }
       ],
-      "expo-asset"
+      "expo-secure-store",
+      "expo-image",
+      "expo-web-browser",
+      "expo-audio"
     ],
     "experiments": {
       "typedRoutes": true,

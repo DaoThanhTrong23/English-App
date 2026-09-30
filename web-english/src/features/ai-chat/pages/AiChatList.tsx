@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import { getAiSessions, getAiSessionMessages } from '../api/ai-chat.api';
 import { MessageSquare, X, User as UserIcon, Bot } from 'lucide-react';
@@ -49,7 +49,7 @@ const AiChatList: React.FC = () => {
   return (
     <AdminLayout>
       <div className="ai-chat-container">
-        <h2><MessageSquare style={{ marginRight: 8, verticalAlign: 'middle' }} /> Quản lý Hội thoại AI Chat</h2>
+        <h2><MessageSquare style={{ marginRight: 8, verticalAlign: 'middle' }} /> Quản lý hội thoại AI Chat</h2>
         <p style={{ color: '#64748b', marginBottom: 20 }}>Xem và quản lý các đoạn chat giữa học viên và AI.</p>
         
         {loading ? (
