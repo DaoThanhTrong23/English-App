@@ -88,7 +88,7 @@ export function getCEFRLevel(elo: number): string {
 }
 
 /**
- * CẢI TIẾN 4: Hệ thống Gợi ý lai (Hybrid Recommender System)
+ * CẢI TIẾN 5: Hệ thống Gợi ý lai (Tìm điểm yếu) (Hybrid Recommender System)
  * Tự động phân tích Điểm yếu nhất (Weakest Link) trong Vector năng lực để gợi ý học bù.
  */
 export type Lesson = { id: string; title: string; cefr: string; topic: string; skillCategory: keyof UserProficiency };
@@ -124,4 +124,22 @@ export function recommendPersonalizedPath(
   });
 
   return scoredLessons.filter(l => l.score > 10).sort((a, b) => b.score - a.score);
+}
+
+/**
+ * CẢI TIẾN 4: TỰ ĐỘNG DỪNG (Early Stopping / CAT Auto-stop)
+ * Dừng bài test sớm nếu điểm năng lực (Elo) của user đã ổn định (Hội tụ)
+ * Giúp tiết kiệm thời gian, không cần làm hết toàn bộ số câu.
+ */
+export function checkEarlyStop(eloHistory: number[], minQuestions: number = 5): boolean {
+  if (eloHistory.length < minQuestions) return false;
+  
+  // Lấy 3 lần thay đổi Elo gần nhất
+  const recentElos = eloHistory.slice(-3);
+  const variance = Math.max(...recentElos) - Math.min(...recentElos);
+  
+  // Nếu biên độ dao động Elo trong 3 câu gần nhất < 15 điểm -> Đã hội tụ
+  if (variance < 15) return true;
+  
+  return false;
 }

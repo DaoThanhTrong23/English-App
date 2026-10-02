@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import * as SecureStore from 'expo-secure-store';
+import { axiosClient } from '../api/axiosClient';
 
 export default function EditProfileScreen() {
   const router = useRouter();
@@ -82,24 +83,41 @@ export default function EditProfileScreen() {
 
   const handleSave = async () => {
     try {
-      // Save local avatar
-      if (avatarUri) {
-        await SecureStore.setItemAsync('userAvatar', avatarUri);
-      }
+      const formData = new FormData();
+      formData.append('username', name);
       
-      // Update basic info in SecureStore (Optional local mock)
-      const userInfoStr = await SecureStore.getItemAsync('userInfo');
-      if (userInfoStr) {
-        const user = JSON.parse(userInfoStr);
-        user.username = name;
-        await SecureStore.setItemAsync('userInfo', JSON.stringify(user));
+      // Nếu user vừa chọn ảnh mới từ máy (chưa phải là link http)
+      if (avatarUri && !avatarUri.startsWith('http')) {
+        const localUri = avatarUri;
+        const filename = localUri.split('/').pop();
+        const match = /\.(\w+)$/.exec(filename || '');
+        const type = match ? `image/${match[1]}` : `image`;
+        formData.append('avatar', { uri: localUri, name: filename, type } as any);
       }
 
-      Alert.alert('Thành công', 'Đã cập nhật thông tin thành công!', [
-        { text: 'OK', onPress: () => router.back() }
-      ]);
+      // Gọi API Upload
+      const res = await axiosClient.put('/profile/update', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      if (res.data?.success) {
+        const updatedUser = res.data.data;
+        // Nối tên miền của backend vào URL ảnh
+        const baseURL = axiosClient.defaults.baseURL?.replace('/api', '') || 'http://10.0.2.2:3000';
+        const finalAvatarUri = updatedUser.avatarUrl ? baseURL + updatedUser.avatarUrl : null;
+        
+        if (finalAvatarUri) {
+          await SecureStore.setItemAsync('userAvatar', finalAvatarUri);
+        }
+        await SecureStore.setItemAsync('userInfo', JSON.stringify(updatedUser));
+        
+        Alert.alert('Thành công', 'Đã cập nhật Avatar và thông tin lên DB!', [
+          { text: 'OK', onPress: () => router.back() }
+        ]);
+      }
     } catch (e) {
-      Alert.alert('Lỗi', 'Không thể lưu thông tin');
+      console.error(e);
+      Alert.alert('Lỗi', 'Không thể lưu lên Server');
     }
   };
 
@@ -119,7 +137,7 @@ export default function EditProfileScreen() {
           <View style={styles.avatarSection}>
             <TouchableOpacity onPress={showImagePickerOptions} style={styles.avatarContainer}>
               <Image 
-                source={{ uri: avatarUri || 'https://cdn-icons-png.flaticon.com/512/149/149071.png' }} 
+                source={avatarUri ? { uri: avatarUri } : require('../../assets/images/gacon.gif')} 
                 style={styles.avatar} 
                 
               />

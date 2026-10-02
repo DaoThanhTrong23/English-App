@@ -1,3 +1,4 @@
+import { prisma } from '../../config/prisma.js';
 import { ApiError } from "../../shared/http/api-error.js";
 import { logExecution } from "../../shared/decorators/log.decorator.js";
 import { recordActivity } from "../../shared/decorators/activity.decorator.js";
@@ -16,35 +17,91 @@ export class StudentLessonService {
    * 1. Lấy danh sách khóa học / chủ đề cho học viên (có phân trang, tìm kiếm, lọc CEFR)
    */
   @logExecution()
-  async getCoursesList(_userId: number, query: GetStudentCoursesQueryInput) {
-    const { totalItems, courses } = await this.studentLessonRepo.findCourses(query);
-    const totalPages = Math.ceil(totalItems / query.limit) || 1;
+  async getCoursesList(userId: number, query: GetStudentCoursesQueryInput & { targetLevelGroup?: string }) {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    const userCefr = user?.cefrLevel || 'A1';
+    const userTopics = user?.interests ? user.interests.split(',').map((t: string) => t.trim().toLowerCase()) : [];
 
-    const formattedCourses = courses.map((course) => ({
+    const SYNONYM_DICT: Record<string, string[]> = {
+      'công nghệ (it)': ['it', 'công nghệ', 'lập trình', 'phần mềm', 'developer', 'máy tính', 'công nghệ thông tin', 'coding', 'coder', 'frontend', 'backend', 'ai', 'trí tuệ nhân tạo', 'data', 'dữ liệu', 'web', 'app', 'mobile', 'ứng dụng', 'mạng', 'network', 'cyber', 'bảo mật', 'database'],
+      'du lịch': ['du lịch', 'travel', 'khách sạn', 'nhà hàng', 'sân bay', 'tourism', 'tourist', 'đặt phòng', 'hotel', 'resort', 'vé máy bay', 'chuyến bay', 'flight', 'nghỉ dưỡng', 'hướng dẫn viên', 'tour', 'passport', 'visa', 'hành lý', 'hộ chiếu'],
+      'kinh doanh': ['kinh doanh', 'business', 'công sở', 'doanh nghiệp', 'tài chính', 'bán hàng', 'sales', 'marketing', 'văn phòng', 'startup', 'khởi nghiệp', 'đầu tư', 'kinh tế', 'thương mại', 'office', 'boss', 'quản lý', 'sếp', 'ceo', 'kế toán', 'accounting', 'hợp đồng', 'thương lượng'],
+      'giải trí / game': ['giải trí', 'game', 'trò chơi', 'phim', 'âm nhạc', 'music', 'movie', 'thể thao', 'sport', 'bóng đá', 'ca nhạc', 'ca sĩ', 'diễn viên', 'hollywood', 'esports', 'streaming', 'youtube', 'tiktok', 'vlog', 'nghệ sĩ', 'idol', 'giải vô địch', 'cinema'],
+      'văn hóa nghệ thuật': ['văn hóa', 'nghệ thuật', 'art', 'culture', 'lịch sử', 'bảo tàng', 'hội họa', 'kiến trúc', 'văn học', 'thơ ca', 'phong tục', 'truyền thống', 'di sản', 'gallery', 'exhibition', 'triển lãm', 'điêu khắc', 'tôn giáo', 'tín ngưỡng'],
+      'giao tiếp hằng ngày': ['giao tiếp', 'hằng ngày', 'hàng ngày', 'cuộc sống', 'đời sống', 'daily', 'communication', 'chào hỏi', 'sinh hoạt', 'bạn bè', 'gia đình', 'mua sắm', 'shopping', 'thời tiết', 'weather', 'hỏi đường', 'ăn uống', 'food', 'restaurant', 'sức khỏe', 'bác sĩ'],
+      'kỹ năng mềm': ['kỹ năng', 'mềm', 'thuyết trình', 'lãnh đạo', 'đàm phán', 'soft skills', 'làm việc nhóm', 'teamwork', 'quản lý thời gian', 'time management', 'giải quyết vấn đề', 'giao tiếp hiệu quả', 'tự học', 'tư duy', 'mindset', 'phỏng vấn', 'interview'],
+      'học thuật': ['học thuật', 'academic', 'ielts', 'toefl', 'toeic', 'nghiên cứu', 'khoa học', 'trường học', 'giáo dục', 'đại học', 'university', 'college', 'sinh viên', 'student', 'thi cử', 'exam', 'test', 'luận văn', 'thesis', 'essay', 'ngữ pháp', 'từ vựng chuẩn', 'giáo sư']
+    };
+
+    const expandedKeywords = new Set<string>();
+    userTopics.forEach((topic: string) => {
+      const synonyms = SYNONYM_DICT[topic];
+      if (synonyms) {
+        synonyms.forEach(s => expandedKeywords.add(s));
+      } else {
+        expandedKeywords.add(topic);
+      }
+    });
+
+    let { courses } = await this.studentLessonRepo.findCourses({ ...query, limit: 1000, page: 1 });
+    
+    // 1. Lọc theo targetLevelGroup do người dùng chọn lúc Onboarding
+    if (query.targetLevelGroup) {
+      const allowedLevels = query.targetLevelGroup.split('-'); // VD: 'A1-A2' -> ['A1', 'A2']
+      courses = courses.filter(c => c.cefrLevel && allowedLevels.includes(c.cefrLevel));
+    }
+
+    // 2. Chấm điểm cá nhân hóa
+    const scoredCourses = courses.map((course: any) => {
+      let score = 0;
+      if (course.cefrLevel === userCefr) score += 10;
+      const desc = (course.description || '').toLowerCase();
+      const title = (course.title || '').toLowerCase();
+      
+      expandedKeywords.forEach((keyword: string) => {
+        if (desc.includes(keyword) || title.includes(keyword)) score += 5;
+      });
+      return { ...course, personalizedScore: score };
+    });
+
+    // 3. Sắp xếp ưu tiên
+    scoredCourses.sort((a: any, b: any) => b.personalizedScore - a.personalizedScore);
+
+    // 4. Giới hạn số lượng (Admin cấu hình, mặc định 7)
+    // Ưu tiên: admin config từ ENV > query.limit > 7
+    const ADMIN_TOPIC_LIMIT = process.env.ADMIN_TOPIC_LIMIT ? parseInt(process.env.ADMIN_TOPIC_LIMIT) : 7;
+    const limit = query.limit || ADMIN_TOPIC_LIMIT;
+    const page = query.page || 1;
+    const totalItems = scoredCourses.length;
+    const totalPages = Math.ceil(totalItems / limit) || 1;
+    
+    const paginatedCourses = scoredCourses.slice((page - 1) * limit, page * limit);
+
+    const formattedCourses = paginatedCourses.map((course: any) => ({
       id: course.id,
       title: course.title,
       description: course.description,
       cefrLevel: course.cefrLevel,
+      imageUrl: course.imageUrl,
       createdAt: course.createdAt,
-      totalLessons: course.lessons.length,
+      totalLessons: course.lessons?.length || 0,
+      personalizedScore: course.personalizedScore
     }));
 
     return {
       pagination: {
-        currentPage: query.page,
-        limit: query.limit,
+        currentPage: page,
+        limit,
         totalItems,
         totalPages,
-        hasNextPage: query.page < totalPages,
-        hasPrevPage: query.page > 1,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
       },
       items: formattedCourses,
+      streak: await this.studentLessonRepo.calculateUserStreak(userId),
     };
   }
 
-  /**
-   * 2. Lấy thông tin khóa học và danh sách bài học thuộc khóa học đó
-   */
   @logExecution()
   async getCourseDetail(userId: number, courseId: number) {
     const course = await this.studentLessonRepo.findCourseById(courseId);

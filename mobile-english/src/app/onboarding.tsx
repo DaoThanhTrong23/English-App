@@ -49,10 +49,25 @@ export default function OnboardingScreen() {
     }
   };
 
-  const selectAnswer = (answer: string) => {
+  const selectAnswer = async (answer: string) => {
     const q = questions[currentQIndex];
     const newAnswers = [...answers, { id: q.id, answer }];
     setAnswers(newAnswers);
+
+    // Kích hoạt Tự động dừng (Auto-stop) với Backend
+    // Gọi API check progress sau khi trả lời đủ 6 câu trở lên
+    if (newAnswers.length >= 6) {
+      try {
+        const res = await axiosClient.post('/onboarding/check-progress', { answers: newAnswers });
+        if (res.data?.data?.stoppedEarly) {
+          // Năng lực đã hội tụ, submit luôn bài test!
+          submitTest(newAnswers);
+          return;
+        }
+      } catch (err) {
+        console.warn('Lỗi khi check auto-stop', err);
+      }
+    }
 
     if (currentQIndex < questions.length - 1) {
       setCurrentQIndex(currentQIndex + 1);
@@ -171,7 +186,16 @@ export default function OnboardingScreen() {
           <Text style={styles.title}>Hoàn tất đánh giá!</Text>
           
           <View style={styles.resultCard}>
-            <Text style={styles.resultLabel}>Điểm số: <Text style={styles.resultValue}>{result.score}</Text></Text>
+            
+    <Text style={styles.resultLabel}>Điểm số: <Text style={styles.resultValue}>{result.score}</Text></Text>
+    {result.stoppedEarly && (
+      <View style={{backgroundColor: '#dbeafe', padding: 10, borderRadius: 8, marginTop: 10, marginBottom: 5}}>
+        <Text style={{color: '#1e40af', fontSize: 13, fontWeight: '500'}}>
+          ⚡ Tính năng Tự động dừng (Auto-stop): Thuật toán thông minh FAME-KT đã phân tích xong trình độ của bạn chỉ sau {result.questionsUsed} câu hỏi mà không cần làm hết bài!
+        </Text>
+      </View>
+    )}
+  
             <Text style={styles.resultLabel}>Trình độ CEFR: <Text style={[styles.resultValue, {color: '#2563eb'}]}>{result.cefrLevel}</Text></Text>
             {result.eloProfile && (
               <View style={{marginTop: 10}}>
@@ -182,18 +206,30 @@ export default function OnboardingScreen() {
             )}
           </View>
 
-          <Text style={styles.subtitle}>Dựa trên nghề nghiệp và trình độ của bạn, chúng tôi đề xuất các khóa học sau:</Text>
+          <Text style={styles.subtitle}>Hãy chọn mục tiêu học tập của bạn:</Text>
           
-          {result.recommendedCourses?.map((course: any) => (
-            <View key={course.id} style={styles.courseCard}>
-              <Text style={styles.courseTitle}>{course.title}</Text>
-              <Text style={styles.courseDesc} numberOfLines={2}>{course.description}</Text>
-            </View>
-          ))}
-
-          <TouchableOpacity style={styles.btnPrimary} onPress={() => router.replace('/(tabs)')}>
-            <Text style={styles.btnText}>Vào Trang chủ</Text>
-          </TouchableOpacity>
+          {[
+            { id: 'A1-A2', title: 'Dễ (A1 - A2)', desc: 'Dành cho người mới bắt đầu', levels: ['A1', 'A2'] },
+            { id: 'B1-B2', title: 'Trung bình (B1 - B2)', desc: 'Giao tiếp cơ bản đến khá', levels: ['B1', 'B2'] },
+            { id: 'C1-C2', title: 'Khó (C1 - C2)', desc: 'Thành thạo và chuyên sâu', levels: ['C1', 'C2'] }
+          ].map(group => {
+            const isRecommended = group.levels.includes(result.cefrLevel);
+            return (
+              <TouchableOpacity 
+                key={group.id} 
+                style={[styles.courseCard, isRecommended && { borderColor: '#10b981', backgroundColor: '#ecfdf5', borderWidth: 2 }]}
+                onPress={async () => {
+                  await SecureStore.setItemAsync('targetLevelGroup', group.id);
+                  router.replace('/(tabs)');
+                }}
+              >
+                <Text style={[styles.courseTitle, isRecommended && { color: '#047857' }]}>
+                  {group.title} {isRecommended && '✨ (Phù hợp với bạn)'}
+                </Text>
+                <Text style={styles.courseDesc}>{group.desc}</Text>
+              </TouchableOpacity>
+            )
+          })}
         </View>
       )}
     </SafeAreaView>

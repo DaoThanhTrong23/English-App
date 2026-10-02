@@ -208,6 +208,51 @@ export class StudentLessonRepository {
       },
     });
   }
+
+  @logExecution()
+  async calculateUserStreak(userId: number) {
+    const logs = await prisma.loginLog.findMany({
+      where: { userId },
+      orderBy: { loginTime: 'desc' },
+      select: { loginTime: true }
+    });
+
+    if (logs.length === 0) return 0;
+
+    const uniqueDates = Array.from(new Set(logs.map(l => {
+      const d = new Date(l.loginTime);
+      d.setHours(0,0,0,0);
+      return d.getTime();
+    }))).sort((a,b) => b - a);
+
+    if (uniqueDates.length === 0) return 0;
+
+    let currentStreak = 0;
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const todayTime = today.getTime();
+    const yesterdayTime = todayTime - 86400000;
+    
+    const latest = uniqueDates[0];
+    
+    // Nếu ngày đăng nhập gần nhất không phải hôm nay hoặc hôm qua -> mất chuỗi
+    if (latest !== todayTime && latest !== yesterdayTime) {
+       return 0;
+    }
+
+    let checkDate = latest;
+    for (const d of uniqueDates) {
+      if (d === checkDate) {
+        currentStreak++;
+        checkDate -= 86400000;
+      } else {
+        break;
+      }
+    }
+    
+    return currentStreak;
+  }
+
 }
 
 export const studentLessonRepository = new StudentLessonRepository();

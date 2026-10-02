@@ -7,6 +7,7 @@ import rateLimit from "express-rate-limit";
 import { loggers } from "./utils/logger.js";
 import { errorHandler } from "./shared/http/error-handler.js";
 import Authrouter from "./module/auth/auth.route.js";
+import { profileRouter } from "./module/auth/profile.route.js";
 import bubbleGameRouter from "./module/bubble-game/bubble-game.route.js";
 import memoryCardRouter from "./module/memory-card/memory-card.route.js";
 import wordMatchingRouter from "./module/word-matching/word-matching.route.js";
@@ -60,6 +61,7 @@ export function createapp() {
 
     // Đăng ký route cho module auth
     app.use("/api/auth", Authrouter);
+    app.use("/api/profile", profileRouter);
 app.use("/api/onboarding", onboardingRouter);
     app.use("/api/admin/students", studentManageRouter);
     app.use("/api/admin/dashboard", dashboardRouter);

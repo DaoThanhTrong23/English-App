@@ -15,7 +15,7 @@ const envSchema = z.object({
     GOOGLE_CLIENT_ID: z.string().default(""), 
     FACEBOOK_APP_ID: z.string().default(""),
     FACEBOOK_APP_SECRET: z.string().default(""),
-    AiModel: z.string().default("qwen2.5:7b")
+    AiModel: z.string().default("qwen2.5:0.5b")
 });
 
 export const env = envSchema.parse(process.env);
