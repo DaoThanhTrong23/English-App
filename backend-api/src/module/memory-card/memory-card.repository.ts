@@ -16,7 +16,15 @@ const memoryStore = new Map<number, MemoryGameProgress>();
 
 export class MemoryCardRepository {
   // 1. Lấy danh sách từ vựng theo bài học hoặc ngẫu nhiên từ database
-  async getWordsForGame(limit: number = 6, lessonId?: number) {
+  async getWordsForGame(userId: number, fallbackLimit: number = 6, lessonId?: number) {
+    let limit = fallbackLimit;
+    const gameSetting = await prisma.gameSetting.findFirst({
+      where: { game: { code: 'MEMORY' }, difficulty: 'NORMAL' }
+    });
+    if (gameSetting) {
+      limit = gameSetting.itemCount;
+    }
+
     if (lessonId) {
       const lessonWords = await prisma.lessonWord.findMany({
         where: { lessonId },
@@ -26,10 +34,32 @@ export class MemoryCardRepository {
       return lessonWords.map((lw) => lw.word);
     }
 
-    return prisma.word.findMany({
+    // Lấy từ vựng user đang học
+    const userWords = await prisma.userProgress.findMany({
+      where: { userId },
       take: limit,
-      orderBy: { id: "asc" },
+      include: { word: true },
+      orderBy: { updatedAt: 'desc' }
     });
+
+    let words = userWords.map(uw => uw.word);
+
+    // Bù thêm từ vựng ngẫu nhiên nếu thiếu (ORDER BY RAND())
+    if (words.length < limit) {
+      const needed = limit - words.length;
+      let randomWords = [];
+      
+      if (words.length > 0) {
+        const usedIds = words.map(w => w.id).join(',');
+        randomWords = await prisma.$queryRawUnsafe<any[]>(`SELECT * FROM words WHERE id NOT IN (${usedIds}) ORDER BY RAND() LIMIT ${needed}`);
+      } else {
+        randomWords = await prisma.$queryRawUnsafe<any[]>(`SELECT * FROM words ORDER BY RAND() LIMIT ${needed}`);
+      }
+      
+      words = [...words, ...randomWords.map(w => ({ ...w, imageUrl: w.image_url, audioUrl: w.audio_url, partOfSpeech: w.part_of_speech, headword: w.headword, meaning: w.meaning }))];
+    }
+    
+    return words.sort(() => 0.5 - Math.random());
   }
 
   // 2. Lưu tiến trình tạm thời của người chơi (theo userId)
@@ -56,12 +86,14 @@ export class MemoryCardRepository {
     correctPairs: number;
     totalPairs: number;
     lessonId?: number;
-  }) {
+  }) { // ANTI-CHEAT
+    data.score = Math.max(0, Math.min(data.score, 300));
+
     // 1. Cộng điểm XP cho User trong MySQL
     const updatedUser = await prisma.user.update({
       where: { id: data.userId },
       data: {
-        xpPoints: { increment: data.score },
+        xpPoints: { increment: Math.max(0, Math.min(data.score, 300)) },
       },
     });
 

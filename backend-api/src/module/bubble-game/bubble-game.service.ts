@@ -25,7 +25,7 @@ export class BubbleGameService {
   @logExecution()
   @recordActivity("USER_START_GAME", (_result, userId) => `Người dùng ${userId} bắt đầu bubble game mới, nhận danh sách từ vựng`)
   async startGame(userId: number, query: StartGameQuery) {
-    const words = await this.repository.getWordsForGame(query.limit, query.lessonId);
+    const words = await this.repository.getWordsForGame(userId, query.limit || 6, query.lessonId);
 
     if (!words || words.length < 4) {
       throw new ApiError(400, "not_enough_words", "Không đủ từ vựng để tạo bàn chơi (cần tối thiểu 4 từ).");

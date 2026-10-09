@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Image, TextInput, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { axiosClient } from '../../api/axiosClient';
@@ -8,6 +8,7 @@ import { useRouter } from 'expo-router';
 export default function ExploreScreen() {
   const [courses, setCourses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
   const router = useRouter();
 
   useEffect(() => {
@@ -18,7 +19,8 @@ export default function ExploreScreen() {
     try {
       setLoading(true);
       const res = await axiosClient.get('/student/courses');
-      setCourses(res.data?.data || []);
+      // res.data.data.items handles the new backend structure
+      setCourses(res.data?.data?.items || res.data?.data || []);
     } catch (error) {
       console.log('Error fetching courses:', error);
     } finally {
@@ -26,28 +28,34 @@ export default function ExploreScreen() {
     }
   };
 
+  const filteredCourses = courses.filter(c => c.title.toLowerCase().includes(searchQuery.toLowerCase()));
+
   const renderCourse = ({ item }: { item: any }) => {
     return (
       <TouchableOpacity 
-        style={styles.courseCard} 
-        onPress={() => {
-          // Khi bấm vào khóa học, chuyển đến trang chi tiết bài học
-          // router.push(`/course/${item.id}`);
-        }}
-        activeOpacity={0.8}
+        style={styles.courseCard}
+        onPress={() => router.push({ pathname: '/(tabs)/course/[id]', params: { id: item.id } } as any)}
       >
         <Image 
-          source={{ uri: item.imageUrl || 'https://images.unsplash.com/photo-1546410531-bb4caa6b424d?q=80&w=300&auto=format&fit=crop' }} 
-          style={styles.courseImage} 
+          source={item.imageUrl ? { uri: item.imageUrl } : require('../../../assets/images/gacon.gif')} 
+          style={styles.courseImage}
+          resizeMode="cover"
         />
         <View style={styles.courseContent}>
-          <Text style={styles.courseTitle} numberOfLines={1}>{item.title}</Text>
+          <View style={styles.levelBadge}>
+            <Text style={styles.levelText}>{item.cefrLevel || 'A1'}</Text>
+          </View>
+          <Text style={styles.courseTitle} numberOfLines={2}>{item.title}</Text>
           <Text style={styles.courseDesc} numberOfLines={2}>{item.description}</Text>
+          
           <View style={styles.courseFooter}>
-            <View style={styles.levelBadge}>
-              <Text style={styles.levelText}>{item.level}</Text>
+            <View style={styles.statInfo}>
+              <Ionicons name="book-outline" size={14} color="#6b7280" style={{marginRight: 4}} />
+              <Text style={styles.statText}>{item.totalLessons || 0} bài học</Text>
             </View>
-            <Text style={styles.lessonsCount}>{item._count?.lessons || 0} bài học</Text>
+            <TouchableOpacity style={styles.startBtn} onPress={() => router.push({ pathname: '/(tabs)/course/[id]', params: { id: item.id } } as any)}>
+              <Text style={styles.startBtnText}>Học ngay</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </TouchableOpacity>
@@ -57,25 +65,55 @@ export default function ExploreScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Khám phá</Text>
-        <Text style={styles.headerSubtitle}>Các khóa học dành cho bạn</Text>
+        <Text style={styles.headerTitle}>Khám phá khóa học</Text>
+        <Text style={styles.headerSubtitle}>Tìm kiếm các chủ đề tiếng Anh thú vị phù hợp với bạn</Text>
+      </View>
+
+      <View style={styles.searchContainer}>
+        <View style={styles.searchBox}>
+          <Ionicons name="search" size={20} color="#9ca3af" style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Tìm kiếm khóa học, chủ đề..."
+            placeholderTextColor="#9ca3af"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
+      </View>
+
+      <View style={styles.filtersContainer}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{paddingHorizontal: 20}}>
+          <TouchableOpacity style={[styles.filterChip, styles.filterChipActive]}>
+            <Text style={[styles.filterText, styles.filterTextActive]}>Tất cả</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.filterChip}>
+            <Text style={styles.filterText}>Mới nhất</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.filterChip}>
+            <Text style={styles.filterText}>Phổ biến</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.filterChip}>
+            <Text style={styles.filterText}>Từ vựng</Text>
+          </TouchableOpacity>
+        </ScrollView>
       </View>
 
       {loading ? (
-        <View style={styles.center}>
-          <ActivityIndicator size="large" color="#2563eb" />
+        <View style={styles.loader}>
+          <ActivityIndicator size="large" color="#3b82f6" />
         </View>
       ) : (
         <FlatList
-          data={courses}
-          keyExtractor={(item) => item.id.toString()}
+          data={filteredCourses}
           renderItem={renderCourse}
+          keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.listContainer}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Ionicons name="folder-open-outline" size={60} color="#cbd5e1" />
-              <Text style={styles.emptyText}>Chưa có khóa học nào.</Text>
+            <View style={styles.emptyState}>
+              <Ionicons name="search-outline" size={48} color="#d1d5db" />
+              <Text style={styles.emptyText}>Không tìm thấy khóa học nào</Text>
             </View>
           }
         />
@@ -85,94 +123,38 @@ export default function ExploreScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f8fafc',
-  },
-  center: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  header: {
-    padding: 20,
-    backgroundColor: '#ffffff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#0f172a',
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    color: '#64748b',
-    marginTop: 4,
-  },
-  listContainer: {
-    padding: 16,
-  },
-  courseCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 16,
-    marginBottom: 16,
-    shadowColor: '#64748b',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
-    overflow: 'hidden',
-    flexDirection: 'row',
-  },
-  courseImage: {
-    width: 100,
-    height: '100%',
-    backgroundColor: '#e2e8f0',
-  },
-  courseContent: {
-    flex: 1,
-    padding: 16,
-  },
-  courseTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#1e293b',
-    marginBottom: 6,
-  },
-  courseDesc: {
-    fontSize: 13,
-    color: '#64748b',
-    marginBottom: 12,
-  },
-  courseFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  levelBadge: {
-    backgroundColor: '#e0e7ff',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-  },
-  levelText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#4f46e5',
-  },
-  lessonsCount: {
-    fontSize: 12,
-    color: '#94a3b8',
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingTop: 60,
-  },
-  emptyText: {
-    marginTop: 12,
-    fontSize: 15,
-    color: '#94a3b8',
-  }
+  container: { flex: 1, backgroundColor: '#f9fafb' },
+  header: { padding: 20, backgroundColor: '#ffffff', paddingBottom: 10 },
+  headerTitle: { fontSize: 24, fontWeight: 'bold', color: '#111827', marginBottom: 5 },
+  headerSubtitle: { fontSize: 14, color: '#6b7280' },
+  
+  searchContainer: { backgroundColor: '#ffffff', paddingHorizontal: 20, paddingBottom: 15 },
+  searchBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f3f4f6', borderRadius: 12, paddingHorizontal: 15, height: 45 },
+  searchIcon: { marginRight: 10 },
+  searchInput: { flex: 1, fontSize: 15, color: '#111827' },
+
+  filtersContainer: { backgroundColor: '#ffffff', paddingBottom: 15, borderBottomWidth: 1, borderBottomColor: '#f3f4f6' },
+  filterChip: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, backgroundColor: '#f3f4f6', marginRight: 10 },
+  filterChipActive: { backgroundColor: '#eff6ff', borderWidth: 1, borderColor: '#3b82f6' },
+  filterText: { fontSize: 14, color: '#4b5563', fontWeight: '500' },
+  filterTextActive: { color: '#2563eb', fontWeight: 'bold' },
+
+  listContainer: { padding: 20, paddingBottom: 40 },
+  loader: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  
+  courseCard: { backgroundColor: '#ffffff', borderRadius: 16, overflow: 'hidden', marginBottom: 20, borderWidth: 1, borderColor: '#e5e7eb', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 5, elevation: 2 },
+  courseImage: { width: '100%', height: 140 },
+  courseContent: { padding: 15 },
+  levelBadge: { position: 'absolute', top: -15, right: 15, backgroundColor: '#3b82f6', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12, borderWidth: 2, borderColor: '#ffffff' },
+  levelText: { color: '#ffffff', fontSize: 12, fontWeight: 'bold' },
+  courseTitle: { fontSize: 16, fontWeight: 'bold', color: '#111827', marginBottom: 5, marginTop: 5 },
+  courseDesc: { fontSize: 13, color: '#6b7280', marginBottom: 15, lineHeight: 20 },
+  courseFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderTopWidth: 1, borderTopColor: '#f3f4f6', paddingTop: 15 },
+  statInfo: { flexDirection: 'row', alignItems: 'center' },
+  statText: { fontSize: 13, color: '#6b7280', fontWeight: '500' },
+  startBtn: { backgroundColor: '#eff6ff', paddingHorizontal: 15, paddingVertical: 8, borderRadius: 20 },
+  startBtnText: { color: '#2563eb', fontSize: 13, fontWeight: 'bold' },
+
+  emptyState: { alignItems: 'center', marginTop: 50 },
+  emptyText: { marginTop: 10, fontSize: 15, color: '#9ca3af' }
 });

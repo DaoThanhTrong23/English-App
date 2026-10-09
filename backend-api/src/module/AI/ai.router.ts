@@ -95,6 +95,7 @@ router.post(
       throw new ApiError(400, "missing_params", "Vui lòng cung cấp targetWord và targetIpa");
     }
 
+    console.log("Received audio buffer of length:", uploadedFile.buffer.length);
     const result = await aiService.evaluatePronunciationGOP(
       uploadedFile.buffer,
       targetWord,

@@ -57,3 +57,66 @@ profileRouter.put("/update", upload.single("avatar"), asyncHandler(async (req: A
     data: updatedUser
   });
 }));
+
+
+profileRouter.get("/history", asyncHandler(async (req: any, res) => {
+  const userId = req.user?.userId;
+  const history = await prisma.assessmentHistory.findMany({
+    where: { userId },
+    orderBy: { createdAt: 'desc' },
+    take: 20,
+    include: {
+      question: {
+        select: { quesionText: true, skillCategory: true, points: true }
+      }
+    }
+  });
+  res.status(200).json({ success: true, data: history });
+}));
+
+profileRouter.get("/achievements", asyncHandler(async (req: any, res) => {
+  const userId = req.user?.userId;
+  const userAchievements = await prisma.userAchievement.findMany({
+    where: { userId },
+    include: {
+      achievement: true
+    }
+  });
+  
+  // Lấy thêm danh sách achievement chưa đạt
+  const allAchievements = await prisma.achievement.findMany();
+  
+  res.status(200).json({ 
+    success: true, 
+    data: { userAchievements, allAchievements } 
+  });
+}));
+
+profileRouter.get("/saved-words", asyncHandler(async (req: any, res) => {
+  const userId = req.user?.userId;
+  const savedWords = await prisma.userProgress.findMany({
+    where: { userId, status: 'mastered' },
+    include: {
+      word: true
+    },
+    orderBy: { updatedAt: 'desc' }
+  });
+  res.status(200).json({ success: true, data: savedWords });
+}));
+
+
+// Compliance: Xóa tài khoản (GDPR / App Store Policy)
+profileRouter.delete("/delete-account", Authenticate, asyncHandler(async (req: AuthenticateRequest, res) => {
+  const userId = req.user?.userId;
+  if (!userId) return res.status(401).json({ success: false, message: "Unauthorized" });
+
+  // Prisma sẽ tự động xóa các bảng liên quan nhờ onDelete: Cascade
+  await prisma.user.delete({
+    where: { id: userId }
+  });
+
+  res.status(200).json({
+    success: true,
+    message: "Tài khoản và toàn bộ dữ liệu đã được xóa vĩnh viễn"
+  });
+}));

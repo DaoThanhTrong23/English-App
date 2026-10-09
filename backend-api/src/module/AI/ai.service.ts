@@ -31,13 +31,20 @@ transformersEnv.allowLocalModels = false;
 // 1. NẠP MÔ HÌNH WHISPER ASR (XENOVA/WHISPER-TINY.EN)
 // ============================================================================
 let whisperPipeline: any = null;
+let whisperInitPromise: Promise<any> | null = null;
 
 async function getWhisperPipeline() {
-  if (!whisperPipeline) {
+  if (whisperPipeline) return whisperPipeline;
+  if (whisperInitPromise) return await whisperInitPromise;
+
+  whisperInitPromise = (async () => {
     loggers.info("[Whisper ASR] Đang khởi tạo mô hình nhận diện âm học Whisper...");
-    whisperPipeline = await pipeline("automatic-speech-recognition", "Xenova/whisper-tiny.en");
+    const model = await pipeline("automatic-speech-recognition", "Xenova/whisper-tiny.en");
     loggers.info("[Whisper ASR] Khởi tạo mô hình Whisper thành công!");
-  }
+    return model;
+  })();
+
+  whisperPipeline = await whisperInitPromise;
   return whisperPipeline;
 }
 
@@ -174,63 +181,63 @@ interface PhoneticVector {
 const PHONETIC_MATRIX: Record<string, PhoneticVector> = {
   // Nguyên âm đơn
   "iː": { type: "vowel", rounded: false, voiced: true, place: 1, manner: 5, height: 1, backness: 1 },
-  "i":  { type: "vowel", rounded: false, voiced: true, place: 1, manner: 5, height: 1, backness: 1 },
-  "ɪ":  { type: "vowel", rounded: false, voiced: true, place: 1, manner: 5, height: 1, backness: 1 },
-  "e":  { type: "vowel", rounded: false, voiced: true, place: 2, manner: 5, height: 2, backness: 1 },
-  "ɛ":  { type: "vowel", rounded: false, voiced: true, place: 2, manner: 5, height: 2, backness: 1 },
-  "æ":  { type: "vowel", rounded: false, voiced: true, place: 2, manner: 5, height: 3, backness: 1 },
-  "a":  { type: "vowel", rounded: false, voiced: true, place: 2, manner: 5, height: 3, backness: 1 },
-  "ʌ":  { type: "vowel", rounded: false, voiced: true, place: 4, manner: 5, height: 3, backness: 2 },
-  "ə":  { type: "vowel", rounded: false, voiced: true, place: 4, manner: 5, height: 2, backness: 2 },
+  "i": { type: "vowel", rounded: false, voiced: true, place: 1, manner: 5, height: 1, backness: 1 },
+  "ɪ": { type: "vowel", rounded: false, voiced: true, place: 1, manner: 5, height: 1, backness: 1 },
+  "e": { type: "vowel", rounded: false, voiced: true, place: 2, manner: 5, height: 2, backness: 1 },
+  "ɛ": { type: "vowel", rounded: false, voiced: true, place: 2, manner: 5, height: 2, backness: 1 },
+  "æ": { type: "vowel", rounded: false, voiced: true, place: 2, manner: 5, height: 3, backness: 1 },
+  "a": { type: "vowel", rounded: false, voiced: true, place: 2, manner: 5, height: 3, backness: 1 },
+  "ʌ": { type: "vowel", rounded: false, voiced: true, place: 4, manner: 5, height: 3, backness: 2 },
+  "ə": { type: "vowel", rounded: false, voiced: true, place: 4, manner: 5, height: 2, backness: 2 },
   "ɜː": { type: "vowel", rounded: false, voiced: true, place: 4, manner: 5, height: 2, backness: 2 },
-  "uː": { type: "vowel", rounded: true,  voiced: true, place: 6, manner: 5, height: 1, backness: 3 },
-  "u":  { type: "vowel", rounded: true,  voiced: true, place: 6, manner: 5, height: 1, backness: 3 },
-  "ʊ":  { type: "vowel", rounded: true,  voiced: true, place: 6, manner: 5, height: 1, backness: 3 },
-  "ɔː": { type: "vowel", rounded: true,  voiced: true, place: 6, manner: 5, height: 2, backness: 3 },
-  "ɔ":  { type: "vowel", rounded: true,  voiced: true, place: 6, manner: 5, height: 2, backness: 3 },
+  "uː": { type: "vowel", rounded: true, voiced: true, place: 6, manner: 5, height: 1, backness: 3 },
+  "u": { type: "vowel", rounded: true, voiced: true, place: 6, manner: 5, height: 1, backness: 3 },
+  "ʊ": { type: "vowel", rounded: true, voiced: true, place: 6, manner: 5, height: 1, backness: 3 },
+  "ɔː": { type: "vowel", rounded: true, voiced: true, place: 6, manner: 5, height: 2, backness: 3 },
+  "ɔ": { type: "vowel", rounded: true, voiced: true, place: 6, manner: 5, height: 2, backness: 3 },
   "ɑː": { type: "vowel", rounded: false, voiced: true, place: 6, manner: 5, height: 3, backness: 3 },
-  "ɑ":  { type: "vowel", rounded: false, voiced: true, place: 6, manner: 5, height: 3, backness: 3 },
-  "ɒ":  { type: "vowel", rounded: true,  voiced: true, place: 6, manner: 5, height: 3, backness: 3 },
-  "o":  { type: "vowel", rounded: true,  voiced: true, place: 6, manner: 5, height: 2, backness: 3 },
+  "ɑ": { type: "vowel", rounded: false, voiced: true, place: 6, manner: 5, height: 3, backness: 3 },
+  "ɒ": { type: "vowel", rounded: true, voiced: true, place: 6, manner: 5, height: 3, backness: 3 },
+  "o": { type: "vowel", rounded: true, voiced: true, place: 6, manner: 5, height: 2, backness: 3 },
 
   // Nguyên âm đôi
-  "oʊ": { type: "diphthong", rounded: true,  voiced: true, place: 6, manner: 5, height: 2, backness: 3 },
-  "əʊ": { type: "diphthong", rounded: true,  voiced: true, place: 6, manner: 5, height: 2, backness: 3 },
+  "oʊ": { type: "diphthong", rounded: true, voiced: true, place: 6, manner: 5, height: 2, backness: 3 },
+  "əʊ": { type: "diphthong", rounded: true, voiced: true, place: 6, manner: 5, height: 2, backness: 3 },
   "aɪ": { type: "diphthong", rounded: false, voiced: true, place: 3, manner: 5, height: 3, backness: 1 },
   "eɪ": { type: "diphthong", rounded: false, voiced: true, place: 2, manner: 5, height: 2, backness: 1 },
-  "aʊ": { type: "diphthong", rounded: true,  voiced: true, place: 5, manner: 5, height: 3, backness: 3 },
-  "ɔɪ": { type: "diphthong", rounded: true,  voiced: true, place: 4, manner: 5, height: 2, backness: 1 },
+  "aʊ": { type: "diphthong", rounded: true, voiced: true, place: 5, manner: 5, height: 3, backness: 3 },
+  "ɔɪ": { type: "diphthong", rounded: true, voiced: true, place: 4, manner: 5, height: 2, backness: 1 },
   "ɪə": { type: "diphthong", rounded: false, voiced: true, place: 2, manner: 5, height: 1, backness: 1 },
   "eə": { type: "diphthong", rounded: false, voiced: true, place: 2, manner: 5, height: 2, backness: 1 },
-  "ʊə": { type: "diphthong", rounded: true,  voiced: true, place: 5, manner: 5, height: 1, backness: 3 },
+  "ʊə": { type: "diphthong", rounded: true, voiced: true, place: 5, manner: 5, height: 1, backness: 3 },
 
   // Phụ âm
-  "p":  { type: "consonant", rounded: false, voiced: false, place: 1, manner: 1 },
-  "b":  { type: "consonant", rounded: false, voiced: true,  place: 1, manner: 1 },
-  "t":  { type: "consonant", rounded: false, voiced: false, place: 3, manner: 1 },
-  "d":  { type: "consonant", rounded: false, voiced: true,  place: 3, manner: 1 },
-  "k":  { type: "consonant", rounded: false, voiced: false, place: 6, manner: 1 },
-  "ɡ":  { type: "consonant", rounded: false, voiced: true,  place: 6, manner: 1 },
-  "g":  { type: "consonant", rounded: false, voiced: true,  place: 6, manner: 1 },
-  "f":  { type: "consonant", rounded: false, voiced: false, place: 2, manner: 2 },
-  "v":  { type: "consonant", rounded: false, voiced: true,  place: 2, manner: 2 },
-  "θ":  { type: "consonant", rounded: false, voiced: false, place: 3, manner: 2 },
-  "ð":  { type: "consonant", rounded: false, voiced: true,  place: 3, manner: 2 },
-  "s":  { type: "consonant", rounded: false, voiced: false, place: 3, manner: 2 },
-  "z":  { type: "consonant", rounded: false, voiced: true,  place: 3, manner: 2 },
-  "ʃ":  { type: "consonant", rounded: true,  voiced: false, place: 4, manner: 2 },
-  "ʒ":  { type: "consonant", rounded: true,  voiced: true,  place: 4, manner: 2 },
-  "tʃ": { type: "consonant", rounded: true,  voiced: false, place: 4, manner: 1 },
-  "dʒ": { type: "consonant", rounded: true,  voiced: true,  place: 4, manner: 1 },
-  "h":  { type: "consonant", rounded: false, voiced: false, place: 7, manner: 2 },
-  "m":  { type: "consonant", rounded: false, voiced: true,  place: 1, manner: 3 },
-  "n":  { type: "consonant", rounded: false, voiced: true,  place: 3, manner: 3 },
-  "ŋ":  { type: "consonant", rounded: false, voiced: true,  place: 6, manner: 3 },
-  "l":  { type: "consonant", rounded: false, voiced: true,  place: 3, manner: 4 },
-  "r":  { type: "consonant", rounded: true,  voiced: true,  place: 4, manner: 4 },
-  "ɹ":  { type: "consonant", rounded: true,  voiced: true,  place: 4, manner: 4 },
-  "j":  { type: "consonant", rounded: false, voiced: true,  place: 5, manner: 5 },
-  "w":  { type: "consonant", rounded: true,  voiced: true,  place: 1, manner: 5 },
+  "p": { type: "consonant", rounded: false, voiced: false, place: 1, manner: 1 },
+  "b": { type: "consonant", rounded: false, voiced: true, place: 1, manner: 1 },
+  "t": { type: "consonant", rounded: false, voiced: false, place: 3, manner: 1 },
+  "d": { type: "consonant", rounded: false, voiced: true, place: 3, manner: 1 },
+  "k": { type: "consonant", rounded: false, voiced: false, place: 6, manner: 1 },
+  "ɡ": { type: "consonant", rounded: false, voiced: true, place: 6, manner: 1 },
+  "g": { type: "consonant", rounded: false, voiced: true, place: 6, manner: 1 },
+  "f": { type: "consonant", rounded: false, voiced: false, place: 2, manner: 2 },
+  "v": { type: "consonant", rounded: false, voiced: true, place: 2, manner: 2 },
+  "θ": { type: "consonant", rounded: false, voiced: false, place: 3, manner: 2 },
+  "ð": { type: "consonant", rounded: false, voiced: true, place: 3, manner: 2 },
+  "s": { type: "consonant", rounded: false, voiced: false, place: 3, manner: 2 },
+  "z": { type: "consonant", rounded: false, voiced: true, place: 3, manner: 2 },
+  "ʃ": { type: "consonant", rounded: true, voiced: false, place: 4, manner: 2 },
+  "ʒ": { type: "consonant", rounded: true, voiced: true, place: 4, manner: 2 },
+  "tʃ": { type: "consonant", rounded: true, voiced: false, place: 4, manner: 1 },
+  "dʒ": { type: "consonant", rounded: true, voiced: true, place: 4, manner: 1 },
+  "h": { type: "consonant", rounded: false, voiced: false, place: 7, manner: 2 },
+  "m": { type: "consonant", rounded: false, voiced: true, place: 1, manner: 3 },
+  "n": { type: "consonant", rounded: false, voiced: true, place: 3, manner: 3 },
+  "ŋ": { type: "consonant", rounded: false, voiced: true, place: 6, manner: 3 },
+  "l": { type: "consonant", rounded: false, voiced: true, place: 3, manner: 4 },
+  "r": { type: "consonant", rounded: true, voiced: true, place: 4, manner: 4 },
+  "ɹ": { type: "consonant", rounded: true, voiced: true, place: 4, manner: 4 },
+  "j": { type: "consonant", rounded: false, voiced: true, place: 5, manner: 5 },
+  "w": { type: "consonant", rounded: true, voiced: true, place: 1, manner: 5 },
 };
 
 function computePhoneticSimilarity(p1: string, p2: string): number {
@@ -340,10 +347,37 @@ async function audioBufferToFloat32Array(audioBuffer: Buffer): Promise<Float32Ar
 class AiService {
   @logExecution()
   async gradeEssay(input: GradeEssayInput): Promise<EssayEvaluationResponse> {
+    //     const prompt = `Bạn là giám khảo chấm thi tiếng Anh chuẩn quốc tế theo khung CEFR (A1, A2, B1, B2, C1, C2).
+    // Hãy chấm điểm đoạn văn sau:
+    // ${input.topic ? `Chủ đề: "${input.topic}"` : ""}
+    // Đoạn văn: "${input.text}"`;
+
+
     const prompt = `Bạn là giám khảo chấm thi tiếng Anh chuẩn quốc tế theo khung CEFR (A1, A2, B1, B2, C1, C2).
-Hãy chấm điểm đoạn văn sau:
-${input.topic ? `Chủ đề: "${input.topic}"` : ""}
-Đoạn văn: "${input.text}"`;
+    Hãy chấm điểm và đánh giá đoạn văn sau đây của người học:
+    ${input.topic ? `Chủ đề: "${input.topic}"` : ""}
+    Đoạn văn:
+    """
+    ${input.text}
+    """
+    Yêu cầu trả về kết quả theo đúng cấu trúc JSON sau (toàn bộ giải thích, nhận xét bằng TIẾNG VIỆT):
+    { 
+      "overallScore": number (thang 10.0, ví dụ 6.5),
+      "cefrLevel": "A1" | "A2" | "B1" | "B2" | "C1" | "C2",
+      "grammarScore": number (thang 10),
+      "vocabularyScore": number (thang 10),
+      "feedback": "Nhận xét tổng quát về bài viết",
+      "strengths": ["Điểm làm tốt 1", "Điểm làm tốt 2"],
+      "improvements": ["Điểm cần khắc phục 1", "Điểm cần khắc phục 2"],
+      "corrections": [
+        {
+          "original": "cụm từ hoặc câu bị sai trong bài",
+          "issue": "giải thích chi tiết vì sao sai ngữ pháp/từ vựng",
+          "suggestion": "câu viết lại chính xác"
+        }
+      ],
+      "improvedVersion": "Đoạn văn viết lại hoàn chỉnh tự nhiên và mượt mà hơn bằng tiếng anh"
+    }`;
 
     const response = await ollama.chat({
       model: env.AiModel,
@@ -371,6 +405,78 @@ ${input.topic ? `Chủ đề: "${input.topic}"` : ""}
     };
   }
 
+//   @logExecution()
+//   async gradeSpeaking(
+//     audioBuffer: Buffer,
+//     _mimeType: string,
+//     topic?: string,
+//     targetSentence?: string
+//   ): Promise<SpeakingEvaluationResponse> {
+//     // Ghép context gợi ý cho Whisper để nhận diện chuẩn hơn
+//     const contextPrompt = [topic, targetSentence].filter(Boolean).join(". ");
+
+//     // Bước 1: Whisper bóc băng âm thanh thành text
+//     const transcript = await this.transcribeAudioLocal(audioBuffer, contextPrompt);
+//     loggers.info(`Văn bản nhận diện từ giọng nói: "${transcript}"`);
+
+//     // Kiểm tra nếu không nhận diện được âm thanh (im lặng hoặc tạp âm)
+//     if (!transcript || transcript.length < 2) {
+//       return {
+//         transcript: transcript || "(Không nhận diện được giọng nói)",
+//         overallScore: 0,
+//         cefrLevel: "A1",
+//         grammarScore: 0,
+//         vocabularyScore: 0,
+//         coherenceScore: 0,
+//         feedback: "Hệ thống không nhận diện được giọng nói rõ ràng từ bản ghi âm của bạn. Vui lòng kiểm tra micro và thử lại.",
+//         strengths: [],
+//         improvements: ["Nói to, rõ ràng và hạn chế tiếng ồn xung quanh."],
+//         corrections: [],
+//         improvedVersion: targetSentence || "",
+//       };
+//     }
+
+//     // Bước 2: Ollama chấm điểm dựa trên transcript
+//     const prompt = `Bạn là giám khảo chấm thi Nói tiếng Anh chuẩn quốc tế theo khung CEFR (A1, A2, B1, B2, C1, C2).
+// Dưới đây là lời nói của học viên đã được chuyển đổi từ bản ghi âm giọng nói thành văn bản (transcript):
+// ${topic ? `Chủ đề bài nói: "${topic}"` : ""}
+// ${targetSentence ? `Câu mẫu yêu cầu nói (nếu có): "${targetSentence}"` : ""}
+// Văn bản học viên đã nói:
+// """
+// ${transcript}
+// """
+// Hãy đánh giá và trả về kết quả ĐÚNG định dạng JSON sau (toàn bộ nhận xét, giải thích bằng TIẾNG VIỆT):
+// {
+//   "overallScore": number (thang 10.0, ví dụ 7.0),
+//   "cefrLevel": "A1" | "A2" | "B1" | "B2" | "C1" | "C2",
+//   "grammarScore": number (thang 10),
+//   "vocabularyScore": number (thang 10),
+//   "coherenceScore": number (thang 10),
+//   "feedback": "Nhận xét tổng quan về phần nói",
+//   "strengths": ["Điểm làm tốt 1", "Điểm làm tốt 2"],
+//   "improvements": ["Điểm cần khắc phục 1", "Điểm cần khắc phục 2"],
+//   "corrections": [
+//     {
+//       "original": "câu hoặc cụm từ người học nói sai",
+//       "issue": "giải thích chi tiết vì sao sai",
+//       "suggestion": "câu nói lại tự nhiên và đúng ngữ pháp"
+//     }
+//   ],
+//   "improvedVersion": "Bản diễn đạt lại hoàn chỉnh tự nhiên và hay hơn cho câu trả lời trên bằng tiếng anh"
+// }`;
+
+//     const response = await ollama.chat({
+//       model: env.AiModel,
+//       messages: [{ role: "user", content: prompt }],
+//       format: "json",
+//     });
+
+//     const evaluation = JSON.parse(response.message.content);
+//     return {
+//       transcript,
+//       ...evaluation,
+//     } as SpeakingEvaluationResponse;
+//   }
   // ============================================================================
   // THUẬT TOÁN CHẤM ĐIỂM PHÁT ÂM: WHISPER ASR + PHONETIC ALIGNMENT & BIOMECHANICAL DIAGNOSIS
   // ============================================================================
@@ -536,8 +642,8 @@ ${input.topic ? `Chủ đề: "${input.topic}"` : ""}
       explanation: explanations.length > 0
         ? explanations.join(" ")
         : overallScore >= 80
-        ? "Bạn phát âm rất rõ ràng và chuẩn xác theo bảng phiên âm quốc tế IPA."
-        : "Hãy chú ý điều chỉnh khẩu hình môi và bật rõ các âm vị.",
+          ? "Bạn phát âm rất rõ ràng và chuẩn xác theo bảng phiên âm quốc tế IPA."
+          : "Hãy chú ý điều chỉnh khẩu hình môi và bật rõ các âm vị.",
       improvement: {
         mouthShape: mouthTips || (overallScore >= 80 ? "Khẩu hình mở tự nhiên, giữ vị trí môi ổn định." : "Mở rộng khẩu hình miệng và giữ luồng hơi đều."),
         practiceTip: overallScore >= 80 ? "Hãy tiếp tục luyện tập với các từ nâng cao hơn." : "Hãy nghe lại âm mẫu và đọc chậm từng âm tiết trước khi ghép từ.",

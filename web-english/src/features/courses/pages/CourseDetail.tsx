@@ -25,7 +25,7 @@ const CourseDetail: React.FC = () => {
   // Tests state
   const [tests, setTests] = useState<any[]>([]);
   const [isTestModalOpen, setIsTestModalOpen] = useState(false);
-  const [testForm, setTestForm] = useState({ title: '', description: '', ceftLevel: '' });
+  const [testForm, setTestForm] = useState({ title: '', description: '', ceftLevel: '', skillCategory: '' });
 
   useEffect(() => {
     if (courseId) {
@@ -155,7 +155,7 @@ const CourseDetail: React.FC = () => {
       const res = await createTest({ ...testForm, lessonId: course.id });
       alert('Tạo bài luyện tập thành công!');
       setIsTestModalOpen(false);
-      setTestForm({ title: '', description: '', ceftLevel: '' });
+      setTestForm({ title: '', description: '', ceftLevel: '', skillCategory: '' });
       loadTests(course.id);
       // Optional: Navigate straight to edit the new test
       // navigate(`/admin/tests/${res.data.id}`);
@@ -317,16 +317,16 @@ const CourseDetail: React.FC = () => {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                 <h3>Các bài luyện tập ({tests.length})</h3>
                 <div style={{ display: 'flex', gap: '8px' }}>
-                  <button className="add-course-btn" style={{ background: '#3b82f6' }} onClick={() => { setTestForm({...testForm, title: 'Bài Luyện Nghe'}); setIsTestModalOpen(true); }}>
+                  <button className="add-course-btn" style={{ background: '#3b82f6' }} onClick={() => { setTestForm({...testForm, title: 'Bài Luyện Nghe', skillCategory: 'listening'}); setIsTestModalOpen(true); }}>
                     <Plus size={16} /> Luyện Nghe
                   </button>
-                  <button className="add-course-btn" style={{ background: '#10b981' }} onClick={() => { setTestForm({...testForm, title: 'Bài Luyện Nói'}); setIsTestModalOpen(true); }}>
+                  <button className="add-course-btn" style={{ background: '#10b981' }} onClick={() => { setTestForm({...testForm, title: 'Bài Luyện Nói', skillCategory: 'speaking'}); setIsTestModalOpen(true); }}>
                     <Plus size={16} /> Luyện Nói
                   </button>
                   <button className="add-course-btn" style={{ background: '#f59e0b' }} onClick={() => { setTestForm({...testForm, title: 'Bài Luyện Đọc'}); setIsTestModalOpen(true); }}>
                     <Plus size={16} /> Luyện Đọc
                   </button>
-                  <button className="add-course-btn" style={{ background: '#ef4444' }} onClick={() => { setTestForm({...testForm, title: 'Bài Luyện Viết'}); setIsTestModalOpen(true); }}>
+                  <button className="add-course-btn" style={{ background: '#ef4444' }} onClick={() => { setTestForm({...testForm, title: 'Bài Luyện Viết', skillCategory: 'writing'}); setIsTestModalOpen(true); }}>
                     <Plus size={16} /> Luyện Viết
                   </button>
                 </div>
