@@ -8,11 +8,11 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "seed": "tsx src/prisma/seeder.ts",
+    "seed": "prisma db seed",
     "swagger": "tsx src/swagger-gen.ts"
   },
   "prisma": {
-    "schema": "src/prisma/schema.prisma"
+    "seed": "tsx src/prisma/seed.ts"
   },
   "keywords": [],
   "author": "",

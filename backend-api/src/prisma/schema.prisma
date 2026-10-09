@@ -48,6 +48,7 @@ model User {
   role          Role      @default(user)
     job           String?   @db.VarChar(100)
     interests     String?   @db.Text
+    avatarUrl     String?   @map("avatar_url") @db.Text
     cefrLevel     String?   @map("cefr_level") @db.VarChar(10)
     onboardingCompleted Boolean @default(false) @map("onboarding_completed")
   xpPoints      Int       @default(0) @map("xp_points")

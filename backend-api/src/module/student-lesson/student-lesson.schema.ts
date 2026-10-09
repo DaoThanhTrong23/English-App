@@ -10,6 +10,7 @@ export const GetStudentCoursesQuerySchema = z.object({
     page: z.coerce.number().int().min(1, "Page phải lớn hơn 0").default(1),
     limit: z.coerce.number().int().min(1).max(50, "Limit tối đa 50").default(10),
     search: z.string().trim().optional(),
+    targetLevelGroup: z.string().optional(),
     cefrLevel: z.enum(CEFR_LEVELS, {
       errorMap: () => ({ message: "cefrLevel phải thuộc A1, A2, B1, B2, C1 hoặc C2" }),
     }).optional(),

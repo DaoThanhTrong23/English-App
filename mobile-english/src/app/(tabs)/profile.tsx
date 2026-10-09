@@ -65,7 +65,7 @@ export default function ProfileScreen() {
 
         <View style={styles.profileSection}>
           <Image 
-            source={{ uri: avatarUri || 'https://cdn-icons-png.flaticon.com/512/149/149071.png' }} 
+            source={avatarUri ? { uri: avatarUri } : require('mobile-english/assets/images/gacon.gif')} 
             style={styles.avatar} 
           />
           <Text style={styles.name}>{username}</Text>

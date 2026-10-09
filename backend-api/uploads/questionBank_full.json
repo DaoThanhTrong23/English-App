@@ -1,0 +1,752 @@
+[
+  {
+    "id": "q_001",
+    "question": "I ___ a student.",
+    "options": [
+      "am",
+      "is",
+      "are",
+      "be"
+    ],
+    "correct": "am",
+    "difficultyElo": 900,
+    "skillCategory": "Grammar",
+    "topic": "General English",
+    "cefr": "A1"
+  },
+  {
+    "id": "q_002",
+    "question": "She ___ to the store every morning.",
+    "options": [
+      "go",
+      "goes",
+      "going",
+      "gone"
+    ],
+    "correct": "goes",
+    "difficultyElo": 950,
+    "skillCategory": "Grammar",
+    "topic": "General English",
+    "cefr": "A1"
+  },
+  {
+    "id": "q_003",
+    "question": "They ___ playing football now.",
+    "options": [
+      "am",
+      "is",
+      "are",
+      "be"
+    ],
+    "correct": "are",
+    "difficultyElo": 980,
+    "skillCategory": "Grammar",
+    "topic": "General English",
+    "cefr": "A1"
+  },
+  {
+    "id": "q_004",
+    "question": "What ___ your name?",
+    "options": [
+      "am",
+      "is",
+      "are",
+      "be"
+    ],
+    "correct": "is",
+    "difficultyElo": 900,
+    "skillCategory": "Grammar",
+    "topic": "General English",
+    "cefr": "A1"
+  },
+  {
+    "id": "q_005",
+    "question": "I have two ___.",
+    "options": [
+      "childs",
+      "childrens",
+      "child",
+      "children"
+    ],
+    "correct": "children",
+    "difficultyElo": 1050,
+    "skillCategory": "Vocabulary",
+    "topic": "General English",
+    "cefr": "A1"
+  },
+  {
+    "id": "q_006",
+    "question": "He doesn't ___ a car.",
+    "options": [
+      "has",
+      "have",
+      "having",
+      "had"
+    ],
+    "correct": "have",
+    "difficultyElo": 1000,
+    "skillCategory": "Grammar",
+    "topic": "General English",
+    "cefr": "A1"
+  },
+  {
+    "id": "q_007",
+    "question": "My mother's brother is my ___.",
+    "options": [
+      "uncle",
+      "aunt",
+      "cousin",
+      "nephew"
+    ],
+    "correct": "uncle",
+    "difficultyElo": 950,
+    "skillCategory": "Vocabulary",
+    "topic": "General English",
+    "cefr": "A1"
+  },
+  {
+    "id": "q_008",
+    "question": "Read: 'Open from 9 AM to 5 PM'. What time does it close?",
+    "options": [
+      "9 AM",
+      "12 PM",
+      "5 PM",
+      "9 PM"
+    ],
+    "correct": "5 PM",
+    "difficultyElo": 920,
+    "skillCategory": "Reading",
+    "topic": "General English",
+    "cefr": "A1"
+  },
+  {
+    "id": "q_009",
+    "question": "We ___ breakfast at 7 o'clock.",
+    "options": [
+      "make",
+      "do",
+      "have",
+      "take"
+    ],
+    "correct": "have",
+    "difficultyElo": 1080,
+    "skillCategory": "Vocabulary",
+    "topic": "General English",
+    "cefr": "A1"
+  },
+  {
+    "id": "q_010",
+    "question": "Where ___ you from?",
+    "options": [
+      "do",
+      "are",
+      "is",
+      "does"
+    ],
+    "correct": "are",
+    "difficultyElo": 900,
+    "skillCategory": "Grammar",
+    "topic": "General English",
+    "cefr": "A1"
+  },
+  {
+    "id": "q_011",
+    "question": "I ___ to London last year.",
+    "options": [
+      "go",
+      "went",
+      "gone",
+      "going"
+    ],
+    "correct": "went",
+    "difficultyElo": 1150,
+    "skillCategory": "Grammar",
+    "topic": "General English",
+    "cefr": "A2"
+  },
+  {
+    "id": "q_012",
+    "question": "Did you ___ the movie?",
+    "options": [
+      "likes",
+      "liked",
+      "like",
+      "liking"
+    ],
+    "correct": "like",
+    "difficultyElo": 1120,
+    "skillCategory": "Grammar",
+    "topic": "General English",
+    "cefr": "A2"
+  },
+  {
+    "id": "q_013",
+    "question": "She is taller ___ her sister.",
+    "options": [
+      "then",
+      "that",
+      "than",
+      "this"
+    ],
+    "correct": "than",
+    "difficultyElo": 1180,
+    "skillCategory": "Grammar",
+    "topic": "General English",
+    "cefr": "A2"
+  },
+  {
+    "id": "q_014",
+    "question": "I am interested ___ learning English.",
+    "options": [
+      "on",
+      "in",
+      "at",
+      "for"
+    ],
+    "correct": "in",
+    "difficultyElo": 1250,
+    "skillCategory": "Grammar",
+    "topic": "General English",
+    "cefr": "A2"
+  },
+  {
+    "id": "q_015",
+    "question": "Can you ___ me a favor?",
+    "options": [
+      "make",
+      "do",
+      "take",
+      "give"
+    ],
+    "correct": "do",
+    "difficultyElo": 1220,
+    "skillCategory": "Vocabulary",
+    "topic": "General English",
+    "cefr": "A2"
+  },
+  {
+    "id": "q_016",
+    "question": "Read: 'Please do not feed the animals.' What should you not do?",
+    "options": [
+      "Touch them",
+      "Look at them",
+      "Give them food",
+      "Take pictures"
+    ],
+    "correct": "Give them food",
+    "difficultyElo": 1100,
+    "skillCategory": "Reading",
+    "topic": "General English",
+    "cefr": "A2"
+  },
+  {
+    "id": "q_017",
+    "question": "I ___ TV when the phone rang.",
+    "options": [
+      "watch",
+      "watched",
+      "was watching",
+      "am watching"
+    ],
+    "correct": "was watching",
+    "difficultyElo": 1280,
+    "skillCategory": "Grammar",
+    "topic": "General English",
+    "cefr": "A2"
+  },
+  {
+    "id": "q_018",
+    "question": "He works as a ___ in a restaurant.",
+    "options": [
+      "chef",
+      "cooker",
+      "chief",
+      "cooking"
+    ],
+    "correct": "chef",
+    "difficultyElo": 1190,
+    "skillCategory": "Vocabulary",
+    "topic": "General English",
+    "cefr": "A2"
+  },
+  {
+    "id": "q_019",
+    "question": "How ___ water do you drink?",
+    "options": [
+      "many",
+      "much",
+      "lot",
+      "some"
+    ],
+    "correct": "much",
+    "difficultyElo": 1150,
+    "skillCategory": "Grammar",
+    "topic": "General English",
+    "cefr": "A2"
+  },
+  {
+    "id": "q_020",
+    "question": "I'm looking ___ my keys. Have you seen them?",
+    "options": [
+      "at",
+      "for",
+      "after",
+      "up"
+    ],
+    "correct": "for",
+    "difficultyElo": 1290,
+    "skillCategory": "Grammar",
+    "topic": "General English",
+    "cefr": "A2"
+  },
+  {
+    "id": "q_021",
+    "question": "If it rains, we ___ at home.",
+    "options": [
+      "stay",
+      "will stay",
+      "stayed",
+      "would stay"
+    ],
+    "correct": "will stay",
+    "difficultyElo": 1350,
+    "skillCategory": "Grammar",
+    "topic": "General English",
+    "cefr": "B1"
+  },
+  {
+    "id": "q_022",
+    "question": "I have been working here ___ 2020.",
+    "options": [
+      "for",
+      "since",
+      "in",
+      "from"
+    ],
+    "correct": "since",
+    "difficultyElo": 1320,
+    "skillCategory": "Grammar",
+    "topic": "General English",
+    "cefr": "B1"
+  },
+  {
+    "id": "q_023",
+    "question": "The book was so ___ that I couldn't put it down.",
+    "options": [
+      "bored",
+      "boring",
+      "interested",
+      "interesting"
+    ],
+    "correct": "interesting",
+    "difficultyElo": 1380,
+    "skillCategory": "Vocabulary",
+    "topic": "General English",
+    "cefr": "B1"
+  },
+  {
+    "id": "q_024",
+    "question": "You ___ to wear a uniform to school.",
+    "options": [
+      "must",
+      "have",
+      "should",
+      "need"
+    ],
+    "correct": "have",
+    "difficultyElo": 1420,
+    "skillCategory": "Grammar",
+    "topic": "General English",
+    "cefr": "B1"
+  },
+  {
+    "id": "q_025",
+    "question": "I'm not used ___ up so early.",
+    "options": [
+      "to wake",
+      "to waking",
+      "waking",
+      "wake"
+    ],
+    "correct": "to waking",
+    "difficultyElo": 1480,
+    "skillCategory": "Grammar",
+    "topic": "General English",
+    "cefr": "B1"
+  },
+  {
+    "id": "q_026",
+    "question": "Could you tell me where ___?",
+    "options": [
+      "is the bank",
+      "the bank is",
+      "does the bank",
+      "bank is"
+    ],
+    "correct": "the bank is",
+    "difficultyElo": 1450,
+    "skillCategory": "Grammar",
+    "topic": "General English",
+    "cefr": "B1"
+  },
+  {
+    "id": "q_027",
+    "question": "Despite the bad weather, they ___ to finish the project.",
+    "options": [
+      "managed",
+      "succeeded",
+      "achieved",
+      "could"
+    ],
+    "correct": "managed",
+    "difficultyElo": 1490,
+    "skillCategory": "Vocabulary",
+    "topic": "General English",
+    "cefr": "B1"
+  },
+  {
+    "id": "q_028",
+    "question": "He apologized ___ being late.",
+    "options": [
+      "for",
+      "of",
+      "about",
+      "to"
+    ],
+    "correct": "for",
+    "difficultyElo": 1360,
+    "skillCategory": "Grammar",
+    "topic": "General English",
+    "cefr": "B1"
+  },
+  {
+    "id": "q_029",
+    "question": "We ran out ___ milk, so I went to the store.",
+    "options": [
+      "of",
+      "off",
+      "from",
+      "with"
+    ],
+    "correct": "of",
+    "difficultyElo": 1410,
+    "skillCategory": "Vocabulary",
+    "topic": "General English",
+    "cefr": "B1"
+  },
+  {
+    "id": "q_030",
+    "question": "The meeting has been put ___ until next week.",
+    "options": [
+      "out",
+      "off",
+      "up",
+      "away"
+    ],
+    "correct": "off",
+    "difficultyElo": 1470,
+    "skillCategory": "Vocabulary",
+    "topic": "General English",
+    "cefr": "B1"
+  },
+  {
+    "id": "q_031",
+    "question": "If I ___ you, I would take that job.",
+    "options": [
+      "was",
+      "am",
+      "were",
+      "had been"
+    ],
+    "correct": "were",
+    "difficultyElo": 1550,
+    "skillCategory": "Grammar",
+    "topic": "General English",
+    "cefr": "B2"
+  },
+  {
+    "id": "q_032",
+    "question": "By the time we arrived, the train ___.",
+    "options": [
+      "left",
+      "has left",
+      "had left",
+      "was leaving"
+    ],
+    "correct": "had left",
+    "difficultyElo": 1580,
+    "skillCategory": "Grammar",
+    "topic": "General English",
+    "cefr": "B2"
+  },
+  {
+    "id": "q_033",
+    "question": "She is highly ___ in several programming languages.",
+    "options": [
+      "proficient",
+      "efficient",
+      "sufficient",
+      "deficient"
+    ],
+    "correct": "proficient",
+    "difficultyElo": 1650,
+    "skillCategory": "Vocabulary",
+    "topic": "General English",
+    "cefr": "B2"
+  },
+  {
+    "id": "q_034",
+    "question": "I'd rather you ___ smoke in here.",
+    "options": [
+      "don't",
+      "didn't",
+      "not",
+      "won't"
+    ],
+    "correct": "didn't",
+    "difficultyElo": 1620,
+    "skillCategory": "Grammar",
+    "topic": "General English",
+    "cefr": "B2"
+  },
+  {
+    "id": "q_035",
+    "question": "The project was a failure due to a lack of ___.",
+    "options": [
+      "funding",
+      "founding",
+      "finds",
+      "funds"
+    ],
+    "correct": "funding",
+    "difficultyElo": 1520,
+    "skillCategory": "Vocabulary",
+    "topic": "General English",
+    "cefr": "B2"
+  },
+  {
+    "id": "q_036",
+    "question": "Scarcely ___ the house when it started to rain.",
+    "options": [
+      "I had left",
+      "had I left",
+      "I left",
+      "did I leave"
+    ],
+    "correct": "had I left",
+    "difficultyElo": 1680,
+    "skillCategory": "Grammar",
+    "topic": "General English",
+    "cefr": "B2"
+  },
+  {
+    "id": "q_037",
+    "question": "It's time we ___ going home.",
+    "options": [
+      "are",
+      "were",
+      "be",
+      "will be"
+    ],
+    "correct": "were",
+    "difficultyElo": 1610,
+    "skillCategory": "Grammar",
+    "topic": "General English",
+    "cefr": "B2"
+  },
+  {
+    "id": "q_038",
+    "question": "The CEO ___ a speech at the conference tomorrow.",
+    "options": [
+      "gives",
+      "is to give",
+      "is giving",
+      "give"
+    ],
+    "correct": "is giving",
+    "difficultyElo": 1540,
+    "skillCategory": "Grammar",
+    "topic": "General English",
+    "cefr": "B2"
+  },
+  {
+    "id": "q_039",
+    "question": "He was accused ___ stealing the money.",
+    "options": [
+      "of",
+      "for",
+      "with",
+      "about"
+    ],
+    "correct": "of",
+    "difficultyElo": 1590,
+    "skillCategory": "Grammar",
+    "topic": "General English",
+    "cefr": "B2"
+  },
+  {
+    "id": "q_040",
+    "question": "The ___ of the new policy will affect everyone.",
+    "options": [
+      "implication",
+      "imply",
+      "implicating",
+      "implied"
+    ],
+    "correct": "implication",
+    "difficultyElo": 1660,
+    "skillCategory": "Vocabulary",
+    "topic": "General English",
+    "cefr": "B2"
+  },
+  {
+    "id": "q_041",
+    "question": "Not only ___ the exam, but he also got the highest score.",
+    "options": [
+      "he passed",
+      "did he pass",
+      "he did pass",
+      "passed he"
+    ],
+    "correct": "did he pass",
+    "difficultyElo": 1750,
+    "skillCategory": "Grammar",
+    "topic": "General English",
+    "cefr": "C1"
+  },
+  {
+    "id": "q_042",
+    "question": "The committee ___ of five members.",
+    "options": [
+      "consists",
+      "comprises",
+      "is composed",
+      "includes"
+    ],
+    "correct": "consists",
+    "difficultyElo": 1720,
+    "skillCategory": "Vocabulary",
+    "topic": "General English",
+    "cefr": "C1"
+  },
+  {
+    "id": "q_043",
+    "question": "He gave me a ___ look when I asked about his past.",
+    "options": [
+      "peculiar",
+      "peculiarly",
+      "peculiarity",
+      "peculiarities"
+    ],
+    "correct": "peculiar",
+    "difficultyElo": 1780,
+    "skillCategory": "Vocabulary",
+    "topic": "General English",
+    "cefr": "C1"
+  },
+  {
+    "id": "q_044",
+    "question": "___ had I spoken than I realized my mistake.",
+    "options": [
+      "No sooner",
+      "Hardly",
+      "Scarcely",
+      "Barely"
+    ],
+    "correct": "No sooner",
+    "difficultyElo": 1800,
+    "skillCategory": "Grammar",
+    "topic": "General English",
+    "cefr": "C1"
+  },
+  {
+    "id": "q_045",
+    "question": "The company is on the ___ of bankruptcy.",
+    "options": [
+      "verge",
+      "edge",
+      "brink",
+      "margin"
+    ],
+    "correct": "brink",
+    "difficultyElo": 1820,
+    "skillCategory": "Vocabulary",
+    "topic": "General English",
+    "cefr": "C1"
+  },
+  {
+    "id": "q_046",
+    "question": "It is imperative that she ___ present at the meeting.",
+    "options": [
+      "is",
+      "be",
+      "were",
+      "are"
+    ],
+    "correct": "be",
+    "difficultyElo": 1760,
+    "skillCategory": "Grammar",
+    "topic": "General English",
+    "cefr": "C1"
+  },
+  {
+    "id": "q_047",
+    "question": "His argument was entirely ___; it didn't make any sense.",
+    "options": [
+      "lucid",
+      "coherent",
+      "fallacious",
+      "cogent"
+    ],
+    "correct": "fallacious",
+    "difficultyElo": 1850,
+    "skillCategory": "Vocabulary",
+    "topic": "General English",
+    "cefr": "C1"
+  },
+  {
+    "id": "q_048",
+    "question": "___ you need any further information, please do not hesitate to contact us.",
+    "options": [
+      "Should",
+      "If",
+      "Were",
+      "Had"
+    ],
+    "correct": "Should",
+    "difficultyElo": 1730,
+    "skillCategory": "Grammar",
+    "topic": "General English",
+    "cefr": "C1"
+  },
+  {
+    "id": "q_049",
+    "question": "The politician was forced to ___ his previous statement.",
+    "options": [
+      "retract",
+      "extract",
+      "detract",
+      "contract"
+    ],
+    "correct": "retract",
+    "difficultyElo": 1790,
+    "skillCategory": "Vocabulary",
+    "topic": "General English",
+    "cefr": "C1"
+  },
+  {
+    "id": "q_050",
+    "question": "She has a ___ for remembering names and faces.",
+    "options": [
+      "knack",
+      "habit",
+      "custom",
+      "trend"
+    ],
+    "correct": "knack",
+    "difficultyElo": 1810,
+    "skillCategory": "Vocabulary",
+    "topic": "General English",
+    "cefr": "C1"
+  }
+]

@@ -10,6 +10,7 @@ const TopicList: React.FC = () => {
   const [topics, setTopics] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [filterCefr, setFilterCefr] = useState('');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTopic, setEditingTopic] = useState<any | null>(null);
   
@@ -84,6 +85,16 @@ const TopicList: React.FC = () => {
     }
   };
 
+  
+  const getSortedTopics = () => {
+    const cefrRank: Record<string, number> = { 'A1': 1, 'A2': 2, 'B1': 3, 'B2': 4, 'C1': 5, 'C2': 6 };
+    return [...topics].sort((a, b) => {
+      const rankA = cefrRank[a.cefrLevel] || 99;
+      const rankB = cefrRank[b.cefrLevel] || 99;
+      return sortOrder === 'asc' ? rankA - rankB : rankB - rankA;
+    });
+  };
+
   return (
     <AdminLayout>
       <div className="course-list-container">
@@ -120,14 +131,16 @@ const TopicList: React.FC = () => {
                     <th>ID</th>
                     <th>Tên chủ đề</th>
                     <th>Mô tả</th>
-                    <th>Cấp độ</th>
+                    <th onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')} style={{ cursor: 'pointer', userSelect: 'none', color: '#2563eb' }} title="Bấm để sắp xếp">
+                    Cấp độ {sortOrder === 'asc' ? '↑' : '↓'}
+                  </th>
                     <th>Số bài học</th>
                     <th>Ngày tạo</th>
                     <th>Hành động</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {topics.map((topic) => (
+                  {getSortedTopics().map((topic) => (
                     <tr key={topic.id} style={{ cursor: 'pointer' }} onClick={(e) => { if (e.target.closest('.action-buttons')) return; navigate('/admin/courses?topicId=' + topic.id); }}>
                       <td>{topic.id}</td>
                       <td><strong>{topic.title}</strong></td>

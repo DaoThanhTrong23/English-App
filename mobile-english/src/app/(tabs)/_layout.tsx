@@ -89,6 +89,7 @@ export default function TabLayout() {
             ),
           }}
         />
+        <Tabs.Screen name="course/[id]" options={{ href: null }} />
       </Tabs>
 
       {/* FLOATING AI CHAT BUBBLE */}

@@ -37,4 +37,20 @@ router.post(
   })
 );
 
+
+// POST: Check progress for early stopping
+router.post(
+  "/check-progress",
+  Authenticate,
+  asyncHandler(async (req: any, res) => {
+    const { answers } = req.body;
+    if (!answers || !Array.isArray(answers)) {
+      throw new ApiError(400, "invalid_answers", "Vui long cung cap answers");
+    }
+    const result = await onboardingService.checkProgress(answers);
+    res.status(200).json({ success: true, data: result });
+  })
+);
+
 export const onboardingRouter = router;
+

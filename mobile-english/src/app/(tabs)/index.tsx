@@ -12,6 +12,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const [userInfo, setUserInfo] = useState<any>(null);
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
+  const [streak, setStreak] = useState(0);
 
   useFocusEffect(
     useCallback(() => {
@@ -29,6 +30,43 @@ export default function HomeScreen() {
     }, [])
   );
   const [loading, setLoading] = useState(true);
+  const [targetLevel, setTargetLevel] = useState<string>('Đang cập nhật...');
+  const [courses, setCourses] = useState<any[]>([]);
+
+  useEffect(() => {
+    loadHomeData();
+  }, []);
+
+  const loadHomeData = async () => {
+    try {
+      const info = await SecureStore.getItemAsync('userInfo');
+      if (info) setUserInfo(JSON.parse(info));
+
+      // 1. ĐÃ SỬA: Đổi 'avatarUri' thành 'userAvatar' để khớp với biến lúc lưu
+      const avatar = await SecureStore.getItemAsync('userAvatar');
+      if (avatar) setAvatarUri(avatar);
+
+      const levelGroup = await SecureStore.getItemAsync('targetLevelGroup');
+      if (levelGroup) setTargetLevel(levelGroup);
+      const res = await axiosClient.get('/student/courses', {
+        params: { targetLevelGroup: levelGroup }
+      });
+
+      if (res.data?.success) {
+        setCourses(res.data.data.items || []);
+
+        // 2. ĐÃ THÊM: Lấy chuỗi ngày (streak) từ Backend API trả về
+        if (res.data.data.streak !== undefined) {
+          setStreak(res.data.data.streak);
+        }
+      }
+
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -55,7 +93,7 @@ export default function HomeScreen() {
 
   if (loading) {
     return (
-      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator size="large" color="#2563eb" />
       </View>
     );
@@ -66,15 +104,17 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        
+
         {/* HEADER */}
         <View style={styles.header}>
           <View style={styles.userInfo}>
-            <Image source={{ uri: avatarUri || 'https://cdn-icons-png.flaticon.com/512/149/149071.png' }} style={styles.avatar} />
+            <Image source={avatarUri ? { uri: avatarUri } : require('../../../assets/images/gacon.gif')} style={styles.avatar} />
             <View>
               <Text style={styles.greeting}>Xin chào, {username}!</Text>
-              <View style={[styles.streakBadge, {backgroundColor: '#e5e7eb'}]}>
-                <Text style={[styles.streakText, {color: '#6b7280'}]}>Chuỗi ngày: Đang cập nhật...</Text>
+              <View style={[styles.streakBadge, { backgroundColor: '#e5e7eb' }]}>
+                <Text style={[styles.streakText, { color: '#6b7280' }]}>
+                  Chuỗi ngày: {streak > 0 ? `${streak} ngày 🔥` : '0 ngày'}
+                </Text>
               </View>
             </View>
           </View>
@@ -84,9 +124,9 @@ export default function HomeScreen() {
         </View>
 
         {/* CẤP ĐỘ HIỆN TẠI (LEVEL CARD) */}
-        <LinearGradient colors={['#4f46e5', '#3b82f6']} style={styles.levelCard} start={{x: 0, y: 0}} end={{x: 1, y: 1}}>
+        <LinearGradient colors={['#4f46e5', '#3b82f6']} style={styles.levelCard} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
           <Text style={styles.levelLabel}>CẤP ĐỘ HIỆN TẠI</Text>
-          <Text style={styles.levelTitle}>Đang cập nhật...</Text>
+          <Text style={styles.levelTitle}>{targetLevel}</Text>
           <View style={styles.progressContainer}>
             <Text style={styles.progressText}>Tiến trình chung</Text>
             <Text style={styles.progressPercent}>0%</Text>
@@ -98,17 +138,33 @@ export default function HomeScreen() {
 
         {/* CHỦ ĐỀ HỌC TẬP */}
         <Text style={styles.sectionTitle}>Chủ đề học tập</Text>
-        <View style={styles.topicCard}>
-          <View style={styles.topicHeader}>
-            <View style={styles.topicIconContainer}>
-              <Ionicons name="time-outline" size={24} color="#9ca3af" />
-            </View>
-            <View style={styles.topicInfo}>
-              <Text style={styles.topicTitle}>Dữ liệu đang cập nhật...</Text>
-              <Text style={styles.topicSubtitle}>Hệ thống Backend chưa cung cấp API Topic cho User</Text>
+        {courses.length === 0 ? (
+          <View style={styles.topicCard}>
+            <View style={styles.topicHeader}>
+                <View style={[styles.topicIconContainer, { padding: 0, overflow: 'hidden' }]}>
+                  <Image source={require('../../../assets/images/gacon.gif')} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
+              </View>
+              <View style={styles.topicInfo}>
+                <Text style={styles.topicTitle}>Chưa có dữ liệu...</Text>
+                <Text style={styles.topicSubtitle}>Admin chưa thêm chủ đề nào</Text>
+              </View>
             </View>
           </View>
-        </View>
+        ) : (
+          courses.map((course: any) => (
+            <TouchableOpacity key={course.id} style={styles.topicCard} onPress={() => router.push(`/course/${course.id}`)}>
+              <View style={styles.topicHeader}>
+                <View style={[styles.topicIconContainer, { padding: 0, overflow: 'hidden' }]}>
+                  <Image source={course.imageUrl ? { uri: course.imageUrl } : require('../../../assets/images/gacon.gif')} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
+                </View>
+                <View style={styles.topicInfo}>
+                  <Text style={styles.topicTitle}>{course.title}</Text>
+                  <Text style={styles.topicSubtitle} numberOfLines={2}>{course.description}</Text>
+                </View>
+              </View>
+            </TouchableOpacity>
+          ))
+        )}
 
         {/* BÀI HỌC */}
         <Text style={styles.sectionTitle}>Bài học</Text>
@@ -132,7 +188,7 @@ export default function HomeScreen() {
         </View>
 
         {/* BOTTOM BANNER (DAILY CHALLENGE) */}
-        <LinearGradient colors={['#ef4444', '#f43f5e']} style={styles.challengeBanner} start={{x: 0, y: 0}} end={{x: 1, y: 0}}>
+        <LinearGradient colors={['#ef4444', '#f43f5e']} style={styles.challengeBanner} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
           <View style={styles.challengeIconContainer}>
             <Ionicons name="ribbon-outline" size={28} color="#ffffff" />
           </View>
@@ -157,7 +213,7 @@ const styles = StyleSheet.create({
   streakBadge: { backgroundColor: '#fef3c7', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12, marginTop: 4, alignSelf: 'flex-start' },
   streakText: { color: '#d97706', fontSize: 11, fontWeight: 'bold' },
   notificationBtn: { padding: 8, backgroundColor: '#f3f4f6', borderRadius: 20 },
-  
+
   levelCard: { padding: 20, borderRadius: 16, marginBottom: 25, shadowColor: '#3b82f6', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 5 },
   levelLabel: { color: 'rgba(255,255,255,0.8)', fontSize: 11, fontWeight: 'bold', marginBottom: 5 },
   levelTitle: { color: '#ffffff', fontSize: 20, fontWeight: 'bold', marginBottom: 25 },
@@ -168,7 +224,7 @@ const styles = StyleSheet.create({
   progressBarFill: { height: '100%', borderRadius: 3 },
 
   sectionTitle: { fontSize: 17, fontWeight: 'bold', color: '#111827', marginBottom: 15, marginTop: 5 },
-  
+
   topicCard: { flexDirection: 'column', padding: 15, borderRadius: 12, borderWidth: 1, borderColor: '#f3f4f6', marginBottom: 15, backgroundColor: '#ffffff' },
   topicHeader: { flexDirection: 'row', alignItems: 'center' },
   topicIconContainer: { width: 40, height: 40, borderRadius: 10, backgroundColor: '#f3f4f6', justifyContent: 'center', alignItems: 'center', marginRight: 15 },
