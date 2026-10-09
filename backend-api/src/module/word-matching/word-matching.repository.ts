@@ -15,7 +15,15 @@ const progressStore = new Map<number, WordMatchingProgress>();
 
 export class WordMatchingRepository {
   // 1. Lấy danh sách từ vựng theo bài học hoặc ngẫu nhiên từ database
-  async getWordsForGame(limit: number = 10, lessonId?: number) {
+  async getWordsForGame(userId: number, fallbackLimit: number = 6, lessonId?: number) {
+    let limit = fallbackLimit;
+    const gameSetting = await prisma.gameSetting.findFirst({
+      where: { game: { code: 'MATCHING' }, difficulty: 'NORMAL' }
+    });
+    if (gameSetting) {
+      limit = gameSetting.itemCount;
+    }
+
     if (lessonId) {
       const lessonWords = await prisma.lessonWord.findMany({
         where: { lessonId },
@@ -25,10 +33,32 @@ export class WordMatchingRepository {
       return lessonWords.map((lw) => lw.word);
     }
 
-    return prisma.word.findMany({
+    // Lấy từ vựng user đang học
+    const userWords = await prisma.userProgress.findMany({
+      where: { userId },
       take: limit,
-      orderBy: { id: "asc" },
+      include: { word: true },
+      orderBy: { updatedAt: 'desc' }
     });
+
+    let words = userWords.map(uw => uw.word);
+
+    // Bù thêm từ vựng ngẫu nhiên nếu thiếu (ORDER BY RAND())
+    if (words.length < limit) {
+      const needed = limit - words.length;
+      let randomWords = [];
+      
+      if (words.length > 0) {
+        const usedIds = words.map(w => w.id).join(',');
+        randomWords = await prisma.$queryRawUnsafe<any[]>(`SELECT * FROM words WHERE id NOT IN (${usedIds}) ORDER BY RAND() LIMIT ${needed}`);
+      } else {
+        randomWords = await prisma.$queryRawUnsafe<any[]>(`SELECT * FROM words ORDER BY RAND() LIMIT ${needed}`);
+      }
+      
+      words = [...words, ...randomWords.map(w => ({ ...w, imageUrl: w.image_url, audioUrl: w.audio_url, partOfSpeech: w.part_of_speech, headword: w.headword, meaning: w.meaning }))];
+    }
+    
+    return words.sort(() => 0.5 - Math.random());
   }
 
   // 2. Lấy danh sách chi tiết các từ theo danh sách ID để đối chiếu chấm điểm

@@ -1,3 +1,4 @@
+import { achievementEvaluator } from '../achievement/achievement.evaluator.js';
 import { prisma } from '../../config/prisma.js';
 import { ApiError } from "../../shared/http/api-error.js";
 import { logExecution } from "../../shared/decorators/log.decorator.js";
@@ -77,7 +78,17 @@ export class StudentLessonService {
     
     const paginatedCourses = scoredCourses.slice((page - 1) * limit, page * limit);
 
-    const formattedCourses = paginatedCourses.map((course: any) => ({
+    const formattedCourses = await Promise.all(paginatedCourses.map(async (course: any) => {
+      const lessonsWithStatus = await Promise.all(
+        (course.lessons || []).map(async (lesson: any) => {
+          const isCompleted = await this.studentLessonRepo.hasCompletedLesson(userId, lesson.id);
+          return isCompleted;
+        })
+      );
+      const completedLessonsCount = lessonsWithStatus.filter((c) => c).length;
+      const totalLessons = course.lessons?.length || 0;
+      const progressPercentage = totalLessons > 0 ? Math.round((completedLessonsCount / totalLessons) * 100) : 0;
+      return {
       id: course.id,
       title: course.title,
       description: course.description,
@@ -85,7 +96,9 @@ export class StudentLessonService {
       imageUrl: course.imageUrl,
       createdAt: course.createdAt,
       totalLessons: course.lessons?.length || 0,
-      personalizedScore: course.personalizedScore
+      personalizedScore: course.personalizedScore,
+        progressPercentage
+      };
     }));
 
     return {

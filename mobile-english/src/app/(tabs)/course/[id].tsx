@@ -150,7 +150,7 @@ export default function CourseDetailScreen() {
             return (
               <TouchableOpacity 
                 key={lesson.id} 
-                style={[styles.lessonCard, { borderColor: cardBorder, borderWidth: cardBorder !== 'transparent' ? 1 : 1, borderColor: cardBorder !== 'transparent' ? cardBorder : '#f3f4f6' }]}
+                style={[styles.lessonCard, { borderWidth: 1, borderColor: cardBorder !== 'transparent' ? cardBorder : '#f3f4f6' }]}
                 disabled={isLocked}
                 onPress={() => router.push(`/lesson/${lesson.id}`)}
               >
@@ -175,7 +175,7 @@ export default function CourseDetailScreen() {
                 
                 {/* Thanh tiến độ bài học */}
                 <View style={[styles.lessonBarBg, { marginTop: 15 }]}>
-                  <View style={[styles.lessonBarFill, { backgroundColor: barColor, width: barWidth }]} />
+                  <View style={[styles.lessonBarFill, { backgroundColor: barColor, width: barWidth as any }]} />
                 </View>
               </TouchableOpacity>
             );

@@ -33,7 +33,7 @@ export class MemoryCardService {
   @recordActivity("USER_START_MEMORY_GAME", (_result, userId) => `Người dùng ${userId} bắt đầu ván Memory Card mới`)
   async startGame(userId: number, query: StartMemoryGameQuery) {
     const limit = query.limit || 6;
-    const words = await this.repository.getWordsForGame(limit, query.lessonId);
+    const words = await this.repository.getWordsForGame(userId, query.limit || 6, query.lessonId);
 
     if (!words || words.length < limit) {
       throw new ApiError(

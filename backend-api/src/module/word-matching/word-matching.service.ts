@@ -42,7 +42,7 @@ export class WordMatchingService {
   @recordActivity("USER_START_WORD_MATCHING", (_result, userId) => `Người dùng ID ${userId} bắt đầu ván chơi nối từ vựng mới`)
   async startGame(userId: number, query: StartWordMatchingQuery) {
     const limit = query.limit || 10;
-    const words = await this.repository.getWordsForGame(limit, query.lessonId);
+    const words = await this.repository.getWordsForGame(userId, query.limit || 6, query.lessonId);
 
     if (!words || words.length < limit) {
       throw new ApiError(

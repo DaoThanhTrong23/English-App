@@ -1,3 +1,4 @@
+import { startCronJobs } from './cron/reminder.cron.js';
 import express from "express";
 import { pinoHttp } from "pino-http";
 import { env } from "./config/env.js";
@@ -11,6 +12,7 @@ import { profileRouter } from "./module/auth/profile.route.js";
 import bubbleGameRouter from "./module/bubble-game/bubble-game.route.js";
 import memoryCardRouter from "./module/memory-card/memory-card.route.js";
 import wordMatchingRouter from "./module/word-matching/word-matching.route.js";
+import marioGameRouter from "./module/mario-game/mario-game.route.js";
 import { studentManageRouter } from "./module/StudentManage/studenManage.route.js";
 import { wordRouter } from "./module/word/word.route.js";
 import { courseRouter } from "./module/course/course.route.js";
@@ -25,8 +27,12 @@ import { aiRouter } from "./module/AI/ai.router.js";
 import { onboardingRouter } from "./module/onboarding/onboarding.route.js";
 import { gameRouter } from "./module/game/game.route.js";
 import dashboardRouter from "./module/dashboard/dashboard.route.js";
+import { leaderboardRouter } from "./module/leaderboard/leaderboard.route.js";
+import { communityRouter } from "./module/community/community.route.js";
 import { studentVocabularyRouter } from "./module/student-vocabulary/student-vocabulary.route.js";
 import { studentCourseRouter, studentLessonRouter } from "./module/student-lesson/student-lesson.route.js";
+import { studentTestRouter } from "./module/student-test/student-test.route.js";
+import { notificationRouter } from "./module/notification/notification.route.js";
 
 export function createapp() {
     const app = express();
@@ -75,9 +81,10 @@ app.use("/api/onboarding", onboardingRouter);
     // Đăng ký route quản lý bài kiểm tra
     app.use("/api/admin/tests", testRouter);
     // Đăng ký route game
-    app.use("/game/bubble-game", bubbleGameRouter);
-    app.use("/game/memory-card", memoryCardRouter);
-    app.use("/game/word-matching", wordMatchingRouter);
+    app.use("/api/game/bubble-game", bubbleGameRouter);
+    app.use("/api/game/memory-card", memoryCardRouter);
+    app.use("/api/game/word-matching", wordMatchingRouter);
+  app.use("/api/game/mario", marioGameRouter);
     // AI
     app.use("/api/ai",aiRouter)
     app.use("/api/games", gameRouter)
@@ -85,7 +92,11 @@ app.use("/api/onboarding", onboardingRouter);
     app.use("/api/student/vocabulary", studentVocabularyRouter);
     // Đăng ký route học tập: Khóa học -> Bài học -> Chi tiết bài học cho học viên
     app.use("/api/student/courses", studentCourseRouter);
+    app.use("/api/student/leaderboard", leaderboardRouter);
+    app.use("/api/student/community", communityRouter);
     app.use("/api/student/lessons", studentLessonRouter);
+    app.use("/api/student/tests", studentTestRouter);
+    app.use("/api/student/notifications", notificationRouter);
     // Đăng ký Swagger UI tài liệu API
     const swaggerPath = fs.existsSync(path.resolve(process.cwd(), "src/swagger-output.json"))
         ? path.resolve(process.cwd(), "src/swagger-output.json")
@@ -97,5 +108,6 @@ app.use("/api/onboarding", onboardingRouter);
     }
 
     app.use(errorHandler);
+      startCronJobs();
     return app
 }

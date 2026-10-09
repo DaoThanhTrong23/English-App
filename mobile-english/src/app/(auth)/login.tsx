@@ -62,8 +62,15 @@ export default function LoginScreen() {
       if (refreshToken) await SecureStore.setItemAsync('refreshToken', String(refreshToken));
       if (user) await SecureStore.setItemAsync('userInfo', JSON.stringify(user));
 
-      /* @ts-ignore */
-      router.replace('/(tabs)');
+      
+      if (user && user.onboardingCompleted === false) {
+        /* @ts-ignore */
+        router.replace('/onboarding');
+      } else {
+        /* @ts-ignore */
+        router.replace('/(tabs)');
+      }
+
     } catch (e: any) {
       console.log('SOCIAL LOGIN ERROR:', e);
       setErrorMsg('Đăng nhập MXH thất bại: ' + (e.response?.data?.message || e.message));
@@ -104,8 +111,15 @@ export default function LoginScreen() {
       if (refreshToken) await SecureStore.setItemAsync('refreshToken', String(refreshToken));
       if (user) await SecureStore.setItemAsync('userInfo', JSON.stringify(user));
 
-      /* @ts-ignore */
-      router.replace('/(tabs)');
+      
+      if (user && user.onboardingCompleted === false) {
+        /* @ts-ignore */
+        router.replace('/onboarding');
+      } else {
+        /* @ts-ignore */
+        router.replace('/(tabs)');
+      }
+
     } catch (e: any) {
       console.log('AUTH ERROR:', e);
       if (e.message === 'Network Error') {

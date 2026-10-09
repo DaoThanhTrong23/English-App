@@ -66,6 +66,10 @@ model User {
   userTestResults     UserTestResult[]
   revokedTokens       revoked_token[]
   assessmentHistories AssessmentHistory[]
+  notifications       Notification[]
+  communityPosts      CommunityPost[]
+  postLikes           PostLike[]
+  communityComments   CommunityComment[]
 
   // FAME-KT Multi-dimensional Assessment
   grammarElo      Int     @default(1200) @map("grammar_elo")
@@ -230,6 +234,7 @@ model Question {
   answers             Answer[]
   assessmentHistories AssessmentHistory[]
 
+
   // FAME-KT Assessment Data
   difficultyElo Int     @default(1200) @map("difficulty_elo")
   skillCategory String? @map("skill_category") @db.VarChar(50) // Grammar, Vocabulary, Reading
@@ -370,6 +375,7 @@ model AssessmentHistory {
   questionId  Int      @map("question_id")
   isCorrect   Boolean  @map("is_correct")
   timeTakenMs Int      @map("time_taken_ms")
+  userAnswer  String?  @db.Text @map("user_answer")
   avgEloAfter Int      @map("avg_elo_after")
   createdAt   DateTime @default(now()) @map("created_at")
 
@@ -379,4 +385,57 @@ model AssessmentHistory {
   @@index([userId], map: "user_id")
   @@index([questionId], map: "question_id")
   @@map("assessment_history")
+}
+
+model CommunityPost {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  content   String   @db.Text
+  likes     Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  postLikes PostLike[]
+  comments  CommunityComment[]
+  @@map("community_post")
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  title     String   @db.VarChar(255)
+  body      String   @db.Text
+  isRead    Boolean  @default(false) @map("is_read")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId], map: "user_id")
+  @@map("notification")
+}
+
+model PostLike {
+  id        Int      @id @default(autoincrement())
+  postId    Int      @map("post_id")
+  userId    Int      @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  post      CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@map("post_like")
+}
+
+model CommunityComment {
+  id        Int      @id @default(autoincrement())
+  postId    Int      @map("post_id")
+  userId    Int      @map("user_id")
+  content   String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+
+  post      CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("community_comment")
 }
