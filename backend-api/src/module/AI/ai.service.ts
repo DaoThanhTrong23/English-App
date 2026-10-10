@@ -166,7 +166,7 @@ function wordToIpaPhonemes(word: string): string[] {
 }
 
 // ============================================================================
-// 3. MA TRẬN ĐẶC TRƯNG NGỮ ÂM SINH HỌC & ĐO ĐỘ TƯƠNG ĐỒNG
+// 3. MA TRẬN ĐẶC TRƯNG NGỮ ÂM SINH HỌC & ĐO ĐỘ TƯƠNG ĐỒNG (PHONETIC MATRIX & ALLOPHONES)
 // ============================================================================
 interface PhoneticVector {
   type: "vowel" | "consonant" | "diphthong";
@@ -190,11 +190,13 @@ const PHONETIC_MATRIX: Record<string, PhoneticVector> = {
   "ʌ": { type: "vowel", rounded: false, voiced: true, place: 4, manner: 5, height: 3, backness: 2 },
   "ə": { type: "vowel", rounded: false, voiced: true, place: 4, manner: 5, height: 2, backness: 2 },
   "ɜː": { type: "vowel", rounded: false, voiced: true, place: 4, manner: 5, height: 2, backness: 2 },
-  "uː": { type: "vowel", rounded: true, voiced: true, place: 6, manner: 5, height: 1, backness: 3 },
-  "u": { type: "vowel", rounded: true, voiced: true, place: 6, manner: 5, height: 1, backness: 3 },
-  "ʊ": { type: "vowel", rounded: true, voiced: true, place: 6, manner: 5, height: 1, backness: 3 },
-  "ɔː": { type: "vowel", rounded: true, voiced: true, place: 6, manner: 5, height: 2, backness: 3 },
-  "ɔ": { type: "vowel", rounded: true, voiced: true, place: 6, manner: 5, height: 2, backness: 3 },
+  "ɝ":  { type: "vowel", rounded: false, voiced: true, place: 4, manner: 5, height: 2, backness: 2 },
+  "ɚ":  { type: "vowel", rounded: false, voiced: true, place: 4, manner: 5, height: 2, backness: 2 },
+  "uː": { type: "vowel", rounded: true,  voiced: true, place: 6, manner: 5, height: 1, backness: 3 },
+  "u":  { type: "vowel", rounded: true,  voiced: true, place: 6, manner: 5, height: 1, backness: 3 },
+  "ʊ":  { type: "vowel", rounded: true,  voiced: true, place: 6, manner: 5, height: 1, backness: 3 },
+  "ɔː": { type: "vowel", rounded: true,  voiced: true, place: 6, manner: 5, height: 2, backness: 3 },
+  "ɔ":  { type: "vowel", rounded: true,  voiced: true, place: 6, manner: 5, height: 2, backness: 3 },
   "ɑː": { type: "vowel", rounded: false, voiced: true, place: 6, manner: 5, height: 3, backness: 3 },
   "ɑ": { type: "vowel", rounded: false, voiced: true, place: 6, manner: 5, height: 3, backness: 3 },
   "ɒ": { type: "vowel", rounded: true, voiced: true, place: 6, manner: 5, height: 3, backness: 3 },
@@ -212,55 +214,85 @@ const PHONETIC_MATRIX: Record<string, PhoneticVector> = {
   "ʊə": { type: "diphthong", rounded: true, voiced: true, place: 5, manner: 5, height: 1, backness: 3 },
 
   // Phụ âm
-  "p": { type: "consonant", rounded: false, voiced: false, place: 1, manner: 1 },
-  "b": { type: "consonant", rounded: false, voiced: true, place: 1, manner: 1 },
-  "t": { type: "consonant", rounded: false, voiced: false, place: 3, manner: 1 },
-  "d": { type: "consonant", rounded: false, voiced: true, place: 3, manner: 1 },
-  "k": { type: "consonant", rounded: false, voiced: false, place: 6, manner: 1 },
-  "ɡ": { type: "consonant", rounded: false, voiced: true, place: 6, manner: 1 },
-  "g": { type: "consonant", rounded: false, voiced: true, place: 6, manner: 1 },
-  "f": { type: "consonant", rounded: false, voiced: false, place: 2, manner: 2 },
-  "v": { type: "consonant", rounded: false, voiced: true, place: 2, manner: 2 },
-  "θ": { type: "consonant", rounded: false, voiced: false, place: 3, manner: 2 },
-  "ð": { type: "consonant", rounded: false, voiced: true, place: 3, manner: 2 },
-  "s": { type: "consonant", rounded: false, voiced: false, place: 3, manner: 2 },
-  "z": { type: "consonant", rounded: false, voiced: true, place: 3, manner: 2 },
-  "ʃ": { type: "consonant", rounded: true, voiced: false, place: 4, manner: 2 },
-  "ʒ": { type: "consonant", rounded: true, voiced: true, place: 4, manner: 2 },
-  "tʃ": { type: "consonant", rounded: true, voiced: false, place: 4, manner: 1 },
-  "dʒ": { type: "consonant", rounded: true, voiced: true, place: 4, manner: 1 },
-  "h": { type: "consonant", rounded: false, voiced: false, place: 7, manner: 2 },
-  "m": { type: "consonant", rounded: false, voiced: true, place: 1, manner: 3 },
-  "n": { type: "consonant", rounded: false, voiced: true, place: 3, manner: 3 },
-  "ŋ": { type: "consonant", rounded: false, voiced: true, place: 6, manner: 3 },
-  "l": { type: "consonant", rounded: false, voiced: true, place: 3, manner: 4 },
-  "r": { type: "consonant", rounded: true, voiced: true, place: 4, manner: 4 },
-  "ɹ": { type: "consonant", rounded: true, voiced: true, place: 4, manner: 4 },
-  "j": { type: "consonant", rounded: false, voiced: true, place: 5, manner: 5 },
-  "w": { type: "consonant", rounded: true, voiced: true, place: 1, manner: 5 },
+  "p":  { type: "consonant", rounded: false, voiced: false, place: 1, manner: 1 },
+  "b":  { type: "consonant", rounded: false, voiced: true,  place: 1, manner: 1 },
+  "t":  { type: "consonant", rounded: false, voiced: false, place: 3, manner: 1 },
+  "d":  { type: "consonant", rounded: false, voiced: true,  place: 3, manner: 1 },
+  "ɾ":  { type: "consonant", rounded: false, voiced: true,  place: 3, manner: 1 }, // Flap T/D (Mỹ)
+  "k":  { type: "consonant", rounded: false, voiced: false, place: 6, manner: 1 },
+  "ɡ":  { type: "consonant", rounded: false, voiced: true,  place: 6, manner: 1 },
+  "g":  { type: "consonant", rounded: false, voiced: true,  place: 6, manner: 1 },
+  "f":  { type: "consonant", rounded: false, voiced: false, place: 2, manner: 2 },
+  "v":  { type: "consonant", rounded: false, voiced: true,  place: 2, manner: 2 },
+  "θ":  { type: "consonant", rounded: false, voiced: false, place: 3, manner: 2 },
+  "ð":  { type: "consonant", rounded: false, voiced: true,  place: 3, manner: 2 },
+  "s":  { type: "consonant", rounded: false, voiced: false, place: 3, manner: 2 },
+  "z":  { type: "consonant", rounded: false, voiced: true,  place: 3, manner: 2 },
+  "ʃ":  { type: "consonant", rounded: true,  voiced: false, place: 4, manner: 2 },
+  "ʒ":  { type: "consonant", rounded: true,  voiced: true,  place: 4, manner: 2 },
+  "tʃ": { type: "consonant", rounded: true,  voiced: false, place: 4, manner: 1 },
+  "dʒ": { type: "consonant", rounded: true,  voiced: true,  place: 4, manner: 1 },
+  "h":  { type: "consonant", rounded: false, voiced: false, place: 7, manner: 2 },
+  "m":  { type: "consonant", rounded: false, voiced: true,  place: 1, manner: 3 },
+  "n":  { type: "consonant", rounded: false, voiced: true,  place: 3, manner: 3 },
+  "ŋ":  { type: "consonant", rounded: false, voiced: true,  place: 6, manner: 3 },
+  "l":  { type: "consonant", rounded: false, voiced: true,  place: 3, manner: 4 },
+  "r":  { type: "consonant", rounded: true,  voiced: true,  place: 4, manner: 4 },
+  "ɹ":  { type: "consonant", rounded: true,  voiced: true,  place: 4, manner: 4 },
+  "j":  { type: "consonant", rounded: false, voiced: true,  place: 5, manner: 5 },
+  "w":  { type: "consonant", rounded: true,  voiced: true,  place: 1, manner: 5 },
 };
 
+// Danh sách các nhóm biến thể phát âm tự nhiên (Allophones & Accent Variations: US vs UK, Connected Speech)
+const ALLOPHONE_SETS: string[][] = [
+  ["t", "d", "ɾ"],                     // Flap T trong tiếng Mỹ (water, better, city)
+  ["r", "ɹ", "ɚ", "ɝ"],                // Biến thể âm R (Rhoticity)
+  ["ə", "ʌ", "ɪ", "i"],                // Giảm nguyên âm / Neutral schwa in natural speech
+  ["iː", "i", "ɪ"],                    // Long/short high front vowels
+  ["uː", "u", "ʊ"],                    // Long/short high back vowels
+  ["eɪ", "e", "ɛ"],                    // Front mid vowels / diphthongs
+  ["oʊ", "əʊ", "o", "ɔː", "ɒ"],        // Diphthong variations (US /oʊ/ vs UK /əʊ/) & Cot-caught merger
+  ["ɑː", "ɑ", "ɒ", "ɔː", "ʌ"],         // Low back vowels merger (father-bother, water)
+  ["æ", "a", "ɑː", "e"],               // Low front vowels (bath-trap split)
+  ["s", "z"],                          // Sibilant voicing lenition in connected speech
+  ["θ", "ð", "t", "d", "f", "v"],      // Dental fricative natural approximations
+  ["ʃ", "ʒ", "tʃ", "dʒ"],              // Post-alveolar fricatives/affricates
+  ["ɡ", "g", "k"],                     // Velar stops
+];
+
+/**
+ * Đo độ tương đồng ngữ âm sinh học và biến thể âm (Allophone & Accent Aware)
+ */
 function computePhoneticSimilarity(p1: string, p2: string): number {
+  if (!p1 || !p2) return 0.0;
   if (p1 === p2) return 1.0;
 
-  const norm1 = p1.replace("ɡ", "g").replace("ɹ", "r");
-  const norm2 = p2.replace("ɡ", "g").replace("ɹ", "r");
+  const norm1 = p1.replace("ɡ", "g").replace("ɹ", "r").replace("ɝ", "ɜː").replace("ɚ", "ə");
+  const norm2 = p2.replace("ɡ", "g").replace("ɹ", "r").replace("ɝ", "ɜː").replace("ɚ", "ə");
   if (norm1 === norm2) return 1.0;
+
+  // Kiểm tra nếu 2 âm thuộc cùng nhóm Allophone / Accent tự nhiên
+  for (const set of ALLOPHONE_SETS) {
+    if (set.includes(p1) && set.includes(p2)) {
+      return 0.92; // Điểm tương đương cực cao cho biến thể chuẩn của người bản xứ
+    }
+  }
 
   const v1 = PHONETIC_MATRIX[p1] || PHONETIC_MATRIX[norm1];
   const v2 = PHONETIC_MATRIX[p2] || PHONETIC_MATRIX[norm2];
-  if (!v1 || !v2) return 0.15;
+  if (!v1 || !v2) return 0.25;
 
   const isVowel1 = v1.type === "vowel" || v1.type === "diphthong";
   const isVowel2 = v2.type === "vowel" || v2.type === "diphthong";
-  if (isVowel1 !== isVowel2) return 0.05;
+  if (isVowel1 !== isVowel2) return 0.10;
 
   let matchScore = 0;
   let totalWeights = 0;
 
-  // 1. Dây thanh (Voicing)
+  // 1. Dây thanh (Voicing) - Dung sai cao hơn trong văn nói
   totalWeights += 1;
   if (v1.voiced === v2.voiced) matchScore += 1;
+  else matchScore += 0.5; // Cùng vị trí nhưng khác thanh tính vẫn tính điểm khá
 
   // 2. Vị trí cấu âm (Place)
   totalWeights += 3;
@@ -276,11 +308,105 @@ function computePhoneticSimilarity(p1: string, p2: string): number {
   if (isVowel1 && isVowel2) {
     totalWeights += 3;
     if (v1.rounded === v2.rounded) matchScore += 1;
-    if (v1.height && v2.height) matchScore += Math.max(0, 1 - Math.abs(v1.height - v2.height) * 0.5);
-    if (v1.backness && v2.backness) matchScore += Math.max(0, 1 - Math.abs(v1.backness - v2.backness) * 0.5);
+    if (v1.height && v2.height) matchScore += Math.max(0, 1 - Math.abs(v1.height - v2.height) * 0.4);
+    if (v1.backness && v2.backness) matchScore += Math.max(0, 1 - Math.abs(v1.backness - v2.backness) * 0.4);
   }
 
-  return Math.min(1.0, Math.max(0.0, matchScore / totalWeights));
+  const baseSim = matchScore / totalWeights;
+  // Làm mượt đường cong tương đồng (Curve smoothing) để thân thiện hơn với người bản xứ
+  return Math.min(1.0, Math.max(0.1, Math.pow(baseSim, 0.75)));
+}
+
+/**
+ * Thuật toán Căn chỉnh chuỗi âm vị tối ưu động (Needleman-Wunsch Dynamic Alignment)
+ */
+function alignPhonemeSequences(
+  expected: string[],
+  spoken: string[]
+): Array<{ expected: string; spoken: string | null; similarity: number }> {
+  const n = expected.length;
+  const m = spoken.length;
+  const GAP_PENALTY = -0.25;
+
+  if (n === 0) return [];
+  if (m === 0) {
+    return expected.map((p) => ({ expected: p, spoken: null, similarity: 0.1 }));
+  }
+
+  // Khởi tạo bảng DP
+  const dp: number[][] = Array.from({ length: n + 1 }, () => Array(m + 1).fill(0));
+  for (let i = 0; i <= n; i++) dp[i][0] = i * GAP_PENALTY;
+  for (let j = 0; j <= m; j++) dp[0][j] = j * GAP_PENALTY;
+
+  for (let i = 1; i <= n; i++) {
+    for (let j = 1; j <= m; j++) {
+      const matchScore = computePhoneticSimilarity(expected[i - 1], spoken[j - 1]);
+      dp[i][j] = Math.max(
+        dp[i - 1][j - 1] + matchScore, // Match / Mismatch
+        dp[i - 1][j] + GAP_PENALTY,     // Deletion / Omission
+        dp[i][j - 1] + GAP_PENALTY      // Insertion
+      );
+    }
+  }
+
+  // Truy vết (Backtracking)
+  let i = n;
+  let j = m;
+  const alignment: Array<{ expected: string; spoken: string | null; similarity: number }> = [];
+
+  while (i > 0 || j > 0) {
+    if (i > 0 && j > 0) {
+      const matchSim = computePhoneticSimilarity(expected[i - 1], spoken[j - 1]);
+      if (Math.abs(dp[i][j] - (dp[i - 1][j - 1] + matchSim)) < 1e-4) {
+        alignment.unshift({ expected: expected[i - 1], spoken: spoken[j - 1], similarity: matchSim });
+        i--;
+        j--;
+        continue;
+      }
+    }
+    if (i > 0 && Math.abs(dp[i][j] - (dp[i - 1][j] + GAP_PENALTY)) < 1e-4) {
+      alignment.unshift({ expected: expected[i - 1], spoken: null, similarity: 0.2 });
+      i--;
+    } else if (j > 0) {
+      j--;
+    } else {
+      i--;
+    }
+  }
+
+  return alignment;
+}
+
+/**
+ * Tính khoảng cách Levenshtein và độ tương đồng văn bản giữa chuỗi người nói và từ mục tiêu
+ */
+function calculateStringSimilarity(str1: string, str2: string): number {
+  const s1 = str1.toLowerCase().trim();
+  const s2 = str2.toLowerCase().trim();
+  if (s1 === s2) return 1.0;
+  if (!s1 || !s2) return 0.0;
+
+  const len1 = s1.length;
+  const len2 = s2.length;
+  const matrix: number[][] = Array.from({ length: len1 + 1 }, () => Array(len2 + 1).fill(0));
+
+  for (let i = 0; i <= len1; i++) matrix[i][0] = i;
+  for (let j = 0; j <= len2; j++) matrix[0][j] = j;
+
+  for (let i = 1; i <= len1; i++) {
+    for (let j = 1; j <= len2; j++) {
+      const cost = s1[i - 1] === s2[j - 1] ? 0 : 1;
+      matrix[i][j] = Math.min(
+        matrix[i - 1][j] + 1,
+        matrix[i][j - 1] + 1,
+        matrix[i - 1][j - 1] + cost
+      );
+    }
+  }
+
+  const distance = matrix[len1][len2];
+  const maxLen = Math.max(len1, len2);
+  return Math.max(0, (maxLen - distance) / maxLen);
 }
 
 const SILENT_LETTER_RULES = [
@@ -635,7 +761,7 @@ Yêu cầu trả về kết quả theo đúng cấu trúc JSON sau (toàn bộ g
     } as SpeakingEvaluationResponse;
   }
   // ============================================================================
-  // THUẬT TOÁN CHẤM ĐIỂM PHÁT ÂM: WHISPER ASR + PHONETIC ALIGNMENT & BIOMECHANICAL DIAGNOSIS
+  // THUẬT TOÁN CHẤM ĐIỂM PHÁT ÂM PHÂN TẦNG (MULTI-LEVEL & ACCENT-TOLERANT ASSESSMENT)
   // ============================================================================
   @logExecution()
   async evaluatePronunciationGOP(
@@ -684,66 +810,72 @@ Yêu cầu trả về kết quả theo đúng cấu trúc JSON sau (toàn bộ g
     const spokenPhonemes = wordToIpaPhonemes(cleanSpoken || rawTranscript);
     const spokenText = rawTranscript || "(không rõ âm)";
 
-    // 4. Thuật toán Needleman-Wunsch Alignment giữa expectedPhonemes và spokenPhonemes
-    const isExactWordMatch = cleanSpoken === targetClean || cleanSpoken.includes(targetClean);
+    // 4. ĐÁNH GIÁ TẦNG 1: Intelligibility Score (~55% trọng số)
+    const wordSim = calculateStringSimilarity(cleanSpoken, targetClean);
+    const isExactWordMatch = cleanSpoken === targetClean || cleanSpoken.includes(targetClean) || targetClean.includes(cleanSpoken);
+
+    let intelligibilityScore = 0;
+    if (isExactWordMatch) {
+      intelligibilityScore = 100;
+    } else if (wordSim >= 0.8) {
+      intelligibilityScore = Math.round(88 + wordSim * 12);
+    } else if (wordSim >= 0.6) {
+      intelligibilityScore = Math.round(70 + wordSim * 20);
+    } else if (wordSim >= 0.3) {
+      intelligibilityScore = Math.round(40 + wordSim * 30);
+    } else {
+      intelligibilityScore = Math.round(Math.max(15, wordSim * 40));
+    }
+
+    // 5. ĐÁNH GIÁ TẦNG 2: Căn chỉnh động (Dynamic Alignment) & Phoneme-level Accuracy (~30% trọng số)
+    const alignedResults = alignPhonemeSequences(expectedPhonemes, spokenPhonemes);
     const phonemeScores: PhonemeScoreDetail[] = [];
     const silentErrors: string[] = [];
     const explanations: string[] = [];
     let mouthTips = "";
 
-    for (let i = 0; i < expectedPhonemes.length; i++) {
-      const p = expectedPhonemes[i];
-
-      // Nếu từ Whisper nghe được khớp hoàn hảo với từ mục tiêu
-      if (isExactWordMatch) {
-        phonemeScores.push({
-          phoneme: p,
-          score: 95,
-          status: "correct",
-          heardAs: p,
-          feedback: "Phát âm chuẩn xác",
-        });
-        continue;
-      }
-
-      // Nếu không khớp hoàn toàn, tìm âm vị nghe được tương ứng
-      const spokenAtIdx = spokenPhonemes[i] || spokenPhonemes[spokenPhonemes.length - 1] || "";
-      const similarity = spokenAtIdx ? computePhoneticSimilarity(p, spokenAtIdx) : 0.1;
+    for (let i = 0; i < alignedResults.length; i++) {
+      const { expected: p, spoken: matchedSpoken, similarity } = alignedResults[i];
 
       let score = 0;
-      if (similarity >= 0.9) {
-        score = Math.round(85 + similarity * 10);
-      } else if (similarity >= 0.7) {
-        score = Math.round(65 + similarity * 15);
-      } else if (similarity >= 0.4) {
-        score = Math.round(40 + similarity * 20);
+      if (isExactWordMatch) {
+        // Khi từ đã được người bản xứ phát âm trọn vẹn và nhận diện chính xác
+        score = similarity >= 0.7 ? 95 : Math.round(85 + similarity * 10);
+      } else if (similarity >= 0.85) {
+        score = Math.round(90 + similarity * 10);
+      } else if (similarity >= 0.65) {
+        score = Math.round(75 + similarity * 15);
+      } else if (similarity >= 0.45) {
+        score = Math.round(58 + similarity * 20);
+      } else if (similarity >= 0.25) {
+        score = Math.round(38 + similarity * 20);
       } else {
-        score = Math.round(Math.max(10, similarity * 30));
+        score = Math.round(Math.max(15, similarity * 35));
       }
 
-      score = Math.max(5, Math.min(100, score));
-      const isCorrect = score >= 65;
-      const heardAs = spokenAtIdx || "âm khác";
+      score = Math.max(10, Math.min(100, score));
+      // Ngưỡng đạt: >= 50% được xem là đúng hoặc biến thể chấp nhận được (nới lỏng cho văn nói tự nhiên)
+      const isCorrect = score >= 50;
+      const heardAs = matchedSpoken || "bỏ qua (nuốt âm)";
 
       let feedback = isCorrect ? "Phát âm chuẩn xác" : `Bị lệch sang âm /${heardAs}/`;
 
       // Phân tích sư phạm
       const vExp = PHONETIC_MATRIX[p];
-      const vHeard = PHONETIC_MATRIX[heardAs];
+      const vHeard = matchedSpoken ? PHONETIC_MATRIX[matchedSpoken] : null;
 
       if (vExp && vHeard && !isCorrect) {
         if (vExp.rounded && !vHeard.rounded) {
           feedback = "Chưa chu tròn môi (bị dẹt miệng)";
-          mouthTips += `Ở âm /${p}/: Hãy chu tròn môi lại như hình chữ O thay vì để môi dẹt. `;
-          explanations.push(`Âm /${p}/ bị biến thành /${heardAs}/ do thói quen đọc dẹt môi của người Việt.`);
+          mouthTips += `Ở âm /${p}/: Hãy chu tròn môi lại thay vì dẹt miệng. `;
+          explanations.push(`Âm /${p}/ bị dẹt môi thành /${heardAs}/.`);
         } else if (vExp.type === "diphthong" && vHeard.type === "vowel") {
           feedback = "Bị đọc thành nguyên âm đơn (thiếu âm lướt đuôi)";
-          mouthTips += `Ở nguyên âm đôi /${p}/: Kéo dài âm đầu rồi nhẹ nhàng lướt miệng sang âm đuôi. `;
+          mouthTips += `Ở nguyên âm đôi /${p}/: Kéo dài và lướt nhẹ sang âm đuôi. `;
           explanations.push(`Bạn đọc /${p}/ thành nguyên âm đơn ngắn /${heardAs}/.`);
-        } else if (vExp.manner === 1 && score < 50 && i === expectedPhonemes.length - 1) {
+        } else if (vExp.manner === 1 && score < 45 && i === alignedResults.length - 1) {
           feedback = "Bị nuốt âm đuôi (ending sound)";
-          mouthTips += `Chú ý bật rõ âm đuôi /${p}/ ở cuối từ. `;
-          explanations.push(`Thiếu âm chặn đuôi /${p}/ (lỗi thường gặp của người Việt).`);
+          mouthTips += `Chú ý bật nhẹ âm đuôi /${p}/ ở cuối từ. `;
         }
       }
 
@@ -756,20 +888,35 @@ Yêu cầu trả về kết quả theo đúng cấu trúc JSON sau (toàn bộ g
       });
     }
 
-    // 5. Kiểm tra lỗi âm câm (Silent Letter Rules)
-    for (const rule of SILENT_LETTER_RULES) {
-      if (rule.pattern.test(targetWord)) {
-        if (spokenPhonemes.includes(rule.sound) || spokenPhonemes.includes(rule.sound.toLowerCase())) {
-          silentErrors.push(`Lỗi âm câm: ${rule.explanation}`);
+    // 6. Kiểm tra lỗi âm câm (Silent Letter Rules) - Chỉ cảnh báo nếu từ bị đọc sai rõ rệt
+    if (!isExactWordMatch) {
+      for (const rule of SILENT_LETTER_RULES) {
+        if (rule.pattern.test(targetWord)) {
+          if (spokenPhonemes.includes(rule.sound) || spokenPhonemes.includes(rule.sound.toLowerCase())) {
+            silentErrors.push(`Lỗi âm câm: ${rule.explanation}`);
+          }
         }
       }
     }
 
-    // 6. Tính tổng điểm
+    // 7. ĐÁNH GIÁ TẦNG 3: Fluency & Prosody (~15% trọng số)
     const validScores = phonemeScores.map((x) => x.score);
-    let overallScore = Math.round(validScores.reduce((a, b) => a + b, 0) / Math.max(1, validScores.length));
-    if (isExactWordMatch) overallScore = Math.max(90, overallScore);
-    if (silentErrors.length > 0) overallScore = Math.max(10, overallScore - silentErrors.length * 15);
+    const phonemeAccuracy = Math.round(validScores.reduce((a, b) => a + b, 0) / Math.max(1, validScores.length));
+    const fluencyScore = Math.min(100, Math.max(35, Math.round(intelligibilityScore * 0.7 + phonemeAccuracy * 0.3)));
+
+    // 8. TỔNG HỢP ĐIỂM SỐ PHÂN TẦNG:
+    // 55% Intelligibility (ASR Recognition) + 30% Phoneme Accuracy + 15% Fluency
+    let overallScore = Math.round(
+      intelligibilityScore * 0.55 + phonemeAccuracy * 0.30 + fluencyScore * 0.15
+    );
+
+    if (isExactWordMatch) {
+      overallScore = Math.max(88, overallScore);
+    }
+    if (silentErrors.length > 0) {
+      overallScore = Math.max(20, overallScore - silentErrors.length * 8);
+    }
+    overallScore = Math.min(100, Math.max(5, overallScore));
 
     const vowelScores = phonemeScores.filter((p) => PHONETIC_MATRIX[p.phoneme]?.type.includes("vowel") || PHONETIC_MATRIX[p.phoneme]?.type === "diphthong");
     const consonantScores = phonemeScores.filter((p) => PHONETIC_MATRIX[p.phoneme]?.type === "consonant");
@@ -782,6 +929,8 @@ Yêu cầu trả về kết quả theo đúng cấu trúc JSON sau (toàn bộ g
       ? Math.round(consonantScores.reduce((a, b) => a + b.score, 0) / consonantScores.length)
       : overallScore;
 
+    const stressAccuracy = Math.max(40, Math.min(100, Math.round(intelligibilityScore * 0.6 + phonemeAccuracy * 0.4)));
+
     return {
       targetWord,
       targetIpa,
@@ -791,19 +940,19 @@ Yêu cầu trả về kết quả theo đúng cấu trúc JSON sau (toàn bộ g
       details: {
         vowelAccuracy,
         consonantAccuracy,
-        stressAccuracy: Math.max(20, Math.min(100, overallScore - 5)),
-        fluencyScore: Math.max(30, Math.min(100, overallScore + 5)),
+        stressAccuracy,
+        fluencyScore,
       },
       phonemeScores,
       silentLetterErrors: silentErrors,
       explanation: explanations.length > 0
         ? explanations.join(" ")
-        : overallScore >= 80
-          ? "Bạn phát âm rất rõ ràng và chuẩn xác theo bảng phiên âm quốc tế IPA."
-          : "Hãy chú ý điều chỉnh khẩu hình môi và bật rõ các âm vị.",
+        : overallScore >= 75
+        ? "Bạn phát âm rất tự nhiên, rõ ràng và dễ hiểu đối với người bản xứ."
+        : "Âm phát ra cơ bản đã hiểu được, hãy tiếp tục duy trì và chỉnh nhẹ các âm vị chưa chuẩn.",
       improvement: {
-        mouthShape: mouthTips || (overallScore >= 80 ? "Khẩu hình mở tự nhiên, giữ vị trí môi ổn định." : "Mở rộng khẩu hình miệng và giữ luồng hơi đều."),
-        practiceTip: overallScore >= 80 ? "Hãy tiếp tục luyện tập với các từ nâng cao hơn." : "Hãy nghe lại âm mẫu và đọc chậm từng âm tiết trước khi ghép từ.",
+        mouthShape: mouthTips || (overallScore >= 75 ? "Khẩu hình tự nhiên, độ mở miệng và thả lỏng cơ mặt rất tốt." : "Mở rộng khẩu hình miệng và giữ luồng hơi đều."),
+        practiceTip: overallScore >= 75 ? "Hãy tiếp tục phát huy ở các mẫu câu dài và ngữ điệu tự nhiên." : "Hãy nghe lại âm mẫu và đọc thong thả từng âm tiết trước khi ghép từ.",
       },
     };
   }
