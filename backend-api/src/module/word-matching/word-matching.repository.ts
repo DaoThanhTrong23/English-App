@@ -86,8 +86,18 @@ export class WordMatchingRepository {
   }
 
   // 6. Chốt điểm cuối cùng: Cộng điểm XP vào bảng user và xóa tạm
-  async finalizeGameResult(userId: number, earnedXp: number) {
-    const updatedUser = await prisma.user.update({
+  async finalizeGameResult(userId: number, earnedXp: number, totalQuestions: number, correctCount: number) {
+      await prisma.gameHistory.create({
+        data: {
+          userId: userId,
+          gameCode: 'MATCHING',
+          score: earnedXp,
+          durationSec: 0, // Word matching doesn't track duration yet
+          correctPairs: correctCount,
+          totalPairs: totalQuestions
+        }
+      });
+      const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: {
         xpPoints: { increment: earnedXp },

@@ -18,6 +18,25 @@ export class GameService {
     return await this.gameRepo.updateSettings(id, data.settings);
   }
 
+  
+  async getHistory(userId: number) {
+    const history = await prisma.gameHistory.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      take: 20
+    });
+    
+    // Group by gameCode to get best score and count
+    const stats = await prisma.gameHistory.groupBy({
+      by: ['gameCode'],
+      where: { userId },
+      _max: { score: true },
+      _count: { id: true }
+    });
+    
+    return { history, stats };
+  }
+
   async play(code: string, difficulty: string, userCefrLevel: string) {
     const game = await this.gameRepo.findByCode(code);
     if (!game) throw new ApiError(404, "not_found", "Game không tồn tại");

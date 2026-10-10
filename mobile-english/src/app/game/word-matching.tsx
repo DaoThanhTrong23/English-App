@@ -26,6 +26,9 @@ export default function WordMatchingScreen() {
   
   const [timeLeft, setTimeLeft] = useState(120);
   const [gameOver, setGameOver] = useState(false);
+  const [layoutsA, setLayoutsA] = useState<Record<number, any>>({});
+  const [layoutsB, setLayoutsB] = useState<Record<number, any>>({});
+  const [containerWidth, setContainerWidth] = useState(0);
   const startTime = useRef(Date.now());
 
   useEffect(() => {
@@ -138,6 +141,10 @@ export default function WordMatchingScreen() {
           isConnected && styles.cardConnected
         ]}
         onPress={() => handleSelectA(item.id)}
+        onLayout={(e) => {
+          const layout = e.nativeEvent.layout;
+          setLayoutsA(prev => ({ ...prev, [item.id]: { y: layout.y, height: layout.height } }));
+        }}
       >
         <Text style={[styles.cardText, isConnected && styles.textConnected]}>{item.word}</Text>
         <Text style={styles.cardPhonetic}>{item.phonetic}</Text>
@@ -159,6 +166,10 @@ export default function WordMatchingScreen() {
           isConnected && styles.cardConnected
         ]}
         onPress={() => handleSelectB(item.id)}
+        onLayout={(e) => {
+          const layout = e.nativeEvent.layout;
+          setLayoutsB(prev => ({ ...prev, [item.id]: { y: layout.y, height: layout.height } }));
+        }}
       >
         <Text style={[styles.cardText, isConnected && styles.textConnected]}>{item.meaning}</Text>
       </TouchableOpacity>
@@ -190,7 +201,47 @@ export default function WordMatchingScreen() {
       <ScrollView style={{flex: 1}} contentContainerStyle={{padding: 15, paddingBottom: 100}}>
         <Text style={styles.instruction}>Chạm vào một ô bên trái, sau đó chạm vào ô bên phải để nối cặp. Chạm lại để hủy nối.</Text>
         
-        <View style={styles.columnsContainer}>
+        <View style={styles.columnsContainer} onLayout={(e) => setContainerWidth(e.nativeEvent.layout.width)}>
+          
+          {/* Render Lines */}
+          {containerWidth > 0 && connections.map((conn, idx) => {
+            const layoutA = layoutsA[conn.wordId];
+            const layoutB = layoutsB[conn.selectedMeaningId];
+            if (!layoutA || !layoutB) return null;
+
+            const colWidth = (containerWidth - 21) / 2;
+            const startX = colWidth; // Right edge of column A
+            const startY = layoutA.y + layoutA.height / 2;
+            
+            const endX = colWidth + 21; // Left edge of column B
+            const endY = layoutB.y + layoutB.height / 2;
+
+            const dx = endX - startX;
+            const dy = endY - startY;
+            const length = Math.sqrt(dx * dx + dy * dy);
+            const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+
+            const centerX = (startX + endX) / 2;
+            const centerY = (startY + endY) / 2;
+
+            return (
+              <View 
+                key={`line-${idx}`}
+                style={{
+                  position: 'absolute',
+                  left: centerX - length / 2,
+                  top: centerY - 2,
+                  width: length,
+                  height: 4,
+                  backgroundColor: '#10b981', // green-500
+                  transform: [{ rotate: `${angle}deg` }],
+                  zIndex: -1,
+                  elevation: -1
+                }} 
+              />
+            );
+          })}
+          
           <View style={styles.column}>
             <Text style={styles.colTitle}>Tiếng Anh</Text>
             {columnA.map(renderColumnAItem)}

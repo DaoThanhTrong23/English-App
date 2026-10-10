@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
+import { useCallback } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { axiosClient } from '../../../api/axiosClient';
@@ -11,9 +12,7 @@ export default function LessonScreen() {
   const [lesson, setLesson] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchLessonDetail();
-  }, [id]);
+  useFocusEffect(useCallback(() => { fetchLessonDetail(); }, [id]));
 
   const fetchLessonDetail = async () => {
     try {
@@ -50,10 +49,45 @@ export default function LessonScreen() {
   // Calculate mock progress for 5 skills based on summary
   const isCompleted = lesson.summary?.isCompleted;
   const progressPct = isCompleted ? 100 : (lesson.summary?.wordsLearned > 0 ? 50 : 0);
-  const completedSkills = isCompleted ? 5 : 0;
+
+    const getSkillScore = (skillType: string) => {
+      if (!lesson || !lesson.tests) return { score: 0, max: 0, pct: 0 };
+      
+      const keywordMap: Record<string, string[]> = {
+        'listening': ['nghe', 'listening'],
+        'reading': ['đọc', 'reading'],
+        'writing': ['viết', 'writing'],
+        'speaking': ['nói', 'speaking'],
+        'test': ['kiểm tra', 'test', 'tổng hợp']
+      };
+      const keywords = keywordMap[skillType] || [skillType];
+      
+      const test = lesson.tests.find((t: any) => {
+        if (!t.title) return false;
+        const titleLower = t.title.toLowerCase();
+        return keywords.some(k => titleLower.includes(k));
+      });
+
+      if (test) {
+        const totalPossible = (test.totalQuestions || 0) * 10;
+        const score = test.userResult?.bestScore || 0;
+        const pct = totalPossible === 0 ? 0 : Math.min(100, Math.round((score / totalPossible) * 100));
+        return { score, max: totalPossible, pct };
+      }
+      return { score: 0, max: 0, pct: 0 };
+    };
+
+
+
+    const completedSkills = ['listening', 'reading', 'writing', 'speaking', 'test']
+    .filter(type => getSkillScore(type).score > 0).length;
+  
 
   const words = lesson.words || [];
   const maxWordsToShow = 5;
+
+  
+  
 
   const navigateToPractice = (skillType: string) => {
     router.push({ pathname: '/practice', params: { lessonId: id, type: skillType } } as any);
@@ -109,7 +143,7 @@ export default function LessonScreen() {
               <Text style={styles.skillTitle}>Nghe (Listening)</Text>
               <Text style={styles.skillDesc}>Luyện nghe phát âm chuẩn</Text>
             </View>
-            <Text style={[styles.skillPercent, { color: '#3b82f6' }]}>{progressPct}%</Text>
+            <Text style={[styles.skillPercent, { color: '#3b82f6' }]}>{getSkillScore('listening').score}/{getSkillScore('listening').max} XP</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.skillCard} onPress={() => navigateToPractice('reading')}>
@@ -120,7 +154,7 @@ export default function LessonScreen() {
               <Text style={styles.skillTitle}>Đọc (Reading)</Text>
               <Text style={styles.skillDesc}>Nhận biết từ vựng và câu</Text>
             </View>
-            <Text style={[styles.skillPercent, { color: '#3b82f6' }]}>{progressPct}%</Text>
+            <Text style={[styles.skillPercent, { color: '#3b82f6' }]}>{getSkillScore('reading').score}/{getSkillScore('reading').max} XP</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.skillCard} onPress={() => navigateToPractice('writing')}>
@@ -131,7 +165,7 @@ export default function LessonScreen() {
               <Text style={styles.skillTitle}>Viết (Writing)</Text>
               <Text style={styles.skillDesc}>Viết lại từ vựng đúng chính tả</Text>
             </View>
-            <Text style={[styles.skillPercent, { color: '#3b82f6' }]}>{progressPct}%</Text>
+            <Text style={[styles.skillPercent, { color: '#3b82f6' }]}>{getSkillScore('writing').score}/{getSkillScore('writing').max} XP</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.skillCard} onPress={() => navigateToPractice('speaking')}>
@@ -142,7 +176,7 @@ export default function LessonScreen() {
               <Text style={styles.skillTitle}>Nói (Speaking)</Text>
               <Text style={styles.skillDesc}>Luyện phát âm và ngữ điệu</Text>
             </View>
-            <Text style={[styles.skillPercent, { color: '#3b82f6' }]}>{progressPct}%</Text>
+            <Text style={[styles.skillPercent, { color: '#3b82f6' }]}>{getSkillScore('speaking').score}/{getSkillScore('speaking').max} XP</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.skillCard} onPress={() => navigateToPractice('test')}>
@@ -153,7 +187,7 @@ export default function LessonScreen() {
               <Text style={styles.skillTitle}>Kiểm tra (Test)</Text>
               <Text style={styles.skillDesc}>Đánh giá năng lực tổng hợp</Text>
             </View>
-            <Text style={[styles.skillPercent, { color: '#3b82f6' }]}>{progressPct}%</Text>
+            <Text style={[styles.skillPercent, { color: '#3b82f6' }]}>{getSkillScore('test').score}/{getSkillScore('test').max} XP</Text>
           </TouchableOpacity>
         </View>
 

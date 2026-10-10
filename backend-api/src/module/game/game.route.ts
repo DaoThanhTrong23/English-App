@@ -12,6 +12,13 @@ const gameRouter = Router();
 // ========================
 // CLIENT ROUTES
 // ========================
+
+gameRouter.get("/history", Authenticate, asyncHandler(async (req, res) => {
+  const data = await gameService.getHistory((req as any).user.id);
+  res.status(200).json({ success: true, data });
+}));
+
+// ========================
 gameRouter.get("/:code/play", Authenticate, asyncHandler(async (req, res) => {
   const code = req.params.code as string;
   const difficulty = (req.query.difficulty as string) || "EASY";

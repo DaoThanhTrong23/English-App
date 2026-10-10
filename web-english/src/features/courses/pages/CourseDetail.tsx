@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import { fetchCourseById, updateCourse, addWordsToCourse, removeWordFromCourse } from '../api/course.api';
+import { uploadMedia } from '../../tests/api/test.api';
 import { fetchWords } from '../../words/api/words.api';
 import { fetchTests, createTest, deleteTest } from '../../tests/api/test.api';
 import { ArrowLeft, BookOpen, CheckSquare, Plus, Trash2, Edit } from 'lucide-react';
@@ -11,7 +12,14 @@ const CourseDetail: React.FC = () => {
   const { courseId } = useParams();
   const navigate = useNavigate();
   const [course, setCourse] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState<'info' | 'words' | 'tests'>('info');
+  const location = useLocation();
+  const [activeTab, setActiveTab] = useState<'info' | 'words' | 'tests'>(
+    (location.hash ? location.hash.replace('#', '') as 'info' | 'words' | 'tests' : 'info')
+  );
+
+  useEffect(() => {
+    window.location.hash = activeTab;
+  }, [activeTab]);
 
   // Topics
   const [topics, setTopics] = useState<any[]>([]);
@@ -152,7 +160,7 @@ const CourseDetail: React.FC = () => {
   const handleCreateTest = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await createTest({ ...testForm, lessonId: course.id });
+      await createTest({ ...testForm, lessonId: course.id });
       alert('Tạo bài luyện tập thành công!');
       setIsTestModalOpen(false);
       setTestForm({ title: '', description: '', ceftLevel: '', skillCategory: '' });
@@ -250,8 +258,21 @@ const CourseDetail: React.FC = () => {
             </div>
 
             <div className="form-group" style={{ marginBottom: '16px' }}>
-              <label>Link Video bài giảng (Youtube URL...)</label>
-              <input type="text" placeholder="https://..." style={{ width: '100%', padding: '8px' }} value={infoForm.videoUrl} onChange={e => setInfoForm({...infoForm, videoUrl: e.target.value})} />
+              <label>Link Audio/Video bài nghe, bài giảng (URL hoặc tải lên)</label>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <input type="text" placeholder="https://..." style={{ flex: 1, padding: '8px' }} value={infoForm.videoUrl} onChange={e => setInfoForm({...infoForm, videoUrl: e.target.value})} />
+                  <input type="file" id="course-media-upload" style={{ display: 'none' }} accept="audio/*,video/*" onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    try {
+                      const res = await uploadMedia(file);
+                      if (res?.data?.url) setInfoForm({ ...infoForm, videoUrl: res.data.url });
+                    } catch(err) {
+                      alert('Lỗi tải file lên');
+                    }
+                  }} />
+                  <button type="button" style={{ padding: '8px 16px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }} onClick={() => document.getElementById('course-media-upload')?.click()}>Tải file lên</button>
+                </div>
             </div>
 
             <div className="form-group" style={{ marginBottom: '16px' }}>

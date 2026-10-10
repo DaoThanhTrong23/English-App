@@ -77,6 +77,8 @@ model User {
   readingElo      Int     @default(1200) @map("reading_elo")
   preferredTopics String? @map("preferred_topics") @db.VarChar(255) // VD: "Technology,Travel"
 
+    gameHistories GameHistory[]
+
   @@map("users")
 }
 
@@ -438,4 +440,19 @@ model CommunityComment {
   user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("community_comment")
+}
+
+model GameHistory {
+  id           Int      @id @default(autoincrement())
+  userId       Int      @map("user_id")
+  gameCode     String   @map("game_code") @db.VarChar(50)
+  score        Int      @default(0)
+  durationSec  Int      @default(0) @map("duration_sec")
+  correctPairs Int      @default(0) @map("correct_pairs")
+  totalPairs   Int      @default(0) @map("total_pairs")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("game_history")
 }

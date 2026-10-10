@@ -90,7 +90,19 @@ export class MemoryCardRepository {
     data.score = Math.max(0, Math.min(data.score, 300));
 
     // 1. Cộng điểm XP cho User trong MySQL
-    const updatedUser = await prisma.user.update({
+          // 1b. Luu GameHistory
+      await prisma.gameHistory.create({
+        data: {
+          userId: data.userId,
+          gameCode: 'MEMORY',
+          score: data.score,
+          durationSec: data.duration,
+          correctPairs: data.correctPairs,
+          totalPairs: data.totalPairs
+        }
+      });
+
+      const updatedUser = await prisma.user.update({
       where: { id: data.userId },
       data: {
         xpPoints: { increment: Math.max(0, Math.min(data.score, 300)) },

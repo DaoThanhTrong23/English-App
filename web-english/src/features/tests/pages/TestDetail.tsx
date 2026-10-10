@@ -21,6 +21,8 @@ const TestDetail: React.FC = () => {
   const { testId } = useParams();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const audioInputRef = useRef<HTMLInputElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
   const [questions, setQuestions] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [importing, setImporting] = useState(false);
@@ -194,8 +196,8 @@ const TestDetail: React.FC = () => {
   return (
     <AdminLayout>
       <div className="test-detail-main">
-        <button className="back-btn" onClick={() => navigate('/admin/tests')}>
-          <ArrowLeft size={16} /> Quay lại danh sách bài thi
+        <button className="back-btn" onClick={() => navigate(-1)}>
+          <ArrowLeft size={16} /> Quay lại
         </button>
 
         <div className="test-detail-header">
@@ -324,13 +326,13 @@ const TestDetail: React.FC = () => {
                           value={formData.audioUrl}
                           onChange={(e) => setFormData({ ...formData, audioUrl: e.target.value })}
                         />
-                        <input type="file" id="audio-upload" style={{ display: 'none' }} accept="audio/*" onChange={async (e) => {
+                        <input type="file" ref={audioInputRef} style={{ display: 'none' }} accept="audio/*" onChange={async (e) => {
                           const file = e.target.files?.[0];
                           if (!file) return;
                           const res = await uploadMedia(file);
                           if (res.data?.url) setFormData({ ...formData, audioUrl: res.data.url });
                         }} />
-                        <button type="button" className="add-test-btn" onClick={() => document.getElementById('audio-upload')?.click()}>Tải lên</button>
+                        <button type="button" className="add-test-btn" onClick={() => audioInputRef.current?.click()}>Tải lên</button>
                       </div>
                     </div>
                   </div>
@@ -345,13 +347,13 @@ const TestDetail: React.FC = () => {
                           value={formData.imageUrl}
                           onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
                         />
-                        <input type="file" id="image-upload" style={{ display: 'none' }} accept="image/*" onChange={async (e) => {
+                        <input type="file" ref={imageInputRef} style={{ display: 'none' }} accept="image/*" onChange={async (e) => {
                           const file = e.target.files?.[0];
                           if (!file) return;
                           const res = await uploadMedia(file);
                           if (res.data?.url) setFormData({ ...formData, imageUrl: res.data.url });
                         }} />
-                        <button type="button" className="add-test-btn" onClick={() => document.getElementById('image-upload')?.click()}>Tải lên</button>
+                        <button type="button" className="add-test-btn" onClick={() => imageInputRef.current?.click()}>Tải lên</button>
                       </div>
                     </div>
                   </div>

@@ -5,7 +5,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { axiosClient } from '../api/axiosClient';
 
-import { useAudioRecorder, useAudioPlayer, AudioModule } from 'expo-audio';
+import { useAudioRecorder, useAudioPlayer, AudioModule, RecordingPresets, setAudioModeAsync, requestRecordingPermissionsAsync } from 'expo-audio';
 import * as FileSystem from 'expo-file-system/legacy';
 import { API_URL } from '../constants/api';
 import * as SecureStore from 'expo-secure-store';
@@ -29,15 +29,19 @@ export default function PracticeScreen() {
   // Audio state
   const [sound, setSound] = useState<any>(null);
   const [recordedUri, setRecordedUri] = useState<string | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
   
   const [submissions, setSubmissions] = useState<any[]>([]);
   const [resultData, setResultData] = useState<any>(null);
+  const [aiResults, setAiResults] = useState<any[]>([]);
+  const [startTime, setStartTime] = useState<number>(Date.now());
 
-  const audioRecorder = useAudioRecorder({
-    sampleRate: 16000,
-    numberOfChannels: 1,
-    bitRate: 128000,
-  } as any);
+  const audioRecorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
+  
+  const currentQ = testQuestions[currentIndex];
+  const audioSource = currentQ?.audioUrl ? (currentQ.audioUrl.startsWith('http') ? currentQ.audioUrl : `${API_URL.replace('/api', '')}${currentQ.audioUrl}`) : null;
+  const player = useAudioPlayer(audioSource);
+  const recordedPlayer = useAudioPlayer(recordedUri);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -87,35 +91,66 @@ export default function PracticeScreen() {
     let finalAnswer = textAnswer;
     
     // Auto-evaluate speaking tests using AI
-    if (currentItem?.questionType === 'speaking' && recordedUri) {
-      setSubmitting(true);
-      try {
-        const token = await SecureStore.getItemAsync('token');
-        const res = await FileSystem.uploadAsync(`${API_URL}/ai/evaluate-pronunciation`, recordedUri, {
-          httpMethod: 'POST',
-          uploadType: FileSystem.FileSystemUploadType.MULTIPART,
-          fieldName: 'audio',
-          mimeType: 'audio/m4a',
-          headers: { Authorization: `Bearer ${token}` },
-          parameters: { targetWord: currentItem.quesionText, targetIpa: '' }
-        });
-        const data = JSON.parse(res.body);
-        if (data.success) {
-          finalAnswer = `[Điểm AI: ${data.data.overallScore}%]`;
-        } else {
-          finalAnswer = `[AI Lỗi: ${data.message}]`;
+      if (currentItem?.questionType === 'speaking' && recordedUri) {
+        setSubmitting(true);
+        try {
+          const token = await SecureStore.getItemAsync('accessToken');
+          
+          let targetSentence = currentItem.quesionText;
+          const quoteMatch = currentItem.quesionText.match(/["'](.*?)["']/);
+          if (quoteMatch && quoteMatch[1]) {
+            targetSentence = quoteMatch[1];
+          }
+
+          const res = await FileSystem.uploadAsync(`${API_URL}/ai/grade-speaking`, recordedUri, {
+            httpMethod: 'POST',
+            uploadType: FileSystem.FileSystemUploadType.MULTIPART,
+            fieldName: 'audio',
+            mimeType: 'audio/m4a',
+            headers: { Authorization: `Bearer ${token}` },
+            parameters: { topic: currentItem.quesionText, targetSentence: targetSentence }
+          });
+          
+          const data = JSON.parse(res.body);
+          if (data.success) {
+            const score = Math.round((data.data.overallScore || 0) * 10);
+            finalAnswer = `[Điểm AI: ${score}%] (Nói: ${data.data.transcript})`;
+            setAiResults(prev => [...prev, { type: 'Nói', score: data.data.overallScore, feedback: data.data.feedback, transcript: data.data.transcript }]);
+          } else {
+            finalAnswer = `[AI Lỗi: ${data.message}]`;
+          }
+        } catch (err: any) {
+          finalAnswer = `[AI Error]`;
         }
-      } catch (err: any) {
-        finalAnswer = `[AI Error]`;
+        setSubmitting(false);
       }
-      setSubmitting(false);
-    }
+
+      // Auto-evaluate writing tests using AI
+      if (currentItem?.questionType === 'writing' && textAnswer) {
+        setSubmitting(true);
+        try {
+          const res = await axiosClient.post('/ai/grade-essay', {
+            text: textAnswer,
+            topic: currentItem.quesionText
+          });
+          if (res.data?.success) {
+            const score = res.data.data.overallScore || 0;
+            finalAnswer = `[Điểm AI: ${Math.round(score * 10)}%] ${textAnswer}`;
+            setAiResults(prev => [...prev, { type: 'Viết', score: res.data.data.overallScore, feedback: res.data.data.feedback, improved: res.data.data.improvedVersion }]);
+          } else {
+            finalAnswer = `[AI Lỗi: ${res.data.message}] ${textAnswer}`;
+          }
+        } catch (err: any) {
+          finalAnswer = `[AI Error] ${textAnswer}`;
+        }
+        setSubmitting(false);
+      }
 
     const sub = {
       questionId: currentItem.id,
       selectedAnswerId: selectedOptionId,
       textAnswer: finalAnswer,
-      timeTakenMs: 5000 // default dummy time to prevent Prisma undefined error
+      timeTakenMs: Math.max(1000, Date.now() - startTime)
     };
     const newSubmissions = [...submissions, sub];
     
@@ -126,6 +161,8 @@ export default function PracticeScreen() {
       setSelectedOptionId(null);
       setTextAnswer('');
       setRecordedUri(null);
+        setIsRecording(false);
+        setStartTime(Date.now());
       if (sound) {
         await sound.unloadAsync();
         setSound(null);
@@ -151,33 +188,66 @@ export default function PracticeScreen() {
   };
 
   const playDummyAudio = async () => {
-    Alert.alert("Thông báo", "Đang phát âm thanh bài học...");
-  };
-
-  const toggleRecord = async () => {
-    if (audioRecorder.isRecording) {
-      await audioRecorder.stop();
-      await new Promise(r => setTimeout(r, 300));
-      setRecordedUri(audioRecorder.uri);
-    } else {
-      await AudioModule.requestRecordingPermissionsAsync();
-      await AudioModule.setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
-      try {
-        await audioRecorder.prepareToRecordAsync();
-        audioRecorder.record();
-      } catch(e) {
-        console.log("Record err", e);
+    // console.log removed
+    if (audioSource) {
+      if (!player) {
+        Alert.alert('Lỗi', 'Player chưa sẵn sàng');
+        return;
       }
+      try {
+        player.play();
+      } catch(e: any) {
+        Alert.alert('Lỗi phát âm thanh', e.message || 'Không thể phát file này: ' + audioSource);
+      }
+    } else {
+      Alert.alert('Thông báo', 'Không tìm thấy file audio!');
+    }
+    if (audioSource) {
+      try {
+        player.play();
+      } catch(e: any) {
+        Alert.alert('Lỗi phát âm thanh', e.message || 'Không thể phát file này: ' + audioSource);
+      }
+    } else {
+      Alert.alert('Thông báo', 'Không tìm thấy file audio!');
     }
   };
 
-  const playRecordedAudio = async () => {
-    if (!recordedUri) return;
-    // Just minimal fallback for missing expo-av
-    Alert.alert("Phát audio", "Chức năng nghe lại (AudioPlayer) đang được gọi...");
-  };
+  
+    const toggleRecord = async () => {
+      if (isRecording) {
+        setIsRecording(false);
+        try { await audioRecorder.stop(); } catch(e) {}
+        await new Promise(r => setTimeout(r, 300));
+        setRecordedUri(audioRecorder.uri);
+      } else {
+        const perm = await requestRecordingPermissionsAsync();
+        if (!perm.granted) {
+          Alert.alert("Lỗi", "Cần cấp quyền Microphone để ghi âm.");
+          return;
+        }
+        await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
+        try {
+          await audioRecorder.prepareToRecordAsync();
+          audioRecorder.record();
+          setIsRecording(true);
+        } catch(e: any) {
+          Alert.alert("Lỗi Ghi Âm", String(e));
+        }
+      }
+    };
 
-  const getTitle = () => {
+
+    const playRecordedAudio = async () => {
+      if (!recordedUri || !recordedPlayer) return;
+      try {
+        recordedPlayer.play();
+      } catch(e) {
+        Alert.alert("Lỗi", "Không thể phát lại audio vừa ghi.");
+      }
+    };
+
+    const getTitle = () => {
     switch (type) {
       case 'writing': return 'Luyện Viết';
       case 'reading': return 'Luyện Đọc';
@@ -192,11 +262,11 @@ export default function PracticeScreen() {
     const q = currentItem;
 
     // 1. Luyện Đọc (Trắc nghiệm)
-    if (q.questionType === 'multiple_choice') {
+    if (q.questionType === 'multiple_choice' || q.questionType === 'listening') {
       return (
         <View style={styles.contentContainer}>
           <View style={styles.questionCard}>
-            {(type === 'listening' || q.audioUrl) && (
+            {(type === 'listening' || q.audioUrl || q.questionType === 'listening') && (
                <TouchableOpacity onPress={playDummyAudio} style={{width: 60, height: 60, borderRadius: 30, backgroundColor: '#3b82f6', justifyContent: 'center', alignItems: 'center', marginBottom: 15}}>
                  <Ionicons name="volume-medium" size={30} color="#fff" />
                </TouchableOpacity>
@@ -219,25 +289,6 @@ export default function PracticeScreen() {
       );
     }
 
-    // 2. Luyện Nghe
-    if (q.questionType === 'listening') {
-      return (
-        <View style={styles.contentContainer}>
-          <View style={styles.questionCard}>
-             <TouchableOpacity onPress={playDummyAudio} style={{width: 60, height: 60, borderRadius: 30, backgroundColor: '#3b82f6', justifyContent: 'center', alignItems: 'center', marginBottom: 15}}>
-               <Ionicons name="volume-medium" size={30} color="#fff" />
-             </TouchableOpacity>
-             <Text style={styles.questionTitle}>Nghe đoạn băng và điền câu</Text>
-             <Text style={styles.questionSubtitle}>{q.quesionText}</Text>
-          </View>
-          <Text style={styles.inputLabel}>Nhập câu bạn nghe được:</Text>
-          <View style={styles.inputArea}>
-            <TextInput style={styles.textInput} multiline placeholder="Gõ câu trả lời..." value={textAnswer} onChangeText={setTextAnswer} />
-          </View>
-        </View>
-      );
-    }
-
     // 3. Luyện Nói
     if (q.questionType === 'speaking') {
       return (
@@ -248,9 +299,9 @@ export default function PracticeScreen() {
           </View>
           
           <View style={{flexDirection: 'row', justifyContent: 'space-around', marginTop: 20}}>
-            <TouchableOpacity onPress={toggleRecord} style={[styles.recordBtn, audioRecorder.isRecording && {backgroundColor: '#ef4444'}]}>
-              <Ionicons name={audioRecorder.isRecording ? "stop" : "mic"} size={32} color="#fff" />
-              <Text style={{color: '#fff', marginTop: 5, fontSize: 12}}>{audioRecorder.isRecording ? "Dừng" : "Ghi âm"}</Text>
+            <TouchableOpacity onPress={toggleRecord} style={[styles.recordBtn, isRecording && {backgroundColor: '#ef4444'}]}>
+              <Ionicons name={isRecording ? "stop" : "mic"} size={32} color="#fff" />
+              <Text style={{color: '#fff', marginTop: 5, fontSize: 12}}>{isRecording ? "Dừng" : "Ghi âm"}</Text>
             </TouchableOpacity>
 
             {recordedUri && (
@@ -265,7 +316,7 @@ export default function PracticeScreen() {
     }
 
     // 4. Luyện Viết
-    if (q.questionType === 'writing') {
+    if (q.questionType === 'writing' || q.questionType === 'fill_in_blank') {
       return (
         <View style={styles.contentContainer}>
           <View style={styles.questionCard}>
@@ -301,7 +352,27 @@ export default function PracticeScreen() {
           <Ionicons name="checkmark" size={40} color="#16a34a" />
         </View>
         <Text style={{fontSize: 24, fontWeight: 'bold', color: '#111827', marginBottom: 10}}>Hoàn thành xuất sắc!</Text>
-        <Text style={{fontSize: 16, color: '#6b7280', marginBottom: 30}}>Bạn đã làm được {resultData.score || 0} điểm.</Text>
+        <Text style={{fontSize: 16, color: '#6b7280', marginBottom: 20}}>XP nhận được: {resultData.totalScore || 0} / {(resultData.totalQuestions || 0) * 10} điểm.</Text>
+
+        {aiResults.length > 0 && (
+          <ScrollView style={{width: '100%', paddingHorizontal: 20, marginBottom: 20}}>
+            <Text style={{fontWeight: 'bold', fontSize: 18, marginBottom: 10, color: '#111827'}}>Đánh giá từ AI:</Text>
+            {aiResults.map((r, i) => (
+              <View key={i} style={{backgroundColor: '#fff', padding: 15, borderRadius: 12, marginBottom: 10, borderWidth: 1, borderColor: '#e5e7eb'}}>
+                <Text style={{fontWeight: 'bold', color: '#3b82f6', fontSize: 16}}>Kỹ năng {r.type}: {r.score} / 10 điểm</Text>
+                {r.transcript && <Text style={{fontStyle: 'italic', marginTop: 5, color: '#4b5563'}}>AI nghe được: "{r.transcript}"</Text>}
+                <Text style={{marginTop: 10, color: '#374151', lineHeight: 22}}>{r.feedback}</Text>
+                {r.improved && (
+                  <View style={{marginTop: 10, backgroundColor: '#f3f4f6', padding: 10, borderRadius: 8}}>
+                    <Text style={{fontWeight: 'bold', fontSize: 12, color: '#6b7280'}}>GỢI Ý NÂNG CẤP:</Text>
+                    <Text style={{color: '#111827', marginTop: 5}}>{r.improved}</Text>
+                  </View>
+                )}
+              </View>
+            ))}
+          </ScrollView>
+        )}
+
         <TouchableOpacity style={styles.submitBtn} onPress={() => router.back()}>
           <Text style={styles.submitBtnText}>QUAY LẠI</Text>
         </TouchableOpacity>

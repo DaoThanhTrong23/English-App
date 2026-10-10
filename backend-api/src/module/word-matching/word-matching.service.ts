@@ -129,7 +129,7 @@ export class WordMatchingService {
     const maxScore = totalQuestions * pointsPerQuestion;
 
     // Cộng điểm XP vào tài khoản MySQL của user
-    const finalizeRes = await this.repository.finalizeGameResult(userId, score);
+    const finalizeRes = await this.repository.finalizeGameResult(userId, score, totalQuestions, correctCount);
 
     return {
       totalQuestions,

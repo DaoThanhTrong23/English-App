@@ -46,14 +46,19 @@ export class StudentTestService {
       if (!q) continue;
 
       let isCorrect = false;
-        if (q.questionType === 'multiple_choice') {
+        if (q.questionType === 'multiple_choice' || q.questionType === 'listening') {
           const correctAns = q.answers.find(a => a.isCorrect);
           if (correctAns && correctAns.id === sub.selectedAnswerId) {
             isCorrect = true;
           }
-        } else if (q.questionType === 'fill_in_blank' || q.questionType === 'listening' || q.questionType === 'writing') {
+        } else if (q.questionType === 'fill_in_blank' || q.questionType === 'writing') {
           const correctAns = q.answers.find(a => a.isCorrect);
-          if (correctAns) {
+          if (sub.textAnswer && sub.textAnswer.includes('[Điểm AI:')) {
+            const match = sub.textAnswer.match(/\[Điểm AI:\s*(\d+)%\]/);
+            if (match && parseInt(match[1]) >= 60) {
+              isCorrect = true;
+            }
+          } else if (correctAns) {
             if (sub.textAnswer && correctAns.answerText.toLowerCase() === sub.textAnswer.toLowerCase().trim()) {
               isCorrect = true;
             }

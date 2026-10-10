@@ -7,6 +7,7 @@ import * as FileSystem from 'expo-file-system/legacy';
 import { axiosClient } from '../../api/axiosClient';
 import * as SecureStore from 'expo-secure-store';
 import { API_URL } from '../../constants/api';
+import * as Speech from 'expo-speech';
 import { useAudioRecorder, useAudioRecorderState, useAudioPlayer, RecordingPresets, requestRecordingPermissionsAsync, setAudioModeAsync } from 'expo-audio';
 
 const OBSTACLES = [
@@ -41,6 +42,17 @@ export default function MarioVoiceRunScreen() {
   const recorderState = useAudioRecorderState(recorder, 100);
   const isPressed = useRef(false);
   const player = useAudioPlayer(words[currentIndex]?.audioUrl || '');
+
+  const handlePlayAudio = () => {
+    const currentWord = words[currentIndex];
+    if (!currentWord) return;
+    
+    if (currentWord.audioUrl) {
+      player.play();
+    } else {
+      Speech.speak(currentWord.headword, { language: 'en-US' });
+    }
+  };
 
   useEffect(() => {
     fetchGameData();
@@ -192,7 +204,9 @@ export default function MarioVoiceRunScreen() {
       const pScore = responseData?.data?.overallScore || 0;
       if (pScore >= 60) {
         setScore(prev => prev + 10);
-        resumeGame();
+        Alert.alert('Tuyệt vời!', 'Điểm: ' + Math.round(pScore) + '%', [
+          { text: 'Tiếp tục', onPress: resumeGame }
+        ]);
       } else {
         Alert.alert('Chưa chính xác', 'Điểm: ' + Math.round(pScore) + '%. Hãy thử lại!');
       }
@@ -214,7 +228,7 @@ export default function MarioVoiceRunScreen() {
       await axiosClient.post('/game/mario/finish', {
         totalScore: score,
         duration,
-        correctPairs: score / 10,
+        correctPairs: Math.floor(score / 10),
         totalPairs: words.length
       });
 
@@ -279,11 +293,9 @@ export default function MarioVoiceRunScreen() {
               <Text style={styles.wordText}>{words[currentIndex].headword}</Text>
               <Text style={styles.phoneticText}>/{words[currentIndex].phonetic}/</Text>
               
-              {words[currentIndex].audioUrl && (
-                <TouchableOpacity onPress={() => player.play()} style={{ marginBottom: 10, backgroundColor: '#f3f4f6', padding: 8, borderRadius: 20 }}>
+              <TouchableOpacity onPress={handlePlayAudio} style={{ marginBottom: 10, backgroundColor: '#f3f4f6', padding: 8, borderRadius: 20 }}>
                   <Ionicons name="volume-high" size={24} color="#3b82f6" />
                 </TouchableOpacity>
-              )}
               <Text style={styles.meaningText}>{words[currentIndex].meaning}</Text>
 
               <View style={styles.actionRow}>

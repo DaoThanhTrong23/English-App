@@ -8,7 +8,7 @@ import { API_URL } from '../../constants/api';
 
 const { width } = Dimensions.get('window');
 const CARD_MARGIN = 6;
-const CARD_SIZE = (width - 40) / 3 - CARD_MARGIN * 2;
+const CARD_SIZE = (width - 40) / 4 - CARD_MARGIN * 2;
 
 const getFixedImageURI = (url: string) => {
   if (!url) return null;
@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
   },
   cardHidden: { backgroundColor: '#8b5cf6', borderWidth: 2, borderColor: '#6d28d9' },
   cardFlipped: { backgroundColor: '#ffffff', borderWidth: 2, borderColor: '#d8b4fe' },
-  cardText: { fontSize: 16, fontWeight: 'bold', color: '#1e40af', textAlign: 'center' },
-  cardTextMeaning: { fontSize: 14, fontWeight: 'bold', color: '#047857', textAlign: 'center' },
+  cardText: { fontSize: 13, fontWeight: 'bold', color: '#1e40af', textAlign: 'center' },
+  cardTextMeaning: { fontSize: 11, fontWeight: 'bold', color: '#047857', textAlign: 'center' },
   cardImage: { width: '100%', height: '100%', resizeMode: 'contain' }
 });

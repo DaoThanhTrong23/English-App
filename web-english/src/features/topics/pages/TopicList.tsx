@@ -141,7 +141,7 @@ const TopicList: React.FC = () => {
                 </thead>
                 <tbody>
                   {getSortedTopics().map((topic) => (
-                    <tr key={topic.id} style={{ cursor: 'pointer' }} onClick={(e) => { if (e.target.closest('.action-buttons')) return; navigate('/admin/courses?topicId=' + topic.id); }}>
+                    <tr key={topic.id} style={{ cursor: 'pointer' }} onClick={(e) => { if ((e.target as Element).closest('.action-buttons')) return; navigate('/admin/courses?topicId=' + topic.id); }}>
                       <td>{topic.id}</td>
                       <td><strong>{topic.title}</strong></td>
                       <td style={{ maxWidth: '200px' }}>

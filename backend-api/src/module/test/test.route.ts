@@ -7,18 +7,28 @@ import { Role } from "../../generated/prisma/index.js";
 import { testService } from "./test.service.js";
 import { CreateQuestionSchema, CreateTestSchema, UpdateQuestionSchema, UpdateTestSchema } from "./test.schema.js";
 import multer from "multer";
+import path from "path";
 import { ApiError } from "../../shared/http/api-error.js";
 
 export const testRouter = Router();
 
-const upload = multer({ dest: 'uploads/' });
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/')
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
+    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname))
+  }
+});
+const upload = multer({ storage: storage });
 
 testRouter.use(Authenticate, authorize([Role.admin]));
 
 testRouter.post("/upload-media", upload.single('file'), asyncHandler(async (req, res) => {
   if (!req.file) throw new ApiError(400, "no_file", "Chưa chọn file");
   // Multer saves file to /uploads directory. We return the path for the frontend to save in the question.
-  res.status(200).json({ success: true, message: "Upload thành công", data: { url: `http://localhost:3000/uploads/${req.file.filename}` } });
+  res.status(200).json({ success: true, message: "Upload thành công", data: { url: `/uploads/${req.file.filename}` } });
 }));
 
 testRouter.post("/:testId/questions/import", upload.single('file'), asyncHandler(async (req, res) => {

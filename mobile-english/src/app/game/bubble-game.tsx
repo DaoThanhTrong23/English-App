@@ -7,7 +7,7 @@ import { axiosClient } from '../../api/axiosClient';
 import { API_URL } from '../../constants/api';
 
 const { width, height } = Dimensions.get('window');
-const BUBBLE_SIZE = 80;
+const BUBBLE_SIZE = 110;
 
 // Random position that allows floating slightly out of bounds
 const getRandomPosition = () => {
@@ -35,7 +35,7 @@ const FloatingBubble = ({ item, isSelected, onPress, type }: any) => {
   const moveRandomly = () => {
     Animated.timing(pan, {
       toValue: getRandomPosition(),
-      duration: 3500 + Math.random() * 2500,
+      duration: 6000 + Math.random() * 4000,
       useNativeDriver: false,
     }).start(({ finished }) => {
       if (finished) moveRandomly();
@@ -48,11 +48,14 @@ const FloatingBubble = ({ item, isSelected, onPress, type }: any) => {
         activeOpacity={0.8}
         onPress={() => onPress(item, type)}
         style={[
-          styles.bubble, 
-          isSelected && styles.bubbleSelected,
-          type === 'word' ? styles.bubbleWord : styles.bubbleMeaning
-        ]}
+            styles.bubble, 
+            type === 'word' ? styles.bubbleWord : styles.bubbleMeaning,
+            isSelected && styles.bubbleSelected
+          ]}
       >
+        
+        <View style={styles.bubbleHighlight} />
+        <View style={styles.bubbleReflection} />
         {type === 'word' ? (
           <Text style={styles.bubbleText}>{item.word}</Text>
         ) : (
@@ -195,10 +198,9 @@ export default function BubbleGameScreen() {
 
       // Call API (không cần đợi)
       axiosClient.post('/game/bubble-game/match', {
-        wordId: currentSelectedWord.id,
-        meaningId: currentSelectedMeaning.id,
-        isCorrect,
-        timeTakenMs
+        currentScore: score,
+        matchedPairs: isCorrect ? matchedIds.length + 1 : matchedIds.length,
+        totalPairs: allWords.length || 1
       }).catch(e => console.log('Lỗi gửi tiến trình', e));
     }
   };
@@ -287,10 +289,42 @@ const styles = StyleSheet.create({
   
   gameArea: { flex: 1, position: 'relative', overflow: 'hidden' },
   bubbleWrapper: { position: 'absolute' },
-  bubble: { width: BUBBLE_SIZE, height: BUBBLE_SIZE, borderRadius: BUBBLE_SIZE/2, justifyContent: 'center', alignItems: 'center', elevation: 5, shadowColor: '#000', shadowOffset: {width: 0, height: 4}, shadowOpacity: 0.2, shadowRadius: 5 },
-  bubbleWord: { backgroundColor: '#ffffff', borderWidth: 2, borderColor: '#3b82f6' },
-  bubbleMeaning: { backgroundColor: '#fef08a', borderWidth: 2, borderColor: '#ca8a04' },
-  bubbleSelected: { borderWidth: 4, borderColor: '#ef4444', transform: [{ scale: 1.1 }] },
+  bubble: { 
+    width: BUBBLE_SIZE, 
+    height: BUBBLE_SIZE, 
+    borderRadius: BUBBLE_SIZE/2, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    elevation: 5, 
+    shadowColor: '#000', 
+    shadowOffset: {width: 0, height: 4}, 
+    shadowOpacity: 0.2, 
+    shadowRadius: 5,
+    overflow: 'hidden'
+  },
+  bubbleHighlight: {
+    position: 'absolute',
+    top: BUBBLE_SIZE * 0.1,
+    left: BUBBLE_SIZE * 0.15,
+    width: BUBBLE_SIZE * 0.35,
+    height: BUBBLE_SIZE * 0.15,
+    borderRadius: BUBBLE_SIZE * 0.2,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    transform: [{ rotate: '-45deg' }]
+  },
+  bubbleReflection: {
+    position: 'absolute',
+    bottom: BUBBLE_SIZE * 0.1,
+    right: BUBBLE_SIZE * 0.15,
+    width: BUBBLE_SIZE * 0.15,
+    height: BUBBLE_SIZE * 0.1,
+    borderRadius: BUBBLE_SIZE * 0.1,
+    backgroundColor: 'rgba(255, 255, 255, 0.4)',
+    transform: [{ rotate: '-45deg' }]
+  },
+  bubbleWord: { backgroundColor: 'rgba(186, 230, 253, 0.75)', borderWidth: 1, borderColor: 'rgba(56, 189, 248, 0.8)' },
+  bubbleMeaning: { backgroundColor: 'rgba(254, 240, 138, 0.75)', borderWidth: 1, borderColor: 'rgba(234, 179, 8, 0.8)' },
+  bubbleSelected: { borderWidth: 4, borderColor: '#22c55e', transform: [{ scale: 1.1 }] },
   bubbleText: { fontSize: 14, fontWeight: 'bold', color: '#1e3a8a', textAlign: 'center' },
   bubbleTextMeaning: { fontSize: 12, fontWeight: 'bold', color: '#854d0e', textAlign: 'center', padding: 5 },
   bubbleImage: { width: BUBBLE_SIZE - 10, height: BUBBLE_SIZE - 10, borderRadius: (BUBBLE_SIZE - 10)/2, resizeMode: 'cover' },

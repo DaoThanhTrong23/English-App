@@ -436,11 +436,36 @@ function normalizeAudioToWav(audioBuffer: Buffer): Buffer {
   }
 }
 
+
+async function convertAnyAudioToWavBuffer(audioBuffer: Buffer): Promise<Buffer> {
+  const tempInput = path.join(os.tmpdir(), `input_${Date.now()}_${Math.random().toString(36).slice(2)}`);
+  const tempOutput = path.join(os.tmpdir(), `output_${Date.now()}_${Math.random().toString(36).slice(2)}.wav`);
+  try {
+    fs.writeFileSync(tempInput, audioBuffer);
+    const ffmpegBin = (typeof ffmpegPath === "string" ? ffmpegPath : (ffmpegPath as any)?.default) || "ffmpeg";
+    await execFileAsync(ffmpegBin, [
+      "-y",
+      "-i", tempInput,
+      "-ar", "16000",
+      "-ac", "1",
+      "-c:a", "pcm_s16le",
+      tempOutput,
+    ]);
+    return fs.readFileSync(tempOutput);
+  } catch(e) {
+    console.error('FFMPEG ERROR IN convertAnyAudioToWavBuffer:', e);
+    return audioBuffer;
+  } finally {
+    if (fs.existsSync(tempInput)) fs.unlinkSync(tempInput);
+    if (fs.existsSync(tempOutput)) fs.unlinkSync(tempOutput);
+  }
+}
+
 class AiService {
   @logExecution()
   async gradeEssay(input: GradeEssayInput): Promise<EssayEvaluationResponse> {
     const prompt = `Bạn là giám khảo chấm thi tiếng Anh chuẩn quốc tế theo khung CEFR (A1, A2, B1, B2, C1, C2).
-Hãy chấm điểm và đánh giá đoạn văn sau đây của người học:
+Hãy chấm điểm và đánh giá đoạn văn sau đây của người học một cách công bằng:
 ${input.topic ? `Chủ đề: "${input.topic}"` : ""}
 Đoạn văn:
 """
@@ -486,7 +511,7 @@ Yêu cầu trả về kết quả theo đúng cấu trúc JSON sau (toàn bộ g
     }
 
     // 1. Chuẩn hóa buffer và ghi vào file tạm
-    const normalizedBuffer = normalizeAudioToWav(audioBuffer);
+    const normalizedBuffer = await convertAnyAudioToWavBuffer(audioBuffer);
     const tempFilePath = path.join(
       os.tmpdir(),
       `speech_${Date.now()}_${Math.random().toString(36).substring(7)}.wav`
@@ -537,7 +562,7 @@ Yêu cầu trả về kết quả theo đúng cấu trúc JSON sau (toàn bộ g
     targetSentence?: string
   ): Promise<SpeakingEvaluationResponse> {
     // Ghép context gợi ý cho Whisper để nhận diện chuẩn hơn
-    const contextPrompt = [topic, targetSentence].filter(Boolean).join(". ");
+    const contextPrompt = [targetSentence].filter(Boolean).join(". ");
 
     // Bước 1: Whisper bóc băng âm thanh thành text
     const transcript = await this.transcribeAudioLocal(audioBuffer, contextPrompt);
@@ -561,35 +586,43 @@ Yêu cầu trả về kết quả theo đúng cấu trúc JSON sau (toàn bộ g
     }
 
     // Bước 2: Ollama chấm điểm dựa trên transcript
-    const prompt = `Bạn là giám khảo chấm thi Nói tiếng Anh chuẩn quốc tế theo khung CEFR (A1, A2, B1, B2, C1, C2).
-Dưới đây là lời nói của học viên đã được chuyển đổi từ bản ghi âm giọng nói thành văn bản (transcript):
-${topic ? `Chủ đề bài nói: "${topic}"` : ""}
-${targetSentence ? `Câu mẫu yêu cầu nói (nếu có): "${targetSentence}"` : ""}
-Văn bản học viên đã nói:
-"""
-${transcript}
-"""
-Hãy đánh giá và trả về kết quả ĐÚNG định dạng JSON sau (toàn bộ nhận xét, giải thích bằng TIẾNG VIỆT):
-{
-  "overallScore": number (thang 10.0, ví dụ 7.0),
-  "cefrLevel": "A1" | "A2" | "B1" | "B2" | "C1" | "C2",
-  "grammarScore": number (thang 10),
-  "vocabularyScore": number (thang 10),
-  "coherenceScore": number (thang 10),
-  "feedback": "Nhận xét tổng quan về phần nói",
-  "strengths": ["Điểm làm tốt 1", "Điểm làm tốt 2"],
-  "improvements": ["Điểm cần khắc phục 1", "Điểm cần khắc phục 2"],
-  "corrections": [
-    {
-      "original": "câu hoặc cụm từ người học nói sai",
-      "issue": "giải thích chi tiết vì sao sai",
-      "suggestion": "câu nói lại tự nhiên và đúng ngữ pháp"
-    }
-  ],
-  "improvedVersion": "Bản diễn đạt lại hoàn chỉnh tự nhiên và hay hơn cho câu trả lời trên bằng tiếng anh"
-}`;
-
-    const response = await ollama.chat({
+    const prompt = `Bạn là chuyên gia chấm điểm phát âm tiếng Anh.
+  Dưới đây là văn bản được bóc băng từ giọng nói của học viên (transcript):
+  ${topic ? `Chủ đề: "${topic}"` : ""}
+  ${targetSentence ? `Câu gốc cần đọc: "${targetSentence}"` : ""}
+  
+  Văn bản học viên thực tế đã nói:
+  """
+  ${transcript}
+  """
+  
+  LƯU Ý CHẤM ĐIỂM (BÀI TẬP ĐỌC THEO MẪU - READ ALOUD):
+  1. Hãy đối chiếu từng từ của "Văn bản học viên thực tế đã nói" với "Câu gốc cần đọc".
+  2. Nếu học viên đọc khớp hoàn toàn, hãy cho điểm từ 8.5 đến 9.5 (Tuyệt đối không cho 10/10).
+  3. Nếu có TỪ BỊ LỆCH, THIẾU TỪ, HOẶC TỪ LẠ (do phát âm sai nên hệ thống nghe nhầm), hãy TRỪ ĐIỂM NẶNG TAY (sai 1 từ trừ 1.5 - 2 điểm). Nếu sai quá nhiều, hãy cho dưới 5.0.
+  4. Liệt kê rõ những từ phát âm sai vào phần 'corrections' để học viên sửa.
+  
+  Hãy đánh giá và trả về kết quả ĐÚNG định dạng JSON sau (toàn bộ nhận xét bằng TIẾNG VIỆT):
+  {
+    "overallScore": number (thang 10.0, ví dụ 7.5),
+    "cefrLevel": "A1" | "A2" | "B1" | "B2" | "C1" | "C2",
+    "grammarScore": number (thang 10),
+    "vocabularyScore": number (thang 10),
+    "coherenceScore": number (thang 10),
+    "feedback": "Nhận xét tổng quan về độ chính xác khi phát âm so với câu gốc",
+    "strengths": ["Điểm làm tốt 1", "Điểm làm tốt 2"],
+    "improvements": ["Điểm cần khắc phục 1", "Điểm cần khắc phục 2"],
+    "corrections": [
+      {
+        "original": "Từ học viên phát âm sai (hoặc thiếu)",
+        "issue": "Giải thích vì sao sai hoặc khác biệt so với câu gốc",
+        "suggestion": "Cách đọc đúng của từ đó"
+      }
+    ],
+    "improvedVersion": "Câu gốc hoàn chỉnh (để học viên luyện lại)"
+  }`;
+  
+      const response = await ollama.chat({
       model: env.AiModel,
       messages: [{ role: "user", content: prompt }],
       format: "json",

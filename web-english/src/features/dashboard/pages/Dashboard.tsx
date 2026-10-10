@@ -3,7 +3,7 @@ import AdminLayout from '../../../components/layout/AdminLayout';
 import { fetchTopStudents } from '../../students/api/student.api';
 import { getDashboardStats } from '../api/dashboard.api';
 import { Trophy, Activity, Users as UsersIcon, BookOpen, BarChart2 } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell, Legend } from 'recharts';
+import {   XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell, Legend } from 'recharts';
 import './Dashboard.css';
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b'];

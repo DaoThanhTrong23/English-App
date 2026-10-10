@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, BookOpen, Library, Search, Bell, LogOut, Gamepad2Icon, SettingsIcon, Menu, X, FileQuestion, Trophy, MessageSquare } from 'lucide-react';
+import { LayoutDashboard, Users, BookOpen, Library,  Bell, LogOut, Gamepad2Icon, SettingsIcon, Menu, X, FileQuestion, Trophy, MessageSquare } from 'lucide-react';
 import mascotGif from '../../assets/images/gacon.gif';
 import './AdminLayout.css';
 
