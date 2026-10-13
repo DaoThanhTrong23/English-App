@@ -98,5 +98,30 @@ router.get(
   })
 );
 
+/**
+ * @route   PATCH /api/admin/students/:id/status
+ * @desc    Admin khóa hoặc mở khóa tài khoản học viên
+ */
+router.patch(
+  "/:id/status",
+  validate(StudentIdParamSchema),
+  asyncHandler(async (req, res) => {
+    const studentId = Number(req.params.id);
+    const { isLocked } = req.body;
+
+    if (typeof isLocked !== "boolean") {
+      return res.status(400).json({ success: false, message: "isLocked phải là boolean (true/false)" });
+    }
+
+    const result = await studentManageService.updateStudentLockStatus(studentId, isLocked);
+
+    res.status(200).json({
+      success: true,
+      message: isLocked ? "Đã khóa tài khoản học viên thành công" : "Đã mở khóa tài khoản học viên thành công",
+      data: result,
+    });
+  })
+);
+
 export const studentManageRouter = router;
 export default router;

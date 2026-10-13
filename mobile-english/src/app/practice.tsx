@@ -52,12 +52,24 @@ export default function PracticeScreen() {
           const lesson = res.data.data;
           if (lesson.tests && lesson.tests.length > 0) {
             
-            const fallbackTitle = type === 'test' ? 'reading' : type;
+            const map: any = { 
+              listening: 'Luyện Nghe', 
+              speaking: 'Luyện Nói', 
+              reading: 'Luyện Đọc', 
+              writing: 'Luyện Viết',
+              test: 'Kiểm Tra'
+            };
+
             let targetTest = lesson.tests.find((t: any) => t.skillCategory === type);
-            // Fallback for old databases
-            if (!targetTest) {
-                const map: any = { listening: 'Luyện Nghe', speaking: 'Luyện Nói', reading: 'Luyện Đọc', writing: 'Luyện Viết' };
-                targetTest = lesson.tests.find((t: any) => t.title?.includes(map[type as string]));
+            if (!targetTest && map[type as string]) {
+              const keyword = map[type as string].toLowerCase();
+              targetTest = lesson.tests.find((t: any) => t.title && t.title.toLowerCase().includes(keyword));
+            }
+            if (!targetTest && type === 'test') {
+              targetTest = lesson.tests.find((t: any) => {
+                const title = (t.title || '').toLowerCase();
+                return title.includes('kiểm tra') || title.includes('test') || title.includes('tổng hợp');
+              });
             }
             if (!targetTest) targetTest = lesson.tests[0];
 
@@ -253,6 +265,7 @@ export default function PracticeScreen() {
       case 'reading': return 'Luyện Đọc';
       case 'listening': return 'Luyện Nghe';
       case 'speaking': return 'Luyện Nói';
+      case 'test': return 'Kiểm Tra Tổng Hợp';
       default: return 'Bài Tập';
     }
   };

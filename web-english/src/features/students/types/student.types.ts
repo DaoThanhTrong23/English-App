@@ -19,6 +19,7 @@ export interface Student {
   username: string;
   email: string;
   xpPoints: number;
+  isLocked?: boolean;
   lastLoginDate: string | null;
   lastActiveAt: string | null;
   lastestActivity: string | null;
@@ -51,6 +52,7 @@ export interface StudentDetailResponse {
       username: string;
       email: string;
       xpPoints: number;
+      isLocked?: boolean;
       lastLoginDate: string | null;
       joinedAt: string;
     };

@@ -32,3 +32,9 @@ export const fetchTopStudents = async (limit: number = 5) => {
   const response = await axiosClient.get(`/admin/students/top?limit=${limit}`);
   return response.data;
 };
+
+// API Khóa hoặc mở khóa tài khoản học viên
+export const updateStudentLockStatus = async (id: number, isLocked: boolean) => {
+  const response = await axiosClient.patch(`/admin/students/${id}/status`, { isLocked });
+  return response.data;
+};

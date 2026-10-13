@@ -24,7 +24,7 @@ export default function CourseDetailScreen() {
       const userInfoStr = await SecureStore.getItemAsync('userInfo');
       if (userInfoStr) {
         const user = JSON.parse(userInfoStr);
-        setXpPoints(user.xpPoints || 120);
+        setXpPoints(user.xpPoints || 0);
       }
     } catch (e) {
       // ignore
@@ -128,6 +128,12 @@ export default function CourseDetailScreen() {
             let circleColor = "#9ca3af";
             let cardBorder = "transparent";
 
+            const totalTests = lesson.totalTests || 5;
+            const completedTests = lesson.completedTests || 0;
+            const progressPercent = totalTests > 0 
+              ? Math.min(100, Math.round((completedTests / totalTests) * 100))
+              : (isCompleted ? 100 : 0);
+
             if (isCompleted) {
               badgeText = "Hoàn thành";
               badgeBg = "#d1fae5";
@@ -141,7 +147,7 @@ export default function CourseDetailScreen() {
               badgeBg = "#dbeafe";
               badgeColor = "#2563eb";
               barColor = "#3b82f6";
-              barWidth = "30%";
+              barWidth = `${Math.max(15, progressPercent)}%`;
               circleBg = "#dbeafe";
               circleColor = "#3b82f6";
               cardBorder = "#3b82f6";
@@ -165,7 +171,7 @@ export default function CourseDetailScreen() {
 
                   <View style={styles.lessonInfo}>
                     <Text style={[styles.lessonTitle, isLocked && {color: '#6b7280'}]}>Bài {index + 1}: {lesson.title}</Text>
-                    <Text style={styles.lessonSubtitle}>4 kỹ năng - {lesson.totalWords || 0} từ vựng</Text>
+                    <Text style={styles.lessonSubtitle}>{totalTests} kỹ năng - {lesson.totalWords || 0} từ vựng</Text>
                   </View>
 
                   <View style={[styles.lessonBadge, { backgroundColor: badgeBg }]}>

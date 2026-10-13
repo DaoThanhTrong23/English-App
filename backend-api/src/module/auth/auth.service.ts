@@ -53,6 +53,11 @@ export class AuthService {
             throw new ApiError(401, "invalid_credential", "Email/Username hoặc mật khẩu không chính xác");
         }
 
+        // 2.5 Kiểm tra nếu tài khoản bị khóa
+        if (user.isLocked) {
+            throw new ApiError(403, "account_locked", "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ Quản trị viên để được mở khóa!");
+        }
+
         const sessionId = generatedSessionId();
         const { accessToken, refreshToken } = await this.createToken(user.id, user.role, sessionId, data.deviceInfo);
 
@@ -71,6 +76,7 @@ export class AuthService {
                 username: user.username,
                 email: user.email,
                 role: user.role,
+                avatarUrl: user.avatarUrl,
                 xpPoint: user.xpPoints,
                 onboardingCompleted: user.onboardingCompleted,
                 cefrLevel: user.cefrLevel
@@ -114,6 +120,10 @@ export class AuthService {
 
         const currentUser = user!;
 
+        if (currentUser.isLocked) {
+            throw new ApiError(403, "account_locked", "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ Quản trị viên để được mở khóa!");
+        }
+
         // 5 & 6. Sinh Session ID và Token
         const sessionId = generatedSessionId();
         const { accessToken, refreshToken } = await this.createToken(currentUser.id, currentUser.role, sessionId, deviceInfo);
@@ -134,6 +144,7 @@ export class AuthService {
                 username: currentUser.username, 
                 email: email, 
                 role: currentUser.role,
+                avatarUrl: currentUser.avatarUrl,
                 xpPoint: currentUser.xpPoints,
                 onboardingCompleted: currentUser.onboardingCompleted,
                 cefrLevel: currentUser.cefrLevel 
@@ -207,6 +218,7 @@ export class AuthService {
                 username: currentUser.username, 
                 email: email, 
                 role: currentUser.role,
+                avatarUrl: currentUser.avatarUrl,
                 xpPoint: currentUser.xpPoints,
                 onboardingCompleted: currentUser.onboardingCompleted,
                 cefrLevel: currentUser.cefrLevel 

@@ -1,8 +1,123 @@
 import { Tabs, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { StyleSheet, View, TouchableOpacity } from 'react-native';
-import { useEffect } from 'react';
+import { StyleSheet, View, Animated, PanResponder, Dimensions, Image } from 'react-native';
+import { useEffect, useRef } from 'react';
 import * as SecureStore from 'expo-secure-store';
+import { useAppTheme } from '../../context/ThemeContext';
+
+const BUBBLE_SIZE = 56;
+const PADDING = 16;
+
+function DraggableAiBubble() {
+  const router = useRouter();
+  const { width: windowWidth, height: windowHeight } = Dimensions.get('window');
+
+  // Vị trí mặc định: góc dưới bên phải, ngay trên tab bar
+  const initialX = windowWidth - BUBBLE_SIZE - 20;
+  const initialY = windowHeight - BUBBLE_SIZE - 90;
+
+  const pan = useRef(new Animated.ValueXY({ x: initialX, y: initialY })).current;
+  const currentPos = useRef({ x: initialX, y: initialY });
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const isDragging = useRef(false);
+
+  useEffect(() => {
+    const id = pan.addListener((val) => {
+      currentPos.current = val;
+    });
+    return () => {
+      pan.removeListener(id);
+    };
+  }, [pan]);
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_, gesture) => {
+        return Math.abs(gesture.dx) > 3 || Math.abs(gesture.dy) > 3;
+      },
+      onPanResponderGrant: () => {
+        isDragging.current = false;
+        pan.stopAnimation();
+        pan.setOffset({
+          x: currentPos.current.x,
+          y: currentPos.current.y,
+        });
+        pan.setValue({ x: 0, y: 0 });
+
+        Animated.spring(scaleAnim, {
+          toValue: 1.15,
+          useNativeDriver: false,
+          friction: 5,
+        }).start();
+      },
+      onPanResponderMove: (_, gesture) => {
+        if (Math.abs(gesture.dx) > 4 || Math.abs(gesture.dy) > 4) {
+          isDragging.current = true;
+        }
+        pan.setValue({ x: gesture.dx, y: gesture.dy });
+      },
+      onPanResponderRelease: (_, gesture) => {
+        pan.flattenOffset();
+
+        Animated.spring(scaleAnim, {
+          toValue: 1,
+          useNativeDriver: false,
+          friction: 5,
+        }).start();
+
+        // Nếu chỉ chạm nhẹ và thả ra ngay (không kéo) -> Chuyển sang màn hình chat AI
+        if (!isDragging.current && Math.abs(gesture.dx) < 6 && Math.abs(gesture.dy) < 6) {
+          /* @ts-ignore */
+          router.push('/ai-chat');
+          return;
+        }
+
+        // Tự động hít (snap) về mép trái hoặc mép phải màn hình cho gọn gàng
+        const { width: screenW, height: screenH } = Dimensions.get('window');
+        const snapLeft = currentPos.current.x + BUBBLE_SIZE / 2 < screenW / 2;
+        const targetX = snapLeft ? PADDING : screenW - BUBBLE_SIZE - PADDING;
+
+        // Giữ vị trí Y nằm trong vùng hiển thị an toàn (không bị che bởi status bar hoặc tab bar)
+        const minY = 60;
+        const maxY = screenH - BUBBLE_SIZE - 90;
+        const targetY = Math.min(Math.max(minY, currentPos.current.y), maxY);
+
+        Animated.spring(pan, {
+          toValue: { x: targetX, y: targetY },
+          useNativeDriver: false,
+          friction: 6,
+          tension: 40,
+        }).start();
+      },
+    })
+  ).current;
+
+  return (
+    <Animated.View
+      {...panResponder.panHandlers}
+      style={[
+        styles.fabContainer,
+        {
+          transform: [
+            ...pan.getTranslateTransform(),
+            { scale: scaleAnim },
+          ],
+        },
+      ]}
+    >
+      {/* <View style={styles.fab}>
+        <Ionicons name="sparkles" size={24} color="#ffffff" />
+      </View> */}
+    <View style={styles.fab}>
+      <Image 
+        source={require('../../../assets/images/gacon.gif')} 
+        style={{ width: 42, height: 42, borderRadius: 21 }} 
+      />
+    </View>
+    </Animated.View>
+  );
+}
 
 export default function TabLayout() {
   const router = useRouter();
@@ -24,17 +139,19 @@ export default function TabLayout() {
     };
     checkOnboarding();
   }, []);  
+  const { theme } = useAppTheme();
+
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: theme.background }}>
       <Tabs
         screenOptions={{
           headerShown: false,
-          tabBarActiveTintColor: '#2563eb',
-          tabBarInactiveTintColor: '#9ca3af',
+          tabBarActiveTintColor: theme.primary,
+          tabBarInactiveTintColor: theme.subtext,
           tabBarStyle: {
             borderTopWidth: 1,
-            borderColor: '#e5e7eb',
-            backgroundColor: '#ffffff',
+            borderColor: theme.tabBarBorder,
+            backgroundColor: theme.tabBar,
             height: 60,
             paddingBottom: 10,
             paddingTop: 5,
@@ -93,30 +210,25 @@ export default function TabLayout() {
         <Tabs.Screen name="lesson/[id]" options={{ href: null }} />
       </Tabs>
 
-      {/* FLOATING AI CHAT BUBBLE */}
-      <TouchableOpacity 
-        style={styles.fab} 
-        activeOpacity={0.8}
-        onPress={() => {
-          /* @ts-ignore */
-          router.push('/ai-chat');
-        }}
-      >
-        <Ionicons name="sparkles" size={24} color="#ffffff" />
-      </TouchableOpacity>
+      {/* FLOATING DRAGGABLE AI CHAT BUBBLE */}
+      <DraggableAiBubble />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  fab: {
+  fabContainer: {
     position: 'absolute',
-    bottom: 80,
-    right: 20,
+    top: 0,
+    left: 0,
+    zIndex: 9999,
+    elevation: 999,
+  },
+  fab: {
     backgroundColor: '#8b5cf6', // Tím mộng mơ cho AI
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: BUBBLE_SIZE,
+    height: BUBBLE_SIZE,
+    borderRadius: BUBBLE_SIZE / 2,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#8b5cf6',
@@ -124,6 +236,5 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4,
     shadowRadius: 5,
     elevation: 8,
-    zIndex: 999
   }
 });

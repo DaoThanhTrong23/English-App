@@ -11,6 +11,8 @@ export default function LeaderboardScreen() {
   const [leaderboardData, setLeaderboardData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
+  const baseURL = axiosClient.defaults.baseURL?.replace('/api', '') || 'http://10.0.2.2:3000';
+
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -72,7 +74,7 @@ export default function LeaderboardScreen() {
               <View key={user.id} style={styles.rankCard}>
                 <Text style={[styles.rankNumber, {color: rank <= 3 ? rankColor : '#9ca3af'}]}>{rank}</Text>
                 <Image 
-                  source={user.avatarUrl ? { uri: user.avatarUrl } : require('../../../assets/images/gacon.gif')} 
+                  source={user.avatarUrl ? { uri: user.avatarUrl.startsWith('http') ? user.avatarUrl : baseURL + user.avatarUrl } : require('../../../assets/images/gacon.gif')} 
                   style={styles.rankAvatar} 
                 />
                 <View style={styles.rankInfo}>
@@ -90,7 +92,7 @@ export default function LeaderboardScreen() {
       <View style={styles.currentUserCard}>
         <Text style={styles.currentUserRank}>{currentRank}</Text>
         <Image 
-          source={avatarUri ? { uri: avatarUri } : require('../../../assets/images/gacon.gif')} 
+          source={avatarUri ? { uri: avatarUri.startsWith('http') ? avatarUri : baseURL + avatarUri } : require('../../../assets/images/gacon.gif')} 
           style={styles.rankAvatar} 
         />
         <View style={styles.rankInfo}>

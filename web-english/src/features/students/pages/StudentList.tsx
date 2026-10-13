@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-import { getStudents, getStudentDetail, fetchStudentProgress, fetchStudentAiChat } from '../api/student.api';
+import { getStudents, getStudentDetail, fetchStudentProgress, fetchStudentAiChat, updateStudentLockStatus } from '../api/student.api';
 import type { Student, StudentDetailResponse } from '../types/student.types';
 import './StudentList.css';
 import '../../words/pages/WordList.css'; // For Dashboard Layout styles
@@ -23,6 +23,30 @@ const StudentList: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'tests' | 'progress' | 'chat'>('tests');
   const [studentProgress, setStudentProgress] = useState<any[]>([]);
   const [studentChat, setStudentChat] = useState<any[]>([]);
+
+  const handleToggleLock = async (studentId: number, currentLocked: boolean, username: string) => {
+    const confirmMsg = currentLocked 
+      ? `Bạn có chắc chắn muốn MỞ KHÓA tài khoản cho học viên "${username}" không? Học viên sẽ có thể đăng nhập lại vào ứng dụng.`
+      : `Bạn có chắc chắn muốn KHÓA tài khoản học viên "${username}" không? Học viên sẽ bị đăng xuất ngay và không thể đăng nhập.`;
+    
+    if (!window.confirm(confirmMsg)) return;
+
+    try {
+      const res = await updateStudentLockStatus(studentId, !currentLocked);
+      if (res.success) {
+        alert(res.message);
+        setStudents(prev => prev.map(s => s.id === studentId ? { ...s, isLocked: !currentLocked } : s));
+        if (selectedStudent && selectedStudent.profile.id === studentId) {
+          setSelectedStudent({
+            ...selectedStudent,
+            profile: { ...selectedStudent.profile, isLocked: !currentLocked } as any
+          });
+        }
+      }
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Không thể thay đổi trạng thái tài khoản');
+    }
+  };
   
 
   const loadStudents = async () => {
@@ -91,6 +115,7 @@ const StudentList: React.FC = () => {
                 <thead>
                   <tr>
                     <th>Học viên</th>
+                    <th>Trạng thái</th>
                     <th>Hoạt động cuối</th>
                     <th>Tiến độ từ vựng</th>
                     <th>Điểm XP</th>
@@ -110,6 +135,37 @@ const StudentList: React.FC = () => {
                         </div>
                       </td>
                       <td>
+                        {st.isLocked ? (
+                          <span style={{ 
+                            backgroundColor: '#fee2e2', 
+                            color: '#dc2626', 
+                            padding: '4px 10px', 
+                            borderRadius: '16px', 
+                            fontSize: '0.8rem', 
+                            fontWeight: 600,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}>
+                            🔒 Đã khóa
+                          </span>
+                        ) : (
+                          <span style={{ 
+                            backgroundColor: '#dcfce7', 
+                            color: '#16a34a', 
+                            padding: '4px 10px', 
+                            borderRadius: '16px', 
+                            fontSize: '0.8rem', 
+                            fontWeight: 600,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}>
+                            ✓ Hoạt động
+                          </span>
+                        )}
+                      </td>
+                      <td>
                         {st.lastActiveAt ? new Date(st.lastActiveAt).toLocaleString('vi-VN') : 'Chưa có'}
                       </td>
                       <td>
@@ -126,15 +182,52 @@ const StudentList: React.FC = () => {
                         <strong style={{ color: '#eab308' }}>{st.xpPoints} XP</strong>
                       </td>
                       <td>
-                        <button className="view-btn" onClick={() => handleViewDetail(st.id)}>
-                          Xem chi tiết
-                        </button>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          <button className="view-btn" onClick={() => handleViewDetail(st.id)}>
+                            Xem chi tiết
+                          </button>
+                          {st.isLocked ? (
+                            <button 
+                              style={{
+                                backgroundColor: '#16a34a',
+                                color: '#ffffff',
+                                border: 'none',
+                                borderRadius: '6px',
+                                padding: '6px 12px',
+                                cursor: 'pointer',
+                                fontSize: '0.85rem',
+                                fontWeight: 600
+                              }}
+                              onClick={() => handleToggleLock(st.id, true, st.username)}
+                              title="Mở khóa tài khoản học viên"
+                            >
+                              Mở khóa
+                            </button>
+                          ) : (
+                            <button 
+                              style={{
+                                backgroundColor: '#ef4444',
+                                color: '#ffffff',
+                                border: 'none',
+                                borderRadius: '6px',
+                                padding: '6px 12px',
+                                cursor: 'pointer',
+                                fontSize: '0.85rem',
+                                fontWeight: 600
+                              }}
+                              onClick={() => handleToggleLock(st.id, false, st.username)}
+                              title="Khóa tài khoản học viên"
+                            >
+                              Khóa
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
                   {students.length === 0 && (
                     <tr>
-                      <td colSpan={5} style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>
+                      <td colSpan={6} style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>
                         Không tìm thấy học viên nào.
                       </td>
                     </tr>
@@ -170,14 +263,59 @@ const StudentList: React.FC = () => {
         {selectedStudent && (
           <div className="student-modal-overlay" onClick={() => setSelectedStudent(null)}>
             <div className="student-modal-content" onClick={e => e.stopPropagation()}>
-              <div className="student-modal-header">
+              <div className="student-modal-header" style={{ display: 'flex', alignItems: 'center' }}>
                 <h3>Chi tiết học viên: {selectedStudent.profile.username}</h3>
+                <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '10px', marginRight: '16px' }}>
+                  {selectedStudent.profile.isLocked ? (
+                    <button
+                      style={{
+                        backgroundColor: '#16a34a',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '6px',
+                        padding: '6px 14px',
+                        fontSize: '0.85rem',
+                        fontWeight: 'bold',
+                        cursor: 'pointer'
+                      }}
+                      onClick={() => handleToggleLock(selectedStudent.profile.id, true, selectedStudent.profile.username)}
+                    >
+                      Mở khóa tài khoản
+                    </button>
+                  ) : (
+                    <button
+                      style={{
+                        backgroundColor: '#ef4444',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '6px',
+                        padding: '6px 14px',
+                        fontSize: '0.85rem',
+                        fontWeight: 'bold',
+                        cursor: 'pointer'
+                      }}
+                      onClick={() => handleToggleLock(selectedStudent.profile.id, false, selectedStudent.profile.username)}
+                    >
+                      Khóa tài khoản
+                    </button>
+                  )}
+                </div>
                 <button className="close-btn" onClick={() => setSelectedStudent(null)}>&times;</button>
               </div>
 
               <div className="student-details-grid">
                 <div className="detail-card">
                   <h4>Thông tin cá nhân</h4>
+                  <div className="detail-row">
+                    <span className="detail-label">Trạng thái:</span>
+                    <span className="detail-value">
+                      {selectedStudent.profile.isLocked ? (
+                        <span style={{ color: '#dc2626', fontWeight: 600 }}>🔒 Đã khóa tài khoản</span>
+                      ) : (
+                        <span style={{ color: '#16a34a', fontWeight: 600 }}>✓ Đang hoạt động</span>
+                      )}
+                    </span>
+                  </div>
                   <div className="detail-row">
                     <span className="detail-label">Email:</span>
                     <span className="detail-value">{selectedStudent.profile.email}</span>

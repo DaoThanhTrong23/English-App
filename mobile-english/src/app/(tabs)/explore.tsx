@@ -9,7 +9,16 @@ export default function ExploreScreen() {
   const [courses, setCourses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedFilter, setSelectedFilter] = useState('ALL');
   const router = useRouter();
+
+  const FILTER_OPTIONS = [
+    { id: 'ALL', label: 'Tất cả' },
+    { id: 'A1', label: 'Cơ bản (A1)' },
+    { id: 'A2', label: 'Sơ cấp (A2)' },
+    { id: 'B1_B2', label: 'Trung cấp (B1-B2)' },
+    { id: 'VOCAB', label: 'Nhiều từ vựng nhất' }
+  ];
 
   useEffect(() => {
     fetchCourses();
@@ -28,7 +37,21 @@ export default function ExploreScreen() {
     }
   };
 
-  const filteredCourses = courses.filter(c => c.title.toLowerCase().includes(searchQuery.toLowerCase()));
+  const filteredCourses = courses
+    .filter(c => {
+      const matchSearch = c.title.toLowerCase().includes(searchQuery.toLowerCase());
+      if (!matchSearch) return false;
+      if (selectedFilter === 'A1') return c.cefrLevel === 'A1';
+      if (selectedFilter === 'A2') return c.cefrLevel === 'A2';
+      if (selectedFilter === 'B1_B2') return c.cefrLevel === 'B1' || c.cefrLevel === 'B2';
+      return true;
+    })
+    .sort((a, b) => {
+      if (selectedFilter === 'VOCAB') {
+        return (b.totalWords || 0) - (a.totalWords || 0);
+      }
+      return 0;
+    });
 
   const renderCourse = ({ item }: { item: any }) => {
     return (
@@ -84,18 +107,18 @@ export default function ExploreScreen() {
 
       <View style={styles.filtersContainer}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{paddingHorizontal: 20}}>
-          <TouchableOpacity style={[styles.filterChip, styles.filterChipActive]}>
-            <Text style={[styles.filterText, styles.filterTextActive]}>Tất cả</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.filterChip}>
-            <Text style={styles.filterText}>Mới nhất</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.filterChip}>
-            <Text style={styles.filterText}>Phổ biến</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.filterChip}>
-            <Text style={styles.filterText}>Từ vựng</Text>
-          </TouchableOpacity>
+          {FILTER_OPTIONS.map((f) => {
+            const isActive = selectedFilter === f.id;
+            return (
+              <TouchableOpacity 
+                key={f.id} 
+                style={[styles.filterChip, isActive && styles.filterChipActive]}
+                onPress={() => setSelectedFilter(f.id)}
+              >
+                <Text style={[styles.filterText, isActive && styles.filterTextActive]}>{f.label}</Text>
+              </TouchableOpacity>
+            );
+          })}
         </ScrollView>
       </View>
 

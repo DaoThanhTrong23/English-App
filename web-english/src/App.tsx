@@ -14,7 +14,7 @@ import TestList from './features/tests/pages/TestList';
 import TestDetail from './features/tests/pages/TestDetail';
 import TestResults from './features/tests/pages/TestResults';
 import AiChatList from './features/ai-chat/pages/AiChatList';
-import GameStats from './features/game/pages/GameStats';
+// import GameStats from './features/game/pages/GameStats';
 import GameList from './features/game/pages/GameList';
 
 function App() {

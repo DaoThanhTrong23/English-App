@@ -186,7 +186,23 @@ export class StudentLessonRepository {
         },
       },
     });
-    return Boolean(log);
+    if (log) return true;
+
+    const tests = await prisma.test.findMany({
+      where: { lessonId },
+      select: { id: true },
+    });
+    if (tests.length === 0) return false;
+
+    const result = await prisma.userTestResult.findFirst({
+      where: {
+        userId,
+        testId: { in: tests.map((t) => t.id) },
+        totalScore: { gt: 0 },
+      },
+    });
+
+    return Boolean(result);
   }
 
   /**

@@ -79,25 +79,50 @@ export class StudentLessonService {
     const paginatedCourses = scoredCourses.slice((page - 1) * limit, page * limit);
 
     const formattedCourses = await Promise.all(paginatedCourses.map(async (course: any) => {
-      const lessonsWithStatus = await Promise.all(
-        (course.lessons || []).map(async (lesson: any) => {
-          const isCompleted = await this.studentLessonRepo.hasCompletedLesson(userId, lesson.id);
-          return isCompleted;
-        })
-      );
-      const completedLessonsCount = lessonsWithStatus.filter((c) => c).length;
-      const totalLessons = course.lessons?.length || 0;
-      const progressPercentage = totalLessons > 0 ? Math.round((completedLessonsCount / totalLessons) * 100) : 0;
+      const lessons = course.lessons || [];
+      const totalLessons = lessons.length;
+      
+      const lessonIds = lessons.map((l: any) => l.id);
+      const testsInCourse = await prisma.test.findMany({
+        where: { lessonId: { in: lessonIds } },
+        select: { id: true, lessonId: true }
+      });
+      const testIds = testsInCourse.map(t => t.id);
+
+      const userResults = await prisma.userTestResult.findMany({
+        where: {
+          userId,
+          testId: { in: testIds },
+          totalScore: { gt: 0 }
+        },
+        select: { testId: true }
+      });
+
+      const completedTestIds = new Set(userResults.map(r => r.testId));
+
+      let completedLessonsCount = 0;
+      for (const lesson of lessons) {
+        const testsOfLesson = testsInCourse.filter(t => t.lessonId === lesson.id);
+        const hasFinished = testsOfLesson.some(t => completedTestIds.has(t.id));
+        if (hasFinished) completedLessonsCount++;
+      }
+
+      const totalTestsCount = testsInCourse.length;
+      const progressPercentage = totalTestsCount > 0 
+        ? Math.min(100, Math.round((completedTestIds.size / totalTestsCount) * 100))
+        : (totalLessons > 0 ? Math.round((completedLessonsCount / totalLessons) * 100) : 0);
+
       return {
-      id: course.id,
-      title: course.title,
-      description: course.description,
-      cefrLevel: course.cefrLevel,
-      imageUrl: course.imageUrl,
-      createdAt: course.createdAt,
-      totalLessons: course.lessons?.length || 0,
-      personalizedScore: course.personalizedScore,
-        progressPercentage
+        id: course.id,
+        title: course.title,
+        description: course.description,
+        cefrLevel: course.cefrLevel,
+        imageUrl: course.imageUrl,
+        createdAt: course.createdAt,
+        totalLessons,
+        personalizedScore: course.personalizedScore,
+        progressPercentage,
+        completedLessons: completedLessonsCount
       };
     }));
 
@@ -122,30 +147,49 @@ export class StudentLessonService {
       throw new ApiError(404, "course_not_found", "Không tìm thấy khóa học yêu cầu");
     }
 
-    // Lấy thông tin bài học và trạng thái hoàn thành
-    const lessonsWithStatus = await Promise.all(
-      course.lessons.map(async (lesson) => {
-        const isCompleted = await this.studentLessonRepo.hasCompletedLesson(userId, lesson.id);
-        return {
-          id: lesson.id,
-          title: lesson.title,
-          description: lesson.description,
-          cefrLevel: lesson.cefrLevel,
-          thumbnailUrl: lesson.thumbnailUrl,
-          videoUrl: lesson.videoUrl,
-          createdAt: lesson.createdAt,
-          totalWords: lesson._count.lessonWords,
-          totalTests: lesson._count.tests,
-          isCompleted,
-        };
-      })
-    );
+    // Lấy thông tin bài học và trạng thái hoàn thành dựa trên kết quả test thực tế
+    const lessonIds = course.lessons.map(l => l.id);
+    const testsInCourse = await prisma.test.findMany({
+      where: { lessonId: { in: lessonIds } },
+      select: { id: true, lessonId: true }
+    });
+    const testIds = testsInCourse.map(t => t.id);
+
+    const userResults = await prisma.userTestResult.findMany({
+      where: {
+        userId,
+        testId: { in: testIds },
+        totalScore: { gt: 0 }
+      },
+      select: { testId: true }
+    });
+
+    const completedTestIds = new Set(userResults.map(r => r.testId));
+
+    const lessonsWithStatus = course.lessons.map((lesson) => {
+      const testsOfLesson = testsInCourse.filter(t => t.lessonId === lesson.id);
+      const isCompleted = testsOfLesson.some(t => completedTestIds.has(t.id));
+      const completedTestsCount = testsOfLesson.filter(t => completedTestIds.has(t.id)).length;
+      return {
+        id: lesson.id,
+        title: lesson.title,
+        description: lesson.description,
+        cefrLevel: lesson.cefrLevel,
+        thumbnailUrl: lesson.thumbnailUrl,
+        videoUrl: lesson.videoUrl,
+        createdAt: lesson.createdAt,
+        totalWords: lesson._count.lessonWords,
+        totalTests: lesson._count.tests,
+        isCompleted,
+        completedTests: completedTestsCount
+      };
+    });
 
     const completedLessonsCount = lessonsWithStatus.filter((l) => l.isCompleted).length;
-    const progressPercentage =
-      lessonsWithStatus.length > 0
-        ? Math.round((completedLessonsCount / lessonsWithStatus.length) * 100)
-        : 0;
+    const totalTestsCount = testsInCourse.length;
+    const progressPercentage = totalTestsCount > 0 
+      ? Math.min(100, Math.round((completedTestIds.size / totalTestsCount) * 100))
+      : (lessonsWithStatus.length > 0 ? Math.round((completedLessonsCount / lessonsWithStatus.length) * 100) : 0);
 
     return {
       id: course.id,

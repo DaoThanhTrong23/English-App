@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList, KeyboardAvoidingView, Platform, ActivityIndicator, Modal, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList, KeyboardAvoidingView, Platform, ActivityIndicator, Modal, ScrollView, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -122,7 +122,11 @@ export default function AiChatScreen() {
     <View style={[styles.messageWrapper, item.isUser ? styles.messageWrapperUser : styles.messageWrapperBot]}>
       {!item.isUser && (
         <View style={styles.botAvatar}>
-          <Ionicons name="sparkles" size={16} color="#ffffff" />
+          {/* Icon cũ: <Ionicons name="sparkles" size={16} color="#ffffff" /> */}
+          <Image 
+            source={require('../../assets/images/gacon.gif')} 
+            style={styles.botAvatarImage} 
+          />
         </View>
       )}
       <View style={[styles.messageBubble, item.isUser ? styles.userBubble : styles.botBubble]}>
@@ -138,8 +142,17 @@ export default function AiChatScreen() {
           <Ionicons name="arrow-back" size={24} color="#111827" />
         </TouchableOpacity>
         <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitle}>Gia sư Gà Con AI</Text>
-          <View style={styles.onlineIndicator} />
+          <Image 
+            source={require('../../assets/images/gacon.gif')} 
+            style={styles.headerAvatar} 
+          />
+          <View>
+            <Text style={styles.headerTitle}>Gia sư Gà Con AI</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
+              <View style={styles.onlineIndicator} />
+              <Text style={{ fontSize: 11, color: '#10b981', marginLeft: 4, fontWeight: '500' }}>Đang hoạt động</Text>
+            </View>
+          </View>
         </View>
         <TouchableOpacity onPress={() => { fetchSessionsList(); setHistoryModalVisible(true); }}>
           <Ionicons name="time-outline" size={26} color="#3b82f6" />
@@ -224,14 +237,16 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 20, backgroundColor: '#ffffff', borderBottomWidth: 1, borderBottomColor: '#e5e7eb' },
   backBtn: { padding: 5 },
   headerTitleContainer: { flexDirection: 'row', alignItems: 'center' },
-  headerTitle: { fontSize: 18, fontWeight: 'bold', color: '#111827', marginRight: 8 },
-  onlineIndicator: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#10b981' },
+  headerAvatar: { width: 36, height: 36, borderRadius: 18, marginRight: 10, borderWidth: 1, borderColor: '#e5e7eb' },
+  headerTitle: { fontSize: 17, fontWeight: 'bold', color: '#111827' },
+  onlineIndicator: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#10b981' },
   keyboardView: { flex: 1 },
   chatContainer: { padding: 15, paddingBottom: 20 },
   messageWrapper: { flexDirection: 'row', marginBottom: 15, alignItems: 'flex-end' },
   messageWrapperUser: { justifyContent: 'flex-end' },
   messageWrapperBot: { justifyContent: 'flex-start' },
-  botAvatar: { width: 30, height: 30, borderRadius: 15, backgroundColor: '#8b5cf6', justifyContent: 'center', alignItems: 'center', marginRight: 8 },
+  botAvatar: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#f3f4f6', justifyContent: 'center', alignItems: 'center', marginRight: 8, overflow: 'hidden', borderWidth: 1, borderColor: '#e5e7eb' },
+  botAvatarImage: { width: 32, height: 32, borderRadius: 16 },
   messageBubble: { maxWidth: '75%', padding: 14, borderRadius: 20 },
   userBubble: { backgroundColor: '#3b82f6', borderBottomRightRadius: 4 },
   botBubble: { backgroundColor: '#ffffff', borderBottomLeftRadius: 4, borderWidth: 1, borderColor: '#e5e7eb' },

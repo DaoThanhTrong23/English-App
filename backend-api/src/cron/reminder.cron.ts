@@ -37,7 +37,7 @@ export const startCronJobs = () => {
             userId: user.id,
             createdAt: { gte: startOfToday },
             title: {
-              in: ['Cảnh báo mất chuỗi! 😱', 'Đã đến giờ học tiếng Anh! 📚']
+              in: ['Cảnh báo mất chuỗi!', 'Đã đến giờ học tiếng Anh gòi bạn iuu']
             }
           }
         });
@@ -79,8 +79,8 @@ export const startCronJobs = () => {
           await prisma.notification.create({
             data: {
               userId: user.id,
-              title: 'Cảnh báo mất chuỗi! 😱',
-              body: "Bạn đang có chuỗi " + streak + " ngày học liên tiếp. Đã đến giờ học quen thuộc (" + targetHour + "h), đừng để mất streak nhé!"
+              title: 'Cảnh báo mất chuỗi!',
+              body: "Bạn đang có chuỗi " + streak + " ngày học liên tiếp. Đã đến giờ học (" + targetHour + "h), đừng để mất streak nhé!"
             }
           });
           sentCount++;
@@ -88,7 +88,7 @@ export const startCronJobs = () => {
           await prisma.notification.create({
             data: {
               userId: user.id,
-              title: 'Đã đến giờ học tiếng Anh! 📚',
+              title: 'Đã đến giờ học tiếng Anh!',
               body: "Dành ra 15 phút mỗi ngày để cải thiện tiếng Anh nhé " + user.username + "! Hệ thống thấy bạn thường học lúc " + targetHour + "h đó!"
             }
           });

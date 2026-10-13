@@ -9,27 +9,27 @@ export interface AuthenticateRequest extends Request {
     user?: JwtPayload
 }
 
-export const Authenticate =async (req: AuthenticateRequest, res: Response, _next: NextFunction ) => {
-    const authHeader = req.headers.authorization;
-
-    //Kiểm tra header
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        throw new ApiError(401, 'unauthorized', 'Client chưa đăng nhập hoặc thiếu headeer Authorization');
-    }
-
-    //Kiểm tra token
-    const token = authHeader.split(' ')[1];
-    if (!token) {
-        throw new ApiError(401, 'token_missing', 'Access Token không được để rỗng');
-    }
-
+export const Authenticate = async (req: AuthenticateRequest, res: Response, _next: NextFunction) => {
     try {
+        const authHeader = req.headers.authorization;
+
+        // Kiểm tra header
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return _next(new ApiError(401, 'unauthorized', 'Client chưa đăng nhập hoặc thiếu header Authorization'));
+        }
+
+        // Kiểm tra token
+        const token = authHeader.split(' ')[1];
+        if (!token) {
+            return _next(new ApiError(401, 'token_missing', 'Access Token không được để rỗng'));
+        }
+
         const decoded = verifyAccessToken(token);
 
         const tokenHash = hashSHA256(token);
         const isRevoked = await authRepository.isTokenRevoked(tokenHash);
         if (isRevoked) {
-            throw new ApiError(401, 'token_revoked', 'Access Token này đã bị thu hồi/đăng xuất. Vui lòng đăng nhập lại');
+            return _next(new ApiError(401, 'token_revoked', 'Access Token này đã bị thu hồi/đăng xuất. Vui lòng đăng nhập lại'));
         }
 
         req.user = decoded;

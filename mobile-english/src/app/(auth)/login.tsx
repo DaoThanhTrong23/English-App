@@ -60,7 +60,16 @@ export default function LoginScreen() {
 
       await SecureStore.setItemAsync('accessToken', String(accessToken));
       if (refreshToken) await SecureStore.setItemAsync('refreshToken', String(refreshToken));
-      if (user) await SecureStore.setItemAsync('userInfo', JSON.stringify(user));
+      if (user) {
+        await SecureStore.setItemAsync('userInfo', JSON.stringify(user));
+        if (user.avatarUrl) {
+          const baseURL = axiosClient.defaults.baseURL?.replace('/api', '') || 'http://10.0.2.2:3000';
+          const avatar = user.avatarUrl.startsWith('http') ? user.avatarUrl : baseURL + user.avatarUrl;
+          await SecureStore.setItemAsync('userAvatar', avatar);
+        } else {
+          await SecureStore.deleteItemAsync('userAvatar').catch(() => {});
+        }
+      }
 
       
       if (user && user.onboardingCompleted === false) {
@@ -109,7 +118,16 @@ export default function LoginScreen() {
 
       await SecureStore.setItemAsync('accessToken', String(accessToken));
       if (refreshToken) await SecureStore.setItemAsync('refreshToken', String(refreshToken));
-      if (user) await SecureStore.setItemAsync('userInfo', JSON.stringify(user));
+      if (user) {
+        await SecureStore.setItemAsync('userInfo', JSON.stringify(user));
+        if (user.avatarUrl) {
+          const baseURL = axiosClient.defaults.baseURL?.replace('/api', '') || 'http://10.0.2.2:3000';
+          const avatar = user.avatarUrl.startsWith('http') ? user.avatarUrl : baseURL + user.avatarUrl;
+          await SecureStore.setItemAsync('userAvatar', avatar);
+        } else {
+          await SecureStore.deleteItemAsync('userAvatar').catch(() => {});
+        }
+      }
 
       
       if (user && user.onboardingCompleted === false) {

@@ -6,6 +6,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useFocusEffect } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import { axiosClient } from '../../api/axiosClient';
+import NotificationModal, { NotificationItem } from '../../components/NotificationModal';
+import DailyQuestModal from '../../components/DailyQuestModal';
+import { notificationService } from '../../service/notificationService';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -15,18 +18,74 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(true);
   const [targetLevel, setTargetLevel] = useState<string>('Đang cập nhật...');
   const [courses, setCourses] = useState<any[]>([]);
+
+  // Notification states
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [notifModalVisible, setNotifModalVisible] = useState(false);
+  const [notifLoading, setNotifLoading] = useState(false);
+  const [questModalVisible, setQuestModalVisible] = useState(false);
+
+  const loadNotifications = async () => {
+    try {
+      setNotifLoading(true);
+      const res = await axiosClient.get('/student/notifications');
+      if (res.data?.success) {
+        setNotifications(res.data.data || []);
+      }
+    } catch (err) {
+      console.log('Lỗi khi tải thông báo:', err);
+    } finally {
+      setNotifLoading(false);
+    }
+  };
+
+  const handleMarkAsRead = async (id: number) => {
+    try {
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === id ? { ...n, isRead: true } : n))
+      );
+      await axiosClient.put(`/student/notifications/${id}/read`);
+    } catch (err) {
+      console.log('Lỗi khi đánh dấu đã đọc:', err);
+    }
+  };
+
+  const handleMarkAllAsRead = async () => {
+    const unread = notifications.filter((n) => !n.isRead);
+    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    await Promise.all(
+      unread.map((n) =>
+        axiosClient.put(`/student/notifications/${n.id}/read`).catch(() => {})
+      )
+    );
+  };
+
   useFocusEffect(
     useCallback(() => {
       const fetchAvatar = async () => {
         try {
           const storedAvatar = await SecureStore.getItemAsync('userAvatar');
-          if (storedAvatar) setAvatarUri(storedAvatar);
+          if (storedAvatar) {
+            setAvatarUri(storedAvatar);
+          } else {
+            // Nếu cache chưa có avatar, đồng bộ từ server
+            const res = await axiosClient.get('/profile/me');
+            if (res.data?.success && res.data.data?.avatarUrl) {
+              const baseURL = axiosClient.defaults.baseURL?.replace('/api', '') || 'http://10.0.2.2:3000';
+              const fullAvatar = res.data.data.avatarUrl.startsWith('http') ? res.data.data.avatarUrl : baseURL + res.data.data.avatarUrl;
+              setAvatarUri(fullAvatar);
+              await SecureStore.setItemAsync('userAvatar', fullAvatar);
+            }
+          }
         } catch (error) {
           console.log("Error fetching avatar data:", error);
         }
       };
       fetchAvatar();
       loadHomeData();
+      loadNotifications();
+      // Tự động đồng bộ khung giờ học quen thuộc từ Server/AI và lên lịch nhắc nhở hàng ngày
+      notificationService.syncAndScheduleHabitReminder();
     }, [])
   );
 
@@ -95,8 +154,20 @@ export default function HomeScreen() {
               </View>
             </View>
           </View>
-          <TouchableOpacity style={styles.notificationBtn}>
+          <TouchableOpacity 
+            style={styles.notificationBtn}
+            onPress={() => setNotifModalVisible(true)}
+          >
             <Ionicons name="notifications-outline" size={24} color="#374151" />
+            {notifications.filter((n) => !n.isRead).length > 0 && (
+              <View style={styles.notifBadge}>
+                <Text style={styles.notifBadgeText}>
+                  {notifications.filter((n) => !n.isRead).length > 9
+                    ? '9+'
+                    : notifications.filter((n) => !n.isRead).length}
+                </Text>
+              </View>
+            )}
           </TouchableOpacity>
         </View>
 
@@ -125,7 +196,7 @@ export default function HomeScreen() {
           </TouchableOpacity>
           <TouchableOpacity 
             style={{flex: 1, backgroundColor: '#dcfce7', padding: 15, borderRadius: 16, marginLeft: 10, alignItems: 'center', borderWidth: 1, borderColor: '#bbf7d0'}}
-            onPress={() => alert('Đã nhận nhiệm vụ: Hoàn thành 1 bài học (+20 XP)')}
+            onPress={() => setQuestModalVisible(true)}
           >
             <Ionicons name="calendar" size={32} color="#15803d" />
             <Text style={{fontWeight: 'bold', color: '#166534', marginTop: 8}}>Nhiệm Vụ</Text>
@@ -155,9 +226,11 @@ export default function HomeScreen() {
                       <Text style={[styles.topicTitle]}>{course.title}</Text>
                       <Text style={[styles.topicPercent, {color: pct > 0 ? '#10b981' : '#6b7280'}]}>{pct}%</Text>
                     </View>
-                    <Text style={styles.topicSubtitle}>{course.totalLessons} bài học</Text>
+                    <Text style={styles.topicSubtitle}>
+                      {course.completedLessons > 0 ? `${course.completedLessons}/${course.totalLessons} bài học đã học` : `${course.totalLessons} bài học`}
+                    </Text>
                     <View style={styles.topicProgressBarBg}>
-                      <View style={[styles.topicProgressBarFill, { width: `${pct}%`, backgroundColor: pct > 0 ? '#3b82f6' : '#e5e7eb' }]} />
+                      <View style={[styles.topicProgressBarFill, { width: `${pct}%`, backgroundColor: pct > 0 ? '#10b981' : '#e5e7eb' }]} />
                     </View>
                   </View>
                 </View>
@@ -166,17 +239,43 @@ export default function HomeScreen() {
           })}
         </View>
 
-        {/* BOTTOM BANNER */}
-        <LinearGradient colors={['#ef4444', '#f43f5e']} style={styles.challengeBanner} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-          <View style={styles.challengeIconContainer}>
-            <Ionicons name="ribbon-outline" size={28} color="#ffffff" />
-          </View>
-          <View style={styles.challengeInfo}>
-            <Text style={styles.challengeLabel}>THỬ THÁCH HÔM NAY</Text>
-            <Text style={styles.challengeTitle}>Hoàn thành 1000 bài luyện nói phát âm trôi chảy</Text>
-          </View>
-        </LinearGradient>
+        {/* BOTTOM BANNER - NHIỆM VỤ HÔM NAY */}
+        <TouchableOpacity activeOpacity={0.85} onPress={() => setQuestModalVisible(true)}>
+          <LinearGradient colors={['#ef4444', '#f43f5e']} style={styles.challengeBanner} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
+            <View style={styles.challengeIconContainer}>
+              <Ionicons name="ribbon-outline" size={28} color="#ffffff" />
+            </View>
+            <View style={styles.challengeInfo}>
+              <Text style={styles.challengeLabel}>THỬ THÁCH HÔM NAY 🎯</Text>
+              <Text style={styles.challengeTitle}>Chinh phục các nhiệm vụ hàng ngày để tích lũy XP!</Text>
+              <Text style={{color: 'rgba(255,255,255,0.85)', fontSize: 12, marginTop: 2}}>Chạm để xem tiến độ & nhận thưởng ✨</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color="#ffffff" style={{marginLeft: 8}} />
+          </LinearGradient>
+        </TouchableOpacity>
       </ScrollView>
+
+      {/* MODAL NHIỆM VỤ HẰNG NGÀY */}
+      <DailyQuestModal
+        visible={questModalVisible}
+        onClose={() => setQuestModalVisible(false)}
+        onXpClaimed={(totalXp) => {
+          if (userInfo) {
+            setUserInfo({ ...userInfo, xpPoints: totalXp });
+          }
+        }}
+      />
+
+      {/* MODAL THÔNG BÁO */}
+      <NotificationModal
+        visible={notifModalVisible}
+        onClose={() => setNotifModalVisible(false)}
+        notifications={notifications}
+        loading={notifLoading}
+        onRefresh={loadNotifications}
+        onMarkAsRead={handleMarkAsRead}
+        onMarkAllAsRead={handleMarkAllAsRead}
+      />
     </SafeAreaView>
   );
 }
@@ -190,7 +289,9 @@ const styles = StyleSheet.create({
   greeting: { fontSize: 16, fontWeight: 'bold', color: '#111827' },
   streakBadge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12, marginTop: 4, alignSelf: 'flex-start' },
   streakText: { fontSize: 11, fontWeight: 'bold' },
-  notificationBtn: { padding: 8, backgroundColor: '#ffffff', borderRadius: 20, borderWidth: 1, borderColor: '#e5e7eb' },
+  notificationBtn: { padding: 8, backgroundColor: '#ffffff', borderRadius: 20, borderWidth: 1, borderColor: '#e5e7eb', position: 'relative' },
+  notifBadge: { position: 'absolute', top: -3, right: -3, backgroundColor: '#ef4444', minWidth: 18, height: 18, borderRadius: 9, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 4, borderWidth: 1.5, borderColor: '#ffffff' },
+  notifBadgeText: { color: '#ffffff', fontSize: 10, fontWeight: 'bold' },
 
   levelCard: { padding: 20, borderRadius: 16, marginBottom: 25, shadowColor: '#3b82f6', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 5 },
   levelLabel: { color: 'rgba(255,255,255,0.8)', fontSize: 11, fontWeight: 'bold', marginBottom: 5 },

@@ -3,6 +3,7 @@ import { logExecution } from "../../shared/decorators/log.decorator.js";
 import { studentManageRepository, StudentManageRepository } from "./studentManage.repository.js";
 import { GetStudentQueryInput } from "./studentManage.schema.js";
 import { ApiError } from "../../shared/http/api-error.js";
+import { prisma } from "../../config/prisma.js";
 
 export class StudentManageService {
     constructor(
@@ -31,6 +32,7 @@ export class StudentManageService {
                 username: st.username,
                 email: st.email,
                 xpPoints: st.xpPoints,
+                isLocked: st.isLocked,
                 lastLoginDate: st.lastLoginDate,
                 lastActiveAt: lasttActiveAt,
                 lastestActivity: lastestActivity,
@@ -133,6 +135,36 @@ export class StudentManageService {
   @logExecution()
   async getTopStudents(limit: number = 5) {
     return studentManageRepository.getTopStudents(limit);
+  }
+
+  @logExecution()
+  async updateStudentLockStatus(studentId: number, isLocked: boolean) {
+    const student = await prisma.user.findFirst({
+      where: { id: studentId, role: "user" },
+    });
+    if (!student) {
+      throw new ApiError(404, "student_not_found", "Không tìm thấy học viên");
+    }
+
+    const updated = await prisma.user.update({
+      where: { id: studentId },
+      data: { isLocked },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        isLocked: true,
+      },
+    });
+
+    if (isLocked) {
+      // Hủy refresh tokens để đăng xuất ngay lập tức
+      await prisma.refreshToken.deleteMany({
+        where: { userId: studentId },
+      });
+    }
+
+    return updated;
   }
 }
 

@@ -52,6 +52,7 @@ model User {
     cefrLevel     String?   @map("cefr_level") @db.VarChar(10)
     onboardingCompleted Boolean @default(false) @map("onboarding_completed")
   xpPoints      Int       @default(0) @map("xp_points")
+  isLocked      Boolean   @default(false) @map("is_locked")
   //Bỏ last streak day vì sẽ tính từ lastlogin date thay vì lưu thông tin
   lastLoginDate DateTime? @map("last_login_date")
   createdAt     DateTime  @default(now()) @map("created_at")

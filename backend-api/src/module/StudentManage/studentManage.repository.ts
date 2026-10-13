@@ -34,6 +34,7 @@ export class StudentManageRepository {
           username: true,
           email: true,
           xpPoints: true,
+          isLocked: true,
           lastLoginDate: true,
           createdAt: true,
           _count: {
@@ -83,6 +84,7 @@ export class StudentManageRepository {
         email: true,
         role: true,
         xpPoints: true,
+        isLocked: true,
         lastLoginDate: true,
         createdAt: true,
         userProgress: {

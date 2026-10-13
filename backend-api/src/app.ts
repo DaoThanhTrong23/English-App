@@ -33,6 +33,7 @@ import { studentVocabularyRouter } from "./module/student-vocabulary/student-voc
 import { studentCourseRouter, studentLessonRouter } from "./module/student-lesson/student-lesson.route.js";
 import { studentTestRouter } from "./module/student-test/student-test.route.js";
 import { notificationRouter } from "./module/notification/notification.route.js";
+import { questRouter } from "./module/quest/quest.route.js";
 
 export function createapp() {
     const app = express();
@@ -97,6 +98,7 @@ app.use("/api/onboarding", onboardingRouter);
     app.use("/api/student/lessons", studentLessonRouter);
     app.use("/api/student/tests", studentTestRouter);
     app.use("/api/student/notifications", notificationRouter);
+    app.use("/api/student/quests", questRouter);
     // Đăng ký Swagger UI tài liệu API
     const swaggerPath = fs.existsSync(path.resolve(process.cwd(), "src/swagger-output.json"))
         ? path.resolve(process.cwd(), "src/swagger-output.json")

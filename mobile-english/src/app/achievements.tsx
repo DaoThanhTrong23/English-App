@@ -42,9 +42,30 @@ export default function AchievementsScreen() {
         <Text style={styles.headerTitle}>Thành tựu của bạn</Text>
       </View>
 
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        {/* SUMMARY CARD */}
+        <View style={styles.summaryCard}>
+          <View style={styles.summaryTop}>
+            <View>
+              <Text style={styles.summaryTitle}>Tiến trình danh hiệu</Text>
+              <Text style={styles.summarySubtitle}>Đã mở khóa {userAch.length}/{allAch.length} thành tựu</Text>
+            </View>
+            <View style={styles.trophyCircle}>
+              <Ionicons name="trophy" size={28} color="#d97706" />
+            </View>
+          </View>
+          <View style={styles.summaryBarBg}>
+            <View 
+              style={[
+                styles.summaryBarFill, 
+                { width: allAch.length > 0 ? `${Math.round((userAch.length / allAch.length) * 100)}%` : '0%' }
+              ]} 
+            />
+          </View>
+        </View>
+
         {loading ? (
-          <ActivityIndicator size="large" color="#3b82f6" />
+          <ActivityIndicator size="large" color="#3b82f6" style={{ marginTop: 20 }} />
         ) : allAch.length === 0 ? (
           <View style={styles.empty}>
             <Ionicons name="trophy-outline" size={48} color="#d1d5db" />
@@ -53,18 +74,32 @@ export default function AchievementsScreen() {
         ) : (
           allAch.map((item, idx) => {
             const unlocked = isUnlocked(item.id);
+            const iconName = item.iconUrl || (unlocked ? "trophy" : "lock-closed");
             return (
               <View key={idx} style={[styles.card, !unlocked && styles.cardLocked]}>
                 <View style={[styles.iconBox, { backgroundColor: unlocked ? '#fef3c7' : '#f3f4f6' }]}>
-                  <Ionicons name={unlocked ? "trophy" : "lock-closed"} size={24} color={unlocked ? "#d97706" : "#9ca3af"} />
+                  <Ionicons 
+                    name={unlocked ? (iconName as any) : "lock-closed"} 
+                    size={24} 
+                    color={unlocked ? "#d97706" : "#9ca3af"} 
+                  />
                 </View>
                 <View style={styles.info}>
-                  <Text style={[styles.title, !unlocked && {color: '#9ca3af'}]}>{item.name}</Text>
+                  <Text style={[styles.title, !unlocked && {color: '#6b7280'}]}>
+                    {item.title || item.name}
+                  </Text>
                   <Text style={styles.desc}>{item.description}</Text>
+                  <Text style={styles.reqText}>
+                    🎯 {item.requireXp} XP {item.requireStreak > 1 ? `• 🔥 ${item.requireStreak} ngày streak` : ''}
+                  </Text>
                 </View>
-                {unlocked && (
+                {unlocked ? (
                   <View style={styles.badge}>
-                    <Text style={styles.badgeText}>Đã mở khóa</Text>
+                    <Text style={styles.badgeText}>Đã đạt</Text>
+                  </View>
+                ) : (
+                  <View style={styles.badgeLocked}>
+                    <Text style={styles.badgeLockedText}>Khóa</Text>
                   </View>
                 )}
               </View>
@@ -81,15 +116,28 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', padding: 20, backgroundColor: '#ffffff', borderBottomWidth: 1, borderBottomColor: '#e5e7eb' },
   backBtn: { marginRight: 15 },
   headerTitle: { fontSize: 18, fontWeight: 'bold', color: '#111827' },
-  content: { padding: 20 },
+  content: { padding: 20, paddingBottom: 40 },
+
+  summaryCard: { backgroundColor: '#1e3a8a', padding: 20, borderRadius: 16, marginBottom: 20 },
+  summaryTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
+  summaryTitle: { color: '#ffffff', fontSize: 18, fontWeight: 'bold' },
+  summarySubtitle: { color: '#93c5fd', fontSize: 13, marginTop: 4 },
+  trophyCircle: { width: 50, height: 50, borderRadius: 25, backgroundColor: 'rgba(255,255,255,0.15)', justifyContent: 'center', alignItems: 'center' },
+  summaryBarBg: { height: 8, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 4, overflow: 'hidden' },
+  summaryBarFill: { height: '100%', backgroundColor: '#fbbf24', borderRadius: 4 },
+
   empty: { alignItems: 'center', marginTop: 50 },
   emptyText: { marginTop: 10, color: '#6b7280' },
-  card: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#ffffff', padding: 15, borderRadius: 12, marginBottom: 12, borderWidth: 1, borderColor: '#e5e7eb' },
-  cardLocked: { opacity: 0.7, backgroundColor: '#f9fafb' },
-  iconBox: { width: 50, height: 50, borderRadius: 25, justifyContent: 'center', alignItems: 'center', marginRight: 15 },
+
+  card: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#ffffff', padding: 16, borderRadius: 16, marginBottom: 12, borderWidth: 1, borderColor: '#e5e7eb', elevation: 1, shadowColor: '#000', shadowOffset: {width: 0, height: 1}, shadowOpacity: 0.05, shadowRadius: 3 },
+  cardLocked: { opacity: 0.75, backgroundColor: '#f9fafb' },
+  iconBox: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center', marginRight: 15 },
   info: { flex: 1 },
-  title: { fontSize: 16, fontWeight: 'bold', color: '#111827', marginBottom: 4 },
-  desc: { fontSize: 13, color: '#6b7280' },
-  badge: { backgroundColor: '#dcfce7', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
-  badgeText: { fontSize: 10, fontWeight: 'bold', color: '#16a34a' }
+  title: { fontSize: 15, fontWeight: 'bold', color: '#111827', marginBottom: 3 },
+  desc: { fontSize: 13, color: '#4b5563', lineHeight: 18, marginBottom: 4 },
+  reqText: { fontSize: 11, color: '#9ca3af', fontWeight: '500' },
+  badge: { backgroundColor: '#dcfce7', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 10 },
+  badgeText: { fontSize: 11, fontWeight: 'bold', color: '#16a34a' },
+  badgeLocked: { backgroundColor: '#f3f4f6', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 10 },
+  badgeLockedText: { fontSize: 11, fontWeight: 'bold', color: '#9ca3af' }
 });

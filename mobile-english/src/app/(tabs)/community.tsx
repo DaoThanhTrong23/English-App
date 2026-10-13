@@ -16,6 +16,8 @@ export default function CommunityScreen() {
   const [commentText, setCommentText] = useState('');
   const [loadingComments, setLoadingComments] = useState(false);
 
+  const baseURL = axiosClient.defaults.baseURL?.replace('/api', '') || 'http://10.0.2.2:3000';
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -97,7 +99,11 @@ export default function CommunityScreen() {
 
   const formatTime = (isoString: string) => {
     const d = new Date(isoString);
-    return `${d.getHours()}:${d.getMinutes()} ${d.getDate()}/${d.getMonth()+1}`;
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    return `${hours}:${minutes} ${day}/${month}`;
   };
 
   return (
@@ -124,11 +130,16 @@ export default function CommunityScreen() {
 
         {loading ? (
           <ActivityIndicator size="large" color="#3b82f6" style={{marginTop: 20}} />
+        ) : posts.length === 0 ? (
+          <View style={{ alignItems: 'center', marginTop: 40 }}>
+            <Ionicons name="chatbubbles-outline" size={48} color="#d1d5db" />
+            <Text style={{ marginTop: 10, color: '#9ca3af', fontSize: 14 }}>Chưa có bài viết nào. Hãy chia sẻ bài viết đầu tiên!</Text>
+          </View>
         ) : (
           posts.map((post, idx) => (
             <View key={post.id} style={styles.mockPost}>
               <View style={styles.postHeader}>
-                <Image source={post.user.avatarUrl ? {uri: post.user.avatarUrl} : require('../../../assets/images/gacon.gif')} style={styles.postAvatar} />
+                <Image source={post.user.avatarUrl ? {uri: post.user.avatarUrl.startsWith('http') ? post.user.avatarUrl : baseURL + post.user.avatarUrl} : require('../../../assets/images/gacon.gif')} style={styles.postAvatar} />
                 <View>
                   <Text style={styles.postName}>{post.user.username}</Text>
                   <Text style={styles.postTime}>{formatTime(post.createdAt)}</Text>
@@ -163,7 +174,7 @@ export default function CommunityScreen() {
             <ScrollView style={{flex: 1, padding: 15}}>
               {loadingComments ? <ActivityIndicator /> : comments.map(c => (
                 <View key={c.id} style={styles.commentRow}>
-                  <Image source={c.user.avatarUrl ? {uri: c.user.avatarUrl} : require('../../../assets/images/gacon.gif')} style={styles.commentAvatar} />
+                  <Image source={c.user.avatarUrl ? {uri: c.user.avatarUrl.startsWith('http') ? c.user.avatarUrl : baseURL + c.user.avatarUrl} : require('../../../assets/images/gacon.gif')} style={styles.commentAvatar} />
                   <View style={styles.commentBubble}>
                     <Text style={styles.commentName}>{c.user.username}</Text>
                     <Text style={styles.commentText}>{c.content}</Text>

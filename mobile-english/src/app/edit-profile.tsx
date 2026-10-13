@@ -104,7 +104,7 @@ export default function EditProfileScreen() {
         const updatedUser = res.data.data;
         // Nối tên miền của backend vào URL ảnh
         const baseURL = axiosClient.defaults.baseURL?.replace('/api', '') || 'http://10.0.2.2:3000';
-        const finalAvatarUri = updatedUser.avatarUrl ? baseURL + updatedUser.avatarUrl : null;
+        const finalAvatarUri = updatedUser.avatarUrl ? (updatedUser.avatarUrl.startsWith('http') ? updatedUser.avatarUrl : baseURL + updatedUser.avatarUrl) : null;
         
         if (finalAvatarUri) {
           await SecureStore.setItemAsync('userAvatar', finalAvatarUri);
