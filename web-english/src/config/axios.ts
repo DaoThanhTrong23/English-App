@@ -1,7 +1,9 @@
 import axios from 'axios';
 
+const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:3000/api';
+
 export const axiosClient = axios.create({
-  baseURL: 'http://localhost:3000/api',
+  baseURL: API_BASE_URL,
 });
 
 // Tự động đính kèm Token vào mọi Request
@@ -51,7 +53,7 @@ axiosClient.interceptors.response.use(
       try {
         const refreshToken = localStorage.getItem('adminRefreshToken');
         
-        const res = await axios.post('http://localhost:3000/api/auth/refresh', { 
+        const res = await axios.post(`${API_BASE_URL}/auth/refresh`, { 
           refreshToken 
         }, {
           headers: {

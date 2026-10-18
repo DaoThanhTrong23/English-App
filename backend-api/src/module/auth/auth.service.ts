@@ -7,6 +7,7 @@ import { LoginInput, RegisterInput, ChangePasswordInput } from "./auth.schema.js
 import { prisma } from "../../config/prisma.js";
 import { logExecution } from "../../shared/decorators/log.decorator.js";
 import { recordActivity } from "../../shared/decorators/activity.decorator.js";
+import { notificationService } from "../notification/notification.service.js";
 
 import { OAuth2Client } from 'google-auth-library';
 const googleClient = new OAuth2Client(env.GOOGLE_CLIENT_ID);
@@ -78,6 +79,7 @@ export class AuthService {
                 role: user.role,
                 avatarUrl: user.avatarUrl,
                 xpPoint: user.xpPoints,
+                xpPoints: user.xpPoints,
                 onboardingCompleted: user.onboardingCompleted,
                 cefrLevel: user.cefrLevel
             },
@@ -146,6 +148,7 @@ export class AuthService {
                 role: currentUser.role,
                 avatarUrl: currentUser.avatarUrl,
                 xpPoint: currentUser.xpPoints,
+                xpPoints: currentUser.xpPoints,
                 onboardingCompleted: currentUser.onboardingCompleted,
                 cefrLevel: currentUser.cefrLevel 
             },
@@ -220,6 +223,7 @@ export class AuthService {
                 role: currentUser.role,
                 avatarUrl: currentUser.avatarUrl,
                 xpPoint: currentUser.xpPoints,
+                xpPoints: currentUser.xpPoints,
                 onboardingCompleted: currentUser.onboardingCompleted,
                 cefrLevel: currentUser.cefrLevel 
             },
@@ -336,8 +340,8 @@ export class AuthService {
     }
 
     @logExecution()
-    @recordActivity("USER_REGISTER", (result) => `Đăng ký tài khoản mới: ${result.username}`)
-    async register(data: RegisterInput) {
+    @recordActivity("USER_REGISTER", (result) => `Đăng ký tài khoản mới: ${result.user?.username || result.username}`)
+    async register(data: RegisterInput, clientIp?: string) {
         const [existingEmail, existingUsername] = await Promise.all([
             this.authRepo.findUserByEmail(data.email),
             this.authRepo.findUserByUsername(data.username),
@@ -355,7 +359,48 @@ export class AuthService {
             email: data.email,
             passwordHash,
         });
-        return newUser;
+
+        // Tự động tạo phiên và cấp Token đăng nhập ngay sau khi đăng ký
+        const sessionId = generatedSessionId();
+        const { accessToken, refreshToken } = await this.createToken(
+            newUser.id,
+            newUser.role,
+            sessionId,
+            data.deviceInfo
+        );
+
+        await Promise.all([
+            this.authRepo.updateLastLogin(newUser.id),
+            this.authRepo.createLoginLog({
+                userId: newUser.id,
+                ipAddress: clientIp,
+                deviceInfo: data.deviceInfo
+            }),
+        ]);
+
+        // Gửi thông báo đến Quản trị viên
+        notificationService.notifyAdmins(
+            "Học viên mới đăng ký 🎉",
+            `Học viên ${newUser.username} (${newUser.email}) vừa đăng ký tài khoản mới trên hệ thống.`
+        ).catch(() => {});
+
+        return {
+            user: {
+                id: newUser.id,
+                username: newUser.username,
+                email: newUser.email,
+                role: newUser.role,
+                avatarUrl: newUser.avatarUrl,
+                xpPoint: newUser.xpPoints,
+                xpPoints: newUser.xpPoints,
+                onboardingCompleted: newUser.onboardingCompleted,
+                cefrLevel: newUser.cefrLevel
+            },
+            token: {
+                accessToken,
+                refreshToken
+            }
+        };
     }
 
     async changePassword(userId: number, input: ChangePasswordInput) {

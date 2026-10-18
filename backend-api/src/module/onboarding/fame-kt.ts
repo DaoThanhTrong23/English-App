@@ -4,6 +4,7 @@ export const CEFR_THRESHOLDS = {
   B1: 1400,
   B2: 1600,
   C1: 1800,
+  C2: 2000,
 };
 
 // =========================================================================
@@ -28,7 +29,7 @@ export function getExpectedScoreIRT(userElo: number, questionElo: number, c_gues
  * - Trả lời trong Vùng tối ưu (Optimal: 5s - 15s): Thưởng hệ số cao (Nắm vững kiến thức).
  * - Trả lời chậm (> 30s): Bị phân tâm hoặc tra từ điển -> Hệ số cực thấp.
  */
-function calculateTimeFactor(timeTakenMs: number, expectedTimeMs: number = 20000): number {
+export function calculateTimeFactor(timeTakenMs: number, expectedTimeMs: number = 20000): number {
   const timeTakenSec = timeTakenMs / 1000;
   
   if (timeTakenSec < 2) return 0.2; // Bấm lụi mù quáng (Anti-bot)
@@ -40,16 +41,17 @@ function calculateTimeFactor(timeTakenMs: number, expectedTimeMs: number = 20000
 }
 
 /**
- * Hàm Cập nhật Elo Hoàn chỉnh
+ * Hàm Cập nhật Elo Hoàn chỉnh tích hợp IRT Guessing & Psychometrics Time Factor
  */
 export function updateAdvancedElo(
   userElo: number, 
   questionElo: number, 
   isCorrect: boolean, 
-  timeTakenMs: number
+  timeTakenMs: number,
+  c_guessing: number = 0.25
 ) {
   const actualScore = isCorrect ? 1 : 0;
-  const expectedScore = getExpectedScoreIRT(userElo, questionElo);
+  const expectedScore = getExpectedScoreIRT(userElo, questionElo, c_guessing);
   const timeFactor = calculateTimeFactor(timeTakenMs);
   
   const K_BASE = 32;
@@ -64,7 +66,7 @@ export function updateAdvancedElo(
 
 /**
  * CẢI TIẾN 3: Đánh giá Đa chiều (Multi-Dimensional Knowledge Tracing)
- * Tiếng Anh không thể gộp chung 1 điểm. Phải chia thành: Ngữ pháp, Từ vựng, Nghe, Đọc.
+ * Tiếng Anh chia thành 4 kỹ năng chuẩn: Ngữ pháp, Từ vựng, Nghe, Đọc.
  */
 export type UserProficiency = {
   Grammar: number;
@@ -78,52 +80,83 @@ export function createNewUserProficiency(): UserProficiency {
   return { Grammar: 1200, Vocabulary: 1200, Listening: 1200, Reading: 1200 };
 }
 
-// Map sang CEFR
+// Map sang CEFR chuẩn hóa cho toàn bộ hệ thống
 export function getCEFRLevel(elo: number): string {
   if (elo < CEFR_THRESHOLDS.A2) return 'A1';
   if (elo < CEFR_THRESHOLDS.B1) return 'A2';
   if (elo < CEFR_THRESHOLDS.B2) return 'B1';
   if (elo < CEFR_THRESHOLDS.C1) return 'B2';
-  return 'C1';
+  if (elo < CEFR_THRESHOLDS.C2) return 'C1';
+  return 'C2';
 }
 
 /**
- * CẢI TIẾN 5: Hệ thống Gợi ý lai (Tìm điểm yếu) (Hybrid Recommender System)
+ * CẢI TIẾN 5: Hệ thống Gợi ý lai (Tìm điểm yếu + Mở rộng từ đồng nghĩa) (Hybrid Recommender System)
  * Tự động phân tích Điểm yếu nhất (Weakest Link) trong Vector năng lực để gợi ý học bù.
  */
-export type Lesson = { id: string; title: string; cefr: string; topic: string; skillCategory: keyof UserProficiency };
+export type Lesson = { 
+  id: string; 
+  title: string; 
+  cefr: string; 
+  topic: string; 
+  skillCategory?: keyof UserProficiency;
+  keywords?: string[];
+};
 
 export function recommendPersonalizedPath(
   userProficiency: UserProficiency, 
   userTopics: string[], 
-  allLessons: Lesson[]
+  allLessons: Lesson[],
+  expandedKeywords?: Set<string>
 ) {
   // Tìm kỹ năng đang bị "Thọt" nhất (Điểm thấp nhất)
   let weakestSkill: keyof UserProficiency = 'Grammar';
   let minElo = 9999;
   for (const [skill, elo] of Object.entries(userProficiency)) {
-    if (elo < minElo) { minElo = elo; weakestSkill = skill as keyof UserProficiency; }
+    if (elo < minElo) { 
+      minElo = elo; 
+      weakestSkill = skill as keyof UserProficiency; 
+    }
   }
 
   const weakestCefr = getCEFRLevel(minElo);
+  const normalizedUserTopics = userTopics.map(t => t.trim().toLowerCase());
 
-  // Chấm điểm từng bài học trong DB
+  // Chấm điểm từng bài học / chủ đề trong DB
   const scoredLessons = allLessons.map(lesson => {
     let score = 0;
+    const lTitle = (lesson.title || '').toLowerCase();
+    const lDesc = (lesson.topic || '').toLowerCase();
     
-    // 1. Ưu tiên vá lỗ hổng (Weakest Skill)
-    if (lesson.skillCategory === weakestSkill) score += 20;
+    // 1. Ưu tiên vá lỗ hổng (Weakest Skill) (+20 điểm)
+    if (lesson.skillCategory && lesson.skillCategory === weakestSkill) {
+      score += 20;
+    }
     
-    // 2. Phù hợp Trình độ CEFR
-    if (lesson.cefr === weakestCefr) score += 10;
+    // 2. Phù hợp Trình độ CEFR (+15 điểm)
+    if (lesson.cefr === weakestCefr) {
+      score += 15;
+    }
     
-    // 3. Phù hợp Sở thích (Topic)
-    if (userTopics.includes(lesson.topic)) score += 5;
+    // 3. Phù hợp Sở thích trực tiếp (User Topics) (+10 điểm)
+    if (normalizedUserTopics.some(ut => lTitle.includes(ut) || lDesc.includes(ut))) {
+      score += 10;
+    }
+
+    // 4. Mở rộng từ khóa đồng nghĩa (Synonym Expansion) (+5 điểm)
+    if (expandedKeywords && expandedKeywords.size > 0) {
+      for (const kw of expandedKeywords) {
+        if (lTitle.includes(kw) || lDesc.includes(kw)) {
+          score += 5;
+          break;
+        }
+      }
+    }
     
     return { ...lesson, score };
   });
 
-  return scoredLessons.filter(l => l.score > 10).sort((a, b) => b.score - a.score);
+  return scoredLessons.filter(l => l.score >= 10).sort((a, b) => b.score - a.score);
 }
 
 /**

@@ -5,10 +5,12 @@ import { useCallback } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { axiosClient } from '../../../api/axiosClient';
+import { useAppTheme } from '../../../context/ThemeContext';
 
 export default function LessonScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
+  const { isDark, theme } = useAppTheme();
   const [lesson, setLesson] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -29,188 +31,192 @@ export default function LessonScreen() {
 
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color="#2563eb" />
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: theme.background }}>
+        <ActivityIndicator size="large" color={theme.primary} />
       </View>
     );
   }
 
   if (!lesson) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <Text>Không tìm thấy bài học</Text>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: theme.background }}>
+        <Text style={{ color: theme.text }}>Không tìm thấy bài học</Text>
         <TouchableOpacity onPress={() => router.back()} style={{ marginTop: 20 }}>
-          <Text style={{ color: '#2563eb' }}>Quay lại</Text>
+          <Text style={{ color: theme.primary }}>Quay lại</Text>
         </TouchableOpacity>
       </View>
     );
   }
 
-  // Calculate mock progress for 5 skills based on summary
-  const isCompleted = lesson.summary?.isCompleted;
-  const progressPct = isCompleted ? 100 : (lesson.summary?.wordsLearned > 0 ? 50 : 0);
-
-    const getSkillScore = (skillType: string) => {
-      if (!lesson || !lesson.tests) return { score: 0, max: 0, pct: 0 };
-      
-      const keywordMap: Record<string, string[]> = {
-        'listening': ['nghe', 'listening'],
-        'reading': ['đọc', 'reading'],
-        'writing': ['viết', 'writing'],
-        'speaking': ['nói', 'speaking'],
-        'test': ['kiểm tra', 'test', 'tổng hợp']
-      };
-      const keywords = keywordMap[skillType] || [skillType];
-      
-      const test = lesson.tests.find((t: any) => {
-        if (!t.title) return false;
-        const titleLower = t.title.toLowerCase();
-        return keywords.some(k => titleLower.includes(k));
-      });
-
-      if (test) {
-        const totalPossible = (test.totalQuestions || 0) * 10;
-        const score = test.userResult?.bestScore || 0;
-        const pct = totalPossible === 0 ? 0 : Math.min(100, Math.round((score / totalPossible) * 100));
-        return { score, max: totalPossible, pct };
-      }
-      return { score: 0, max: 0, pct: 0 };
+  const getSkillScore = (skillType: string) => {
+    if (!lesson || !lesson.tests) return { score: 0, max: 0, pct: 0 };
+    
+    const keywordMap: Record<string, string[]> = {
+      'listening': ['nghe', 'listening'],
+      'reading': ['đọc', 'reading'],
+      'writing': ['viết', 'writing'],
+      'speaking': ['nói', 'speaking'],
+      'test': ['kiểm tra', 'test', 'tổng hợp']
     };
+    const keywords = keywordMap[skillType] || [skillType];
+    
+    const test = lesson.tests.find((t: any) => {
+      if (!t.title) return false;
+      const titleLower = t.title.toLowerCase();
+      return keywords.some(k => titleLower.includes(k));
+    });
 
+    if (test) {
+      const totalPossible = (test.totalQuestions || 0) * 10;
+      const score = test.userResult?.bestScore || 0;
+      const pct = totalPossible === 0 ? 0 : Math.min(100, Math.round((score / totalPossible) * 100));
+      return { score, max: totalPossible, pct };
+    }
+    return { score: 0, max: 0, pct: 0 };
+  };
 
-
-    const completedSkills = ['listening', 'reading', 'writing', 'speaking', 'test']
+  const completedSkills = ['listening', 'reading', 'writing', 'speaking', 'test']
     .filter(type => getSkillScore(type).score > 0).length;
-  
+
+  // Tính toán tiến độ thực tế chính xác dựa trên kỹ năng hoàn thành và từ vựng đã học
+  const isCompleted = lesson.summary?.isCompleted;
+  const totalWords = lesson.summary?.totalWords || (lesson.words?.length || 0);
+  const wordsLearned = lesson.summary?.wordsLearned || 0;
+
+  let progressPct = 0;
+  if (isCompleted) {
+    progressPct = 100;
+  } else {
+    const skillRatio = completedSkills / 5;
+    const wordRatio = totalWords > 0 ? wordsLearned / totalWords : skillRatio;
+    progressPct = Math.min(100, Math.round((skillRatio * 0.6 + wordRatio * 0.4) * 100));
+  }
 
   const words = lesson.words || [];
   const maxWordsToShow = 5;
-
-  
-  
 
   const navigateToPractice = (skillType: string) => {
     router.push({ pathname: '/practice', params: { lessonId: id, type: skillType } } as any);
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       {/* HEADER BAR */}
-      <View style={styles.headerBar}>
+      <View style={[styles.headerBar, { backgroundColor: theme.card, borderBottomColor: theme.border }]}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={24} color="#111827" />
+          <Ionicons name="arrow-back" size={24} color={theme.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle} numberOfLines={1}>{lesson.title}</Text>
+        <Text style={[styles.headerTitle, { color: theme.text }]} numberOfLines={1}>{lesson.title}</Text>
         <View style={{ width: 40 }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         
         {/* MASCOT GREETING */}
-        <View style={styles.greetingCard}>
+        <View style={[styles.greetingCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
           <View style={styles.greetingHeader}>
             <Image source={require('../../../../assets/images/gacon.gif')} style={styles.mascotImg} />
             <View style={{ flex: 1 }}>
-              <Text style={styles.greetingTitle}>Chào mừng đến với bài học mới!</Text>
-              <Text style={styles.greetingText}>Hãy bắt đầu với 5 kỹ năng để nắm chắc từ vựng và phát âm.</Text>
+              <Text style={[styles.greetingTitle, { color: theme.text }]}>Chào mừng đến với bài học mới!</Text>
+              <Text style={[styles.greetingText, { color: theme.subtext }]}>Hãy bắt đầu với 5 kỹ năng để nắm chắc từ vựng và phát âm.</Text>
             </View>
           </View>
-          <View style={styles.chatBubble}>
-            <Ionicons name="chatbubble-ellipses-outline" size={16} color="#3b82f6" />
-            <Text style={styles.chatText}>Hello! Let's start.</Text>
+          <View style={[styles.chatBubble, { backgroundColor: isDark ? '#1e293b' : '#eff6ff' }]}>
+            <Ionicons name="chatbubble-ellipses-outline" size={16} color={isDark ? '#60a5fa' : '#3b82f6'} />
+            <Text style={[styles.chatText, { color: isDark ? '#93c5fd' : '#2563eb' }]}>Hello! Let's start.</Text>
           </View>
         </View>
 
         {/* PROGRESS */}
-        <View style={styles.progressCard}>
+        <View style={[styles.progressCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
           <View style={styles.progressRow}>
-            <Text style={styles.progressLabel}>Tiến độ</Text>
-            <Text style={styles.progressValue}>{completedSkills}/5 kỹ năng hoàn thành</Text>
+            <Text style={[styles.progressLabel, { color: theme.text }]}>Tiến độ</Text>
+            <Text style={[styles.progressValue, { color: theme.primary }]}>{completedSkills}/5 kỹ năng hoàn thành</Text>
           </View>
-          <View style={styles.progressBarBg}>
+          <View style={[styles.progressBarBg, { backgroundColor: theme.cardSecondary }]}>
             <View style={[styles.progressBarFill, { width: `${(completedSkills/5)*100}%` }]} />
           </View>
         </View>
 
         {/* SKILLS */}
-        <Text style={styles.sectionTitle}>5 kỹ năng</Text>
-        <View style={styles.skillsContainer}>
-          <TouchableOpacity style={styles.skillCard} onPress={() => navigateToPractice('listening')}>
-            <View style={[styles.skillIconBox, { backgroundColor: '#f3f4f6' }]}>
-              <Ionicons name="headset" size={20} color="#374151" />
+        <Text style={[styles.sectionTitle, { color: theme.text }]}>5 kỹ năng</Text>
+        <View style={[styles.skillsContainer, { backgroundColor: theme.card, borderColor: theme.border }]}>
+          <TouchableOpacity style={[styles.skillCard, { borderBottomColor: theme.border }]} onPress={() => navigateToPractice('listening')}>
+            <View style={[styles.skillIconBox, { backgroundColor: isDark ? '#27272a' : '#f3f4f6' }]}>
+              <Ionicons name="headset" size={20} color={isDark ? '#e4e4e7' : '#374151'} />
             </View>
             <View style={styles.skillInfo}>
-              <Text style={styles.skillTitle}>Nghe (Listening)</Text>
-              <Text style={styles.skillDesc}>Luyện nghe phát âm chuẩn</Text>
+              <Text style={[styles.skillTitle, { color: theme.text }]}>Nghe (Listening)</Text>
+              <Text style={[styles.skillDesc, { color: theme.subtext }]}>Luyện nghe phát âm chuẩn</Text>
             </View>
-            <Text style={[styles.skillPercent, { color: '#3b82f6' }]}>{getSkillScore('listening').score}/{getSkillScore('listening').max} XP</Text>
+            <Text style={[styles.skillPercent, { color: theme.primary }]}>{getSkillScore('listening').score}/{getSkillScore('listening').max} XP</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.skillCard} onPress={() => navigateToPractice('reading')}>
-            <View style={[styles.skillIconBox, { backgroundColor: '#f3f4f6' }]}>
-              <Ionicons name="book" size={20} color="#6b7280" />
+          <TouchableOpacity style={[styles.skillCard, { borderBottomColor: theme.border }]} onPress={() => navigateToPractice('reading')}>
+            <View style={[styles.skillIconBox, { backgroundColor: isDark ? '#27272a' : '#f3f4f6' }]}>
+              <Ionicons name="book" size={20} color={isDark ? '#e4e4e7' : '#6b7280'} />
             </View>
             <View style={styles.skillInfo}>
-              <Text style={styles.skillTitle}>Đọc (Reading)</Text>
-              <Text style={styles.skillDesc}>Nhận biết từ vựng và câu</Text>
+              <Text style={[styles.skillTitle, { color: theme.text }]}>Đọc (Reading)</Text>
+              <Text style={[styles.skillDesc, { color: theme.subtext }]}>Nhận biết từ vựng và câu</Text>
             </View>
-            <Text style={[styles.skillPercent, { color: '#3b82f6' }]}>{getSkillScore('reading').score}/{getSkillScore('reading').max} XP</Text>
+            <Text style={[styles.skillPercent, { color: theme.primary }]}>{getSkillScore('reading').score}/{getSkillScore('reading').max} XP</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.skillCard} onPress={() => navigateToPractice('writing')}>
-            <View style={[styles.skillIconBox, { backgroundColor: '#fef3c7' }]}>
-              <Ionicons name="pencil" size={20} color="#d97706" />
+          <TouchableOpacity style={[styles.skillCard, { borderBottomColor: theme.border }]} onPress={() => navigateToPractice('writing')}>
+            <View style={[styles.skillIconBox, { backgroundColor: isDark ? '#451a03' : '#fef3c7' }]}>
+              <Ionicons name="pencil" size={20} color={isDark ? '#fbbf24' : '#d97706'} />
             </View>
             <View style={styles.skillInfo}>
-              <Text style={styles.skillTitle}>Viết (Writing)</Text>
-              <Text style={styles.skillDesc}>Viết lại từ vựng đúng chính tả</Text>
+              <Text style={[styles.skillTitle, { color: theme.text }]}>Viết (Writing)</Text>
+              <Text style={[styles.skillDesc, { color: theme.subtext }]}>Viết lại từ vựng đúng chính tả</Text>
             </View>
-            <Text style={[styles.skillPercent, { color: '#3b82f6' }]}>{getSkillScore('writing').score}/{getSkillScore('writing').max} XP</Text>
+            <Text style={[styles.skillPercent, { color: theme.primary }]}>{getSkillScore('writing').score}/{getSkillScore('writing').max} XP</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.skillCard} onPress={() => navigateToPractice('speaking')}>
-            <View style={[styles.skillIconBox, { backgroundColor: '#dbeafe' }]}>
-              <Ionicons name="mic" size={20} color="#3b82f6" />
+          <TouchableOpacity style={[styles.skillCard, { borderBottomColor: theme.border }]} onPress={() => navigateToPractice('speaking')}>
+            <View style={[styles.skillIconBox, { backgroundColor: isDark ? '#1e3a8a' : '#dbeafe' }]}>
+              <Ionicons name="mic" size={20} color={isDark ? '#60a5fa' : '#3b82f6'} />
             </View>
             <View style={styles.skillInfo}>
-              <Text style={styles.skillTitle}>Nói (Speaking)</Text>
-              <Text style={styles.skillDesc}>Luyện phát âm và ngữ điệu</Text>
+              <Text style={[styles.skillTitle, { color: theme.text }]}>Nói (Speaking)</Text>
+              <Text style={[styles.skillDesc, { color: theme.subtext }]}>Luyện phát âm và ngữ điệu</Text>
             </View>
-            <Text style={[styles.skillPercent, { color: '#3b82f6' }]}>{getSkillScore('speaking').score}/{getSkillScore('speaking').max} XP</Text>
+            <Text style={[styles.skillPercent, { color: theme.primary }]}>{getSkillScore('speaking').score}/{getSkillScore('speaking').max} XP</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.skillCard} onPress={() => navigateToPractice('test')}>
-            <View style={[styles.skillIconBox, { backgroundColor: '#fee2e2' }]}>
-              <Ionicons name="checkbox" size={20} color="#ef4444" />
+          <TouchableOpacity style={[styles.skillCard, { borderBottomWidth: 0 }]} onPress={() => navigateToPractice('test')}>
+            <View style={[styles.skillIconBox, { backgroundColor: isDark ? '#450a0a' : '#fee2e2' }]}>
+              <Ionicons name="checkbox" size={20} color={isDark ? '#f87171' : '#ef4444'} />
             </View>
             <View style={styles.skillInfo}>
-              <Text style={styles.skillTitle}>Kiểm tra (Test)</Text>
-              <Text style={styles.skillDesc}>Đánh giá năng lực tổng hợp</Text>
+              <Text style={[styles.skillTitle, { color: theme.text }]}>Kiểm tra (Test)</Text>
+              <Text style={[styles.skillDesc, { color: theme.subtext }]}>Đánh giá năng lực tổng hợp</Text>
             </View>
-            <Text style={[styles.skillPercent, { color: '#3b82f6' }]}>{getSkillScore('test').score}/{getSkillScore('test').max} XP</Text>
+            <Text style={[styles.skillPercent, { color: theme.primary }]}>{getSkillScore('test').score}/{getSkillScore('test').max} XP</Text>
           </TouchableOpacity>
         </View>
 
         {/* VOCABULARY */}
-        <View style={styles.vocabCard}>
+        <View style={[styles.vocabCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
           <View style={styles.vocabHeader}>
-            <Text style={styles.vocabTitle}>Từ vựng trong bài</Text>
-            <Text style={styles.vocabCount}>{words.length} từ</Text>
+            <Text style={[styles.vocabTitle, { color: theme.text }]}>Từ vựng trong bài</Text>
+            <Text style={[styles.vocabCount, { color: theme.primary }]}>{words.length} từ</Text>
           </View>
           {words.slice(0, maxWordsToShow).map((w: any, index: number) => (
             <View key={w.id} style={styles.vocabRow}>
               <View style={styles.vocabDot} />
-              <Text style={styles.vocabEng} numberOfLines={1}>{w.headword}</Text>
-              <Text style={styles.vocabSlash}>/</Text>
-              <Text style={styles.vocabVie} numberOfLines={1}>{w.meaning}</Text>
+              <Text style={[styles.vocabEng, { color: theme.text }]} numberOfLines={1}>{w.headword}</Text>
+              <Text style={[styles.vocabSlash, { color: theme.subtext }]}>/</Text>
+              <Text style={[styles.vocabVie, { color: theme.subtext }]} numberOfLines={1}>{w.meaning}</Text>
               <View style={styles.vocabLearnedDot} />
             </View>
           ))}
           {words.length > maxWordsToShow && (
-            <Text style={styles.vocabMore}>+ {words.length - maxWordsToShow} từ nữa...</Text>
+            <Text style={[styles.vocabMore, { color: theme.subtext }]}>+ {words.length - maxWordsToShow} từ nữa...</Text>
           )}
           {words.length === 0 && (
-             <Text style={styles.vocabDesc}>Chưa có từ vựng nào được thêm.</Text>
+             <Text style={[styles.vocabDesc, { color: theme.subtext }]}>Chưa có từ vựng nào được thêm.</Text>
           )}
         </View>
 

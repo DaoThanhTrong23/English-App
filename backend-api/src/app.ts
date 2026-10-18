@@ -34,6 +34,7 @@ import { studentCourseRouter, studentLessonRouter } from "./module/student-lesso
 import { studentTestRouter } from "./module/student-test/student-test.route.js";
 import { notificationRouter } from "./module/notification/notification.route.js";
 import { questRouter } from "./module/quest/quest.route.js";
+import { keywordRouter } from "./module/keyword-setting/keyword-setting.route.js";
 
 export function createapp() {
     const app = express();
@@ -73,11 +74,14 @@ app.use("/api/onboarding", onboardingRouter);
     app.use("/api/admin/students", studentManageRouter);
     app.use("/api/admin/dashboard", dashboardRouter);
     app.use("/api/admin/logs", activityLogRouter);
+    app.use("/api/admin/notifications", notificationRouter);
+    app.use("/api/notifications", notificationRouter);
     // Đăng ký route quản lý từ vựng
     app.use("/api/admin/word", wordRouter);
     // Đăng ký route quản lý bài học
     app.use("/api/admin/courses", courseRouter);
     app.use("/api/admin/topics", topicRouter);
+    app.use("/api/admin/keywords", keywordRouter);
     app.use("/api/admin/achievements", achievementRouter);
     // Đăng ký route quản lý bài kiểm tra
     app.use("/api/admin/tests", testRouter);

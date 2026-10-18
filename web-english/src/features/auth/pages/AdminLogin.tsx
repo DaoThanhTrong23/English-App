@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { axiosClient } from '../../../config/axios';
 import { useNavigate } from 'react-router-dom';
 import { GoogleLogin, GoogleOAuthProvider } from '@react-oauth/google';
 import './AdminLogin.css';
@@ -20,7 +20,7 @@ const AdminLogin: React.FC = () => {
 
       if (accessToken) {
         setIsLoading(true);
-        axios.post('http://localhost:3000/api/auth/facebook', {
+        axiosClient.post('/auth/facebook', {
           accessToken: accessToken,
           deviceInfo: "Trình duyệt Web"
         }).then(backendRes => {
@@ -60,7 +60,7 @@ const AdminLogin: React.FC = () => {
     setErrorMsg('');
 
     try {
-      const response = await axios.post('http://localhost:3000/api/auth/login', {
+      const response = await axiosClient.post('/auth/login', {
         identifier: identifier,
         password: password
       });
@@ -183,7 +183,7 @@ const AdminLogin: React.FC = () => {
                       try {
                         setErrorMsg('');
                         const idToken = credentialResponse.credential;
-                        const response = await axios.post('http://localhost:3000/api/auth/google', {
+                        const response = await axiosClient.post('/auth/google', {
                           idToken: idToken,
                           deviceInfo: "Trình duyệt Web"
                         });
@@ -216,7 +216,7 @@ const AdminLogin: React.FC = () => {
 
                 <div style={{ display: 'flex', justifyContent: 'center', marginTop: '12px' }}>
                   <a
-                    href="https://www.facebook.com/v19.0/dialog/oauth?client_id=1417644583763676&redirect_uri=http://localhost:5173/admin/login&response_type=token&scope=email,public_profile"
+                    href={`https://www.facebook.com/v19.0/dialog/oauth?client_id=1417644583763676&redirect_uri=${encodeURIComponent(window.location.origin + '/admin/login')}&response_type=token&scope=email,public_profile`}
                     style={{
                       display: 'flex',
                       justifyContent: 'center',

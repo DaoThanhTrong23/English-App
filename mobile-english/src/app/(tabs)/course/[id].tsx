@@ -3,13 +3,14 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { axiosClient } from '../../../api/axiosClient';
 import * as SecureStore from 'expo-secure-store';
+import { useAppTheme } from '../../../context/ThemeContext';
 
 export default function CourseDetailScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
+  const { isDark, theme } = useAppTheme();
   const [loading, setLoading] = useState(true);
   const [courseData, setCourseData] = useState<any>(null);
   const [xpPoints, setXpPoints] = useState(0);
@@ -47,8 +48,8 @@ export default function CourseDetailScreen() {
 
   if (loading || !courseData) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color="#3b82f6" />
+      <View style={[styles.center, { backgroundColor: theme.background }]}>
+        <ActivityIndicator size="large" color={theme.primary} />
       </View>
     );
   }
@@ -57,25 +58,25 @@ export default function CourseDetailScreen() {
   const totalWordsInCourse = courseData.lessons.reduce((acc: number, cur: any) => acc + (cur.totalWords || 0), 0);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       {/* HEADER */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color="#111827" />
+        <TouchableOpacity style={[styles.backBtn, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1 }]} onPress={() => router.back()}>
+          <Ionicons name="arrow-back" size={24} color={theme.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle} numberOfLines={1}>
+        <Text style={[styles.headerTitle, { color: theme.text }]} numberOfLines={1}>
           {courseData.title}
         </Text>
-        <View style={styles.xpBadge}>
+        <View style={[styles.xpBadge, isDark && { backgroundColor: '#27272a', borderColor: '#3f3f46' }]}>
           <Image source={require('../../../../assets/images/gacon.gif')} style={{width: 16, height: 16, marginRight: 4}} />
-          <Ionicons name="server" size={14} color="#d97706" style={{marginRight: 4}} />
-          <Text style={styles.xpText}>{xpPoints}</Text>
+          <Ionicons name="server" size={14} color={isDark ? '#facc15' : '#d97706'} style={{marginRight: 4}} />
+          <Text style={[styles.xpText, isDark && { color: '#fbbf24' }]}>{xpPoints}</Text>
         </View>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* HERO CARD */}
-        <LinearGradient colors={['#4f46e5', '#3b82f6']} style={styles.heroCard} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+        <View style={styles.heroCard}>
           <View style={styles.heroTop}>
             <View style={styles.heroTag}>
               <Text style={styles.heroTagText}>👋 CHỦ ĐỀ ({courseData.cefrLevel})</Text>
@@ -97,21 +98,21 @@ export default function CourseDetailScreen() {
               </View>
             </View>
           </View>
-        </LinearGradient>
+        </View>
 
         {/* PROGRESS BAR */}
         <View style={styles.progressSection}>
           <View style={styles.progressHeader}>
-            <Text style={styles.progressTitle}>Tiến độ chủ đề</Text>
-            <Text style={styles.progressCount}>{courseData.completedLessons}/{courseData.totalLessons} Bài học</Text>
+            <Text style={[styles.progressTitle, { color: theme.text }]}>Tiến độ chủ đề</Text>
+            <Text style={[styles.progressCount, { color: theme.primary }]}>{courseData.completedLessons}/{courseData.totalLessons} Bài học</Text>
           </View>
-          <View style={styles.progressBarBg}>
+          <View style={[styles.progressBarBg, { backgroundColor: theme.cardSecondary }]}>
             <View style={[styles.progressBarFill, { width: `${courseData.progressPercentage}%` }]} />
           </View>
         </View>
 
         {/* DANH SÁCH BÀI HỌC */}
-        <Text style={styles.listTitle}>Danh sách bài học</Text>
+        <Text style={[styles.listTitle, { color: theme.text }]}>Danh sách bài học</Text>
         <View style={styles.lessonsContainer}>
           {courseData.lessons.map((lesson: any, index: number) => {
             // Xác định trạng thái của bài học (dựa vào UI Design)
@@ -120,12 +121,12 @@ export default function CourseDetailScreen() {
             const isLocked = !isCompleted && !isFirstIncomplete;
 
             let badgeText = "Chưa học";
-            let badgeBg = "#f3f4f6";
-            let badgeColor = "#6b7280";
-            let barColor = "#e5e7eb";
+            let badgeBg = isDark ? '#27272a' : "#f3f4f6";
+            let badgeColor = isDark ? '#a1a1aa' : "#6b7280";
+            let barColor = isDark ? '#27272a' : "#e5e7eb";
             let barWidth = "0%";
-            let circleBg = "#f3f4f6";
-            let circleColor = "#9ca3af";
+            let circleBg = isDark ? '#27272a' : "#f3f4f6";
+            let circleColor = isDark ? '#71717a' : "#9ca3af";
             let cardBorder = "transparent";
 
             const totalTests = lesson.totalTests || 5;
@@ -136,42 +137,49 @@ export default function CourseDetailScreen() {
 
             if (isCompleted) {
               badgeText = "Hoàn thành";
-              badgeBg = "#d1fae5";
-              badgeColor = "#059669";
+              badgeBg = isDark ? '#064e3b' : "#d1fae5";
+              badgeColor = isDark ? '#34d399' : "#059669";
               barColor = "#10b981";
               barWidth = "100%";
-              circleBg = "#dbeafe";
-              circleColor = "#3b82f6";
+              circleBg = isDark ? '#1e3a8a' : "#dbeafe";
+              circleColor = isDark ? '#60a5fa' : "#3b82f6";
             } else if (isFirstIncomplete) {
               badgeText = "Đang học";
-              badgeBg = "#dbeafe";
-              badgeColor = "#2563eb";
+              badgeBg = isDark ? '#1e3a8a' : "#dbeafe";
+              badgeColor = isDark ? '#60a5fa' : "#2563eb";
               barColor = "#3b82f6";
               barWidth = `${Math.max(15, progressPercent)}%`;
-              circleBg = "#dbeafe";
-              circleColor = "#3b82f6";
+              circleBg = isDark ? '#1e3a8a' : "#dbeafe";
+              circleColor = isDark ? '#60a5fa' : "#3b82f6";
               cardBorder = "#3b82f6";
             }
 
             return (
               <TouchableOpacity 
                 key={lesson.id} 
-                style={[styles.lessonCard, { borderWidth: 1, borderColor: cardBorder !== 'transparent' ? cardBorder : '#f3f4f6' }]}
+                style={[
+                  styles.lessonCard, 
+                  { 
+                    backgroundColor: theme.card,
+                    borderWidth: 1, 
+                    borderColor: cardBorder !== 'transparent' ? cardBorder : theme.border 
+                  }
+                ]}
                 disabled={isLocked}
                 onPress={() => router.push(`/lesson/${lesson.id}`)}
               >
                 <View style={styles.lessonRow}>
                   <View style={[styles.lessonCircle, { backgroundColor: circleBg }]}>
                     {isLocked ? (
-                      <Ionicons name="lock-closed" size={16} color="#9ca3af" />
+                      <Ionicons name="lock-closed" size={16} color={isDark ? '#71717a' : '#9ca3af'} />
                     ) : (
                       <Text style={[styles.lessonCircleText, { color: circleColor }]}>{index + 1}</Text>
                     )}
                   </View>
 
                   <View style={styles.lessonInfo}>
-                    <Text style={[styles.lessonTitle, isLocked && {color: '#6b7280'}]}>Bài {index + 1}: {lesson.title}</Text>
-                    <Text style={styles.lessonSubtitle}>{totalTests} kỹ năng - {lesson.totalWords || 0} từ vựng</Text>
+                    <Text style={[styles.lessonTitle, { color: isLocked ? theme.subtext : theme.text }]}>Bài {index + 1}: {lesson.title}</Text>
+                    <Text style={[styles.lessonSubtitle, { color: theme.subtext }]}>{totalTests} kỹ năng - {lesson.totalWords || 0} từ vựng</Text>
                   </View>
 
                   <View style={[styles.lessonBadge, { backgroundColor: badgeBg }]}>
@@ -180,7 +188,7 @@ export default function CourseDetailScreen() {
                 </View>
                 
                 {/* Thanh tiến độ bài học */}
-                <View style={[styles.lessonBarBg, { marginTop: 15 }]}>
+                <View style={[styles.lessonBarBg, { marginTop: 15, backgroundColor: isDark ? '#27272a' : '#f3f4f6' }]}>
                   <View style={[styles.lessonBarFill, { backgroundColor: barColor, width: barWidth as any }]} />
                 </View>
               </TouchableOpacity>
@@ -204,7 +212,7 @@ const styles = StyleSheet.create({
   
   scrollContent: { padding: 20, paddingBottom: 40 },
   
-  heroCard: { borderRadius: 16, padding: 20, marginBottom: 20 },
+  heroCard: { backgroundColor: '#4f46e5', borderRadius: 16, padding: 20, marginBottom: 20 },
   heroTop: { marginBottom: 15 },
   heroTag: { alignSelf: 'flex-start', backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
   heroTagText: { color: '#ffffff', fontSize: 10, fontWeight: 'bold' },

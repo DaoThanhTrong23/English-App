@@ -11,8 +11,8 @@ import {
   Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { axiosClient } from '../api/axiosClient';
+import { useAppTheme } from '../context/ThemeContext';
 
 export interface QuestItem {
   id: string;
@@ -37,6 +37,7 @@ export default function DailyQuestModal({
   onClose,
   onXpClaimed,
 }: DailyQuestModalProps) {
+  const { isDark, theme } = useAppTheme();
   const [quests, setQuests] = useState<QuestItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [claimingId, setClaimingId] = useState<string | null>(null);
@@ -108,6 +109,7 @@ export default function DailyQuestModal({
   };
 
   const getIconBg = (icon: string) => {
+    if (isDark) return '#27272a';
     switch (icon) {
       case 'sunny':
         return '#fef3c7';
@@ -123,13 +125,13 @@ export default function DailyQuestModal({
   const getIconColor = (icon: string) => {
     switch (icon) {
       case 'sunny':
-        return '#d97706';
+        return isDark ? '#facc15' : '#d97706';
       case 'book':
-        return '#2563eb';
+        return isDark ? '#60a5fa' : '#2563eb';
       case 'game-controller':
-        return '#16a34a';
+        return isDark ? '#4ade80' : '#16a34a';
       default:
-        return '#7c3aed';
+        return isDark ? '#c084fc' : '#7c3aed';
     }
   };
 
@@ -141,25 +143,20 @@ export default function DailyQuestModal({
       onRequestClose={onClose}
     >
       <View style={styles.overlay}>
-        <View style={styles.container}>
+        <View style={[styles.container, { backgroundColor: theme.card }]}>
           {/* Header */}
-          <View style={styles.header}>
+          <View style={[styles.header, { borderBottomColor: theme.border }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Ionicons name="calendar-outline" size={24} color="#15803d" style={{ marginRight: 8 }} />
-              <Text style={styles.headerTitle}>Nhiệm Vụ Hôm Nay</Text>
+              <Ionicons name="calendar-outline" size={24} color="#10b981" style={{ marginRight: 8 }} />
+              <Text style={[styles.headerTitle, { color: theme.text }]}>Nhiệm Vụ Hôm Nay</Text>
             </View>
             <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-              <Ionicons name="close" size={24} color="#6b7280" />
+              <Ionicons name="close" size={24} color={theme.subtext} />
             </TouchableOpacity>
           </View>
 
           {/* Banner tiến độ */}
-          <LinearGradient
-            colors={['#10b981', '#059669']}
-            style={styles.progressCard}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-          >
+          <View style={styles.progressCard}>
             <View style={styles.progressCardContent}>
               <View style={{ flex: 1 }}>
                 <Text style={styles.progressCardLabel}>TIẾN ĐỘ HÔM NAY</Text>
@@ -175,13 +172,13 @@ export default function DailyQuestModal({
                 style={styles.mascotImg}
               />
             </View>
-          </LinearGradient>
+          </View>
 
           {/* Content */}
           {loading ? (
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="large" color="#10b981" />
-              <Text style={{ marginTop: 12, color: '#6b7280' }}>Đang tải nhiệm vụ...</Text>
+              <Text style={{ marginTop: 12, color: theme.subtext }}>Đang tải nhiệm vụ...</Text>
             </View>
           ) : (
             <ScrollView contentContainerStyle={styles.listContent}>
@@ -190,17 +187,17 @@ export default function DailyQuestModal({
                 const iconBg = getIconBg(q.icon);
 
                 return (
-                  <View key={q.id} style={styles.questCard}>
+                  <View key={q.id} style={[styles.questCard, { backgroundColor: isDark ? theme.cardSecondary : '#ffffff', borderColor: theme.border }]}>
                     <View style={[styles.iconBox, { backgroundColor: iconBg }]}>
                       <Ionicons name={getIconName(q.icon)} size={24} color={iconColor} />
                     </View>
 
                     <View style={styles.questInfo}>
-                      <Text style={styles.questTitle}>{q.title}</Text>
-                      <Text style={styles.questDesc}>{q.description}</Text>
+                      <Text style={[styles.questTitle, { color: theme.text }]}>{q.title}</Text>
+                      <Text style={[styles.questDesc, { color: theme.subtext }]}>{q.description}</Text>
 
                       <View style={styles.targetRow}>
-                        <View style={styles.targetBarBg}>
+                        <View style={[styles.targetBarBg, { backgroundColor: isDark ? '#27272a' : '#f3f4f6' }]}>
                           <View
                             style={[
                               styles.targetBarFill,
@@ -211,7 +208,7 @@ export default function DailyQuestModal({
                             ]}
                           />
                         </View>
-                        <Text style={styles.targetText}>
+                        <Text style={[styles.targetText, { color: theme.subtext }]}>
                           {q.current}/{q.target}
                         </Text>
                       </View>
@@ -220,9 +217,9 @@ export default function DailyQuestModal({
                     {/* Action Button */}
                     <View style={styles.actionCol}>
                       {q.isClaimed ? (
-                        <View style={styles.claimedBadge}>
-                          <Ionicons name="checkmark-circle" size={16} color="#059669" />
-                          <Text style={styles.claimedText}>Đã nhận</Text>
+                        <View style={[styles.claimedBadge, isDark && { backgroundColor: '#064e3b' }]}>
+                          <Ionicons name="checkmark-circle" size={16} color={isDark ? '#34d399' : '#059669'} />
+                          <Text style={[styles.claimedText, isDark && { color: '#34d399' }]}>Đã nhận</Text>
                         </View>
                       ) : q.isCompleted ? (
                         <TouchableOpacity
@@ -240,9 +237,9 @@ export default function DailyQuestModal({
                           )}
                         </TouchableOpacity>
                       ) : (
-                        <View style={styles.pendingBadge}>
-                          <Text style={styles.pendingXpText}>+{q.xpReward} XP</Text>
-                          <Text style={styles.pendingText}>Chưa xong</Text>
+                        <View style={[styles.pendingBadge, isDark && { backgroundColor: '#27272a' }]}>
+                          <Text style={[styles.pendingXpText, isDark && { color: '#fbbf24' }]}>+{q.xpReward} XP</Text>
+                          <Text style={[styles.pendingText, isDark && { color: '#a1a1aa' }]}>Chưa xong</Text>
                         </View>
                       )}
                     </View>
@@ -288,6 +285,7 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   progressCard: {
+    backgroundColor: '#10b981',
     marginHorizontal: 16,
     marginTop: 14,
     marginBottom: 8,

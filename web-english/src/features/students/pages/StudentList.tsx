@@ -355,6 +355,38 @@ const StudentList: React.FC = () => {
                     <span className="detail-value">{selectedStudent.progressSummary.averageTestScore} / 100</span>
                   </div>
                 </div>
+
+                <div className="detail-card" style={{ gridColumn: '1 / -1' }}>
+                  <h4>Đánh giá năng lực FAME-KT & Trình độ</h4>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px' }}>
+                    <div style={{ background: '#ffffff', padding: '10px 14px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                      <div style={{ fontSize: '0.8rem', color: '#64748b' }}>Trình độ CEFR</div>
+                      <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#3b82f6' }}>{selectedStudent.profile.cefrLevel || 'Chưa đánh giá'}</div>
+                    </div>
+                    <div style={{ background: '#ffffff', padding: '10px 14px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                      <div style={{ fontSize: '0.8rem', color: '#64748b' }}>Elo Ngữ pháp</div>
+                      <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#10b981' }}>{selectedStudent.profile.grammarElo ?? 1200}</div>
+                    </div>
+                    <div style={{ background: '#ffffff', padding: '10px 14px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                      <div style={{ fontSize: '0.8rem', color: '#64748b' }}>Elo Từ vựng</div>
+                      <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#f59e0b' }}>{selectedStudent.profile.vocabElo ?? 1200}</div>
+                    </div>
+                    <div style={{ background: '#ffffff', padding: '10px 14px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                      <div style={{ fontSize: '0.8rem', color: '#64748b' }}>Elo Đọc hiểu</div>
+                      <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#8b5cf6' }}>{selectedStudent.profile.readingElo ?? 1200}</div>
+                    </div>
+                    <div style={{ background: '#ffffff', padding: '10px 14px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                      <div style={{ fontSize: '0.8rem', color: '#64748b' }}>Elo Nghe hiểu</div>
+                      <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#06b6d4' }}>{selectedStudent.profile.listeningElo ?? 1200}</div>
+                    </div>
+                  </div>
+                  {selectedStudent.profile.preferredTopics && (
+                    <div className="detail-row" style={{ marginTop: '12px' }}>
+                      <span className="detail-label">Chủ đề quan tâm:</span>
+                      <span className="detail-value">{selectedStudent.profile.preferredTopics}</span>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {selectedStudent.achievements.length > 0 && (

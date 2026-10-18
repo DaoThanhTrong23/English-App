@@ -8,6 +8,7 @@ import {
   studentLessonRepository,
 } from "./student-lesson.repository.js";
 import { GetStudentCoursesQueryInput } from "./student-lesson.schema.js";
+import { keywordSettingService } from "../keyword-setting/keyword-setting.service.js";
 
 export class StudentLessonService {
   constructor(
@@ -23,16 +24,7 @@ export class StudentLessonService {
     const userCefr = user?.cefrLevel || 'A1';
     const userTopics = user?.interests ? user.interests.split(',').map((t: string) => t.trim().toLowerCase()) : [];
 
-    const SYNONYM_DICT: Record<string, string[]> = {
-      'công nghệ (it)': ['it', 'công nghệ', 'lập trình', 'phần mềm', 'developer', 'máy tính', 'công nghệ thông tin', 'coding', 'coder', 'frontend', 'backend', 'ai', 'trí tuệ nhân tạo', 'data', 'dữ liệu', 'web', 'app', 'mobile', 'ứng dụng', 'mạng', 'network', 'cyber', 'bảo mật', 'database'],
-      'du lịch': ['du lịch', 'travel', 'khách sạn', 'nhà hàng', 'sân bay', 'tourism', 'tourist', 'đặt phòng', 'hotel', 'resort', 'vé máy bay', 'chuyến bay', 'flight', 'nghỉ dưỡng', 'hướng dẫn viên', 'tour', 'passport', 'visa', 'hành lý', 'hộ chiếu'],
-      'kinh doanh': ['kinh doanh', 'business', 'công sở', 'doanh nghiệp', 'tài chính', 'bán hàng', 'sales', 'marketing', 'văn phòng', 'startup', 'khởi nghiệp', 'đầu tư', 'kinh tế', 'thương mại', 'office', 'boss', 'quản lý', 'sếp', 'ceo', 'kế toán', 'accounting', 'hợp đồng', 'thương lượng'],
-      'giải trí / game': ['giải trí', 'game', 'trò chơi', 'phim', 'âm nhạc', 'music', 'movie', 'thể thao', 'sport', 'bóng đá', 'ca nhạc', 'ca sĩ', 'diễn viên', 'hollywood', 'esports', 'streaming', 'youtube', 'tiktok', 'vlog', 'nghệ sĩ', 'idol', 'giải vô địch', 'cinema'],
-      'văn hóa nghệ thuật': ['văn hóa', 'nghệ thuật', 'art', 'culture', 'lịch sử', 'bảo tàng', 'hội họa', 'kiến trúc', 'văn học', 'thơ ca', 'phong tục', 'truyền thống', 'di sản', 'gallery', 'exhibition', 'triển lãm', 'điêu khắc', 'tôn giáo', 'tín ngưỡng'],
-      'giao tiếp hằng ngày': ['giao tiếp', 'hằng ngày', 'hàng ngày', 'cuộc sống', 'đời sống', 'daily', 'communication', 'chào hỏi', 'sinh hoạt', 'bạn bè', 'gia đình', 'mua sắm', 'shopping', 'thời tiết', 'weather', 'hỏi đường', 'ăn uống', 'food', 'restaurant', 'sức khỏe', 'bác sĩ'],
-      'kỹ năng mềm': ['kỹ năng', 'mềm', 'thuyết trình', 'lãnh đạo', 'đàm phán', 'soft skills', 'làm việc nhóm', 'teamwork', 'quản lý thời gian', 'time management', 'giải quyết vấn đề', 'giao tiếp hiệu quả', 'tự học', 'tư duy', 'mindset', 'phỏng vấn', 'interview'],
-      'học thuật': ['học thuật', 'academic', 'ielts', 'toefl', 'toeic', 'nghiên cứu', 'khoa học', 'trường học', 'giáo dục', 'đại học', 'university', 'college', 'sinh viên', 'student', 'thi cử', 'exam', 'test', 'luận văn', 'thesis', 'essay', 'ngữ pháp', 'từ vựng chuẩn', 'giáo sư']
-    };
+    const SYNONYM_DICT = keywordSettingService.getSynonymDict();
 
     const expandedKeywords = new Set<string>();
     userTopics.forEach((topic: string) => {
@@ -46,15 +38,22 @@ export class StudentLessonService {
 
     let { courses } = await this.studentLessonRepo.findCourses({ ...query, limit: 1000, page: 1 });
     
-    // 1. Lọc theo targetLevelGroup do người dùng chọn lúc Onboarding
+    // Danh sách các khóa học học viên đã đăng ký / chọn học
+    const preferredCourseIds = user?.preferredTopics
+      ? user.preferredTopics.split(',').map((id: string) => parseInt(id.trim(), 10)).filter((id: number) => !isNaN(id))
+      : [];
+
+    // 1. Lọc theo targetLevelGroup do người dùng chọn lúc Onboarding (ngoại trừ các khóa đã chủ động đăng ký)
     if (query.targetLevelGroup) {
       const allowedLevels = query.targetLevelGroup.split('-'); // VD: 'A1-A2' -> ['A1', 'A2']
-      courses = courses.filter(c => c.cefrLevel && allowedLevels.includes(c.cefrLevel));
+      courses = courses.filter(c => preferredCourseIds.includes(c.id) || (c.cefrLevel && allowedLevels.includes(c.cefrLevel)));
     }
 
     // 2. Chấm điểm cá nhân hóa
     const scoredCourses = courses.map((course: any) => {
       let score = 0;
+      const isEnrolled = preferredCourseIds.includes(course.id);
+      if (isEnrolled) score += 100; // Khóa học đã đăng ký luôn được ưu tiên hàng đầu trong phần học chính
       if (course.cefrLevel === userCefr) score += 10;
       const desc = (course.description || '').toLowerCase();
       const title = (course.title || '').toLowerCase();
@@ -62,16 +61,16 @@ export class StudentLessonService {
       expandedKeywords.forEach((keyword: string) => {
         if (desc.includes(keyword) || title.includes(keyword)) score += 5;
       });
-      return { ...course, personalizedScore: score };
+      return { ...course, personalizedScore: score, isEnrolled };
     });
 
     // 3. Sắp xếp ưu tiên
     scoredCourses.sort((a: any, b: any) => b.personalizedScore - a.personalizedScore);
 
-    // 4. Giới hạn số lượng (Admin cấu hình, mặc định 7)
+    // 4. Giới hạn số lượng (Admin cấu hình, mặc định 7, đảm bảo hiển thị hết các khóa đã đăng ký)
     // Ưu tiên: admin config từ ENV > query.limit > 7
     const ADMIN_TOPIC_LIMIT = process.env.ADMIN_TOPIC_LIMIT ? parseInt(process.env.ADMIN_TOPIC_LIMIT) : 7;
-    const limit = query.limit || ADMIN_TOPIC_LIMIT;
+    const limit = query.limit || Math.max(ADMIN_TOPIC_LIMIT, preferredCourseIds.length);
     const page = query.page || 1;
     const totalItems = scoredCourses.length;
     const totalPages = Math.ceil(totalItems / limit) || 1;
@@ -121,6 +120,7 @@ export class StudentLessonService {
         createdAt: course.createdAt,
         totalLessons,
         personalizedScore: course.personalizedScore,
+        isEnrolled: course.isEnrolled,
         progressPercentage,
         completedLessons: completedLessonsCount
       };
@@ -137,6 +137,132 @@ export class StudentLessonService {
       },
       items: formattedCourses,
       streak: await this.studentLessonRepo.calculateUserStreak(userId),
+    };
+  }
+
+  /**
+   * Đăng ký / Thêm chủ đề vào phần học chính của học viên
+   */
+  @logExecution()
+  async enrollCourse(userId: number, courseId: number) {
+    const course = await prisma.topic.findUnique({
+      where: { id: courseId },
+      include: {
+        lessons: {
+          where: { deletedAt: null },
+          select: { id: true },
+        },
+      },
+    });
+
+    if (!course) {
+      throw new ApiError(404, "course_not_found", "Không tìm thấy chủ đề yêu cầu");
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new ApiError(404, "user_not_found", "Không tìm thấy thông tin học viên");
+    }
+
+    const preferredCourseIds = user.preferredTopics
+      ? user.preferredTopics.split(',').map((id: string) => parseInt(id.trim(), 10)).filter((id: number) => !isNaN(id))
+      : [];
+
+    const isAlreadyInPreferred = preferredCourseIds.includes(courseId);
+
+    // Kiểm tra xem học viên đã từng làm bài test nào thuộc chủ đề này chưa
+    const lessonIds = course.lessons.map((l: any) => l.id);
+    let hasStudiedTests = false;
+    if (lessonIds.length > 0) {
+      const testsInCourse = await prisma.test.findMany({
+        where: { lessonId: { in: lessonIds } },
+        select: { id: true },
+      });
+      const testIds = testsInCourse.map(t => t.id);
+      if (testIds.length > 0) {
+        const existingResult = await prisma.userTestResult.findFirst({
+          where: {
+            userId,
+            testId: { in: testIds },
+          },
+        });
+        if (existingResult) {
+          hasStudiedTests = true;
+        }
+      }
+    }
+
+    // Kiểm tra xem học viên đã từng học từ vựng nào thuộc chủ đề này chưa
+    let hasWordProgress = false;
+    if (lessonIds.length > 0) {
+      const existingWordProgress = await prisma.userProgress.findFirst({
+        where: {
+          userId,
+          word: {
+            lessonWords: {
+              some: { lessonId: { in: lessonIds } },
+            },
+          },
+        },
+      });
+      if (existingWordProgress) {
+        hasWordProgress = true;
+      }
+    }
+
+    // Nếu đã có chủ đề trong danh sách học chính hoặc đã từng làm test/học từ vựng của chủ đề này
+    if (isAlreadyInPreferred || hasStudiedTests || hasWordProgress) {
+      // Đảm bảo chủ đề được ghim vào preferredTopics nếu chưa có
+      if (!isAlreadyInPreferred) {
+        const updatedPreferred = [...preferredCourseIds, courseId].join(',');
+        await prisma.user.update({
+          where: { id: userId },
+          data: { preferredTopics: updatedPreferred },
+        });
+      }
+
+      return {
+        alreadyEnrolled: true,
+        courseId,
+        courseTitle: course.title,
+        message: "Bạn đang học chủ đề này.",
+      };
+    }
+
+    // Thêm chủ đề vào danh sách học chính (preferredTopics)
+    const updatedPreferred = [...preferredCourseIds, courseId].join(',');
+
+    // Cập nhật interests nếu chưa có để tối ưu gợi ý hệ thống FAME-KT
+    let updatedInterests = user.interests || '';
+    const interestsList = updatedInterests.split(',').map((s: string) => s.trim().toLowerCase()).filter(Boolean);
+    if (course.title && !interestsList.includes(course.title.toLowerCase())) {
+      updatedInterests = updatedInterests ? `${updatedInterests}, ${course.title}` : course.title;
+    }
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        preferredTopics: updatedPreferred,
+        interests: updatedInterests,
+      },
+    });
+
+    await prisma.activityLog.create({
+      data: {
+        userId,
+        actionType: "ENROLL_COURSE",
+        description: `Học viên đăng ký học chủ đề: ${course.title}`,
+      },
+    });
+
+    return {
+      alreadyEnrolled: false,
+      courseId,
+      courseTitle: course.title,
+      message: "Đã thêm chủ đề vào phần học chính của bạn!",
     };
   }
 

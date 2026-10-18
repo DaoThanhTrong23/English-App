@@ -38,16 +38,11 @@ const TestList: React.FC = () => {
   };
 
   useEffect(() => {
-    loadTests();
-  }, [levelGroup]); // Trigger reload when levelGroup changes
-  
-  // Also can debounce search or use a form submit for search. We'll keep it simple: press Enter or just type.
-  useEffect(() => {
     const timer = setTimeout(() => {
       loadTests();
-    }, 500);
+    }, 300);
     return () => clearTimeout(timer);
-  }, [search]);
+  }, [levelGroup, search]);
 
   const handleOpenModal = (test?: any) => {
     if (test) {

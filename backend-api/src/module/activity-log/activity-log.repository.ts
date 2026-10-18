@@ -20,7 +20,7 @@ export class ActivityLogRepository {
     async findActivities(skip: number, take: number, search?: string, actionType?: string) {
         const where: any = {};
         if (actionType) {
-            where.actionType = actionType;
+            where.actionType = { contains: actionType };
         }
         if (search) {
             where.OR = [

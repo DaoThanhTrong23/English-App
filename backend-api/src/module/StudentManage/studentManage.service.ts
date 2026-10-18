@@ -4,6 +4,7 @@ import { studentManageRepository, StudentManageRepository } from "./studentManag
 import { GetStudentQueryInput } from "./studentManage.schema.js";
 import { ApiError } from "../../shared/http/api-error.js";
 import { prisma } from "../../config/prisma.js";
+import { notificationService } from "../notification/notification.service.js";
 
 export class StudentManageService {
     constructor(
@@ -90,6 +91,13 @@ export class StudentManageService {
         username: student.username,
         email: student.email,
         xpPoints: student.xpPoints,
+        isLocked: student.isLocked,
+        cefrLevel: student.cefrLevel,
+        grammarElo: student.grammarElo,
+        vocabElo: student.vocabElo,
+        readingElo: student.readingElo,
+        listeningElo: student.listeningElo,
+        preferredTopics: student.preferredTopics,
         lastLoginDate: student.lastLoginDate,
         joinedAt: student.createdAt,
       },
@@ -162,6 +170,15 @@ export class StudentManageService {
       await prisma.refreshToken.deleteMany({
         where: { userId: studentId },
       });
+      notificationService.notifyAdmins(
+        "Khóa tài khoản học viên 🔒",
+        `Tài khoản của học viên ${student.username} (${student.email}) đã bị khóa quyền truy cập.`
+      ).catch(() => {});
+    } else {
+      notificationService.notifyAdmins(
+        "Mở khóa tài khoản học viên 🔓",
+        `Tài khoản của học viên ${student.username} (${student.email}) đã được mở khóa hoạt động trở lại.`
+      ).catch(() => {});
     }
 
     return updated;

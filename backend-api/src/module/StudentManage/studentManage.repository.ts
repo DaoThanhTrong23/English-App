@@ -85,6 +85,12 @@ export class StudentManageRepository {
         role: true,
         xpPoints: true,
         isLocked: true,
+        cefrLevel: true,
+        grammarElo: true,
+        vocabElo: true,
+        readingElo: true,
+        listeningElo: true,
+        preferredTopics: true,
         lastLoginDate: true,
         createdAt: true,
         userProgress: {

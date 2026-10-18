@@ -2,35 +2,56 @@ import { Router } from "express";
 import { Authenticate } from "../../middleware/authenticate.middleware.js";
 import { prisma } from "../../config/prisma.js";
 import { asyncHandler } from "../../shared/http/async-handler.js";
+import { notificationService } from "./notification.service.js";
 
 export const notificationRouter = Router();
 
 notificationRouter.use(Authenticate);
 
+// Lấy danh sách thông báo và số lượng chưa đọc (hỗ trợ cả user và admin)
 notificationRouter.get("/", asyncHandler(async (req: any, res) => {
   const userId = req.user?.userId;
-  const notifications = await prisma.notification.findMany({
-    where: { userId },
-    orderBy: { createdAt: 'desc' },
-    take: 20
+  const result = await notificationService.getNotifications(userId);
+  res.status(200).json({
+    success: true,
+    data: result.notifications,
+    unreadCount: result.unreadCount
   });
-  res.status(200).json({ success: true, data: notifications });
 }));
 
+// Đánh dấu tất cả là đã đọc
+notificationRouter.put("/read-all", asyncHandler(async (req: any, res) => {
+  const userId = req.user?.userId;
+  await notificationService.markAllAsRead(userId);
+  res.status(200).json({ success: true, message: "Đã đánh dấu tất cả thông báo là đã đọc" });
+}));
+
+// Đánh dấu 1 thông báo cụ thể là đã đọc
 notificationRouter.put("/:id/read", asyncHandler(async (req: any, res) => {
   const userId = req.user?.userId;
   const notifId = Number(req.params.id);
-  await prisma.notification.updateMany({
-    where: { id: notifId, userId },
-    data: { isRead: true }
-  });
+  await notificationService.markAsRead(notifId, userId);
   res.status(200).json({ success: true, message: "Đã đọc thông báo" });
 }));
 
-/**
- * Lấy khung giờ học quen thuộc (ưa thích nhất) của người dùng dựa trên LoginLog
- */
+// Xóa tất cả thông báo
+notificationRouter.delete("/clear-all", asyncHandler(async (req: any, res) => {
+  const userId = req.user?.userId;
+  await notificationService.clearAll(userId);
+  res.status(200).json({ success: true, message: "Đã xóa toàn bộ thông báo" });
+}));
 
+// Xóa 1 thông báo cụ thể
+notificationRouter.delete("/:id", asyncHandler(async (req: any, res) => {
+  const userId = req.user?.userId;
+  const notifId = Number(req.params.id);
+  await notificationService.deleteNotification(notifId, userId);
+  res.status(200).json({ success: true, message: "Đã xóa thông báo" });
+}));
+
+/**
+ * Lấy khung giờ học quen thuộc (ưa thích nhất) của người dùng dựa trên LoginLog (dành cho Mobile)
+ */
 notificationRouter.get("/preferred-time", asyncHandler(async (req: any, res) => {
   const userId = req.user?.userId;
 
@@ -70,4 +91,3 @@ notificationRouter.get("/preferred-time", asyncHandler(async (req: any, res) => 
     },
   });
 }));
-

@@ -1,7 +1,8 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, BookOpen, Library,  Bell, LogOut, Gamepad2Icon, SettingsIcon, Menu, X, FileQuestion, Trophy, MessageSquare } from 'lucide-react';
+import { LayoutDashboard, Users, BookOpen, Library,  Bell, LogOut, Gamepad2Icon, SettingsIcon, Menu, X, FileQuestion, Trophy, MessageSquare, SlidersHorizontal } from 'lucide-react';
 import mascotGif from '../../assets/images/gacon.gif';
+import { AdminNotificationDropdown } from '../common/AdminNotificationDropdown';
 import './AdminLayout.css';
 
 interface AdminLayoutProps {
@@ -13,8 +14,16 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
+  React.useEffect(() => {
+    const token = localStorage.getItem('adminToken');
+    if (!token) {
+      navigate('/admin/login', { replace: true });
+    }
+  }, [navigate]);
+
   const handleLogout = () => {
     localStorage.removeItem('adminToken');
+    localStorage.removeItem('adminRefreshToken');
     localStorage.removeItem('adminInfo');
     navigate('/admin/login');
   };
@@ -23,6 +32,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     { path: '/admin/dashboard', label: 'Tổng quan', icon: <LayoutDashboard size={18} /> },
     { path: '/admin/students', label: 'Học viên', icon: <Users size={18} /> },
     { path: '/admin/topics', label: 'Chủ đề', icon: <Library size={18} /> },
+    { path: '/admin/keywords', label: 'Cài đặt keyword', icon: <SlidersHorizontal size={18} /> },
     { path: '/admin/courses', label: 'Bài học', icon: <BookOpen size={18} /> },
     { path: '/admin/words', label: 'Từ vựng', icon: <Library size={18} /> },
     { path: '/admin/achievements', label: 'Danh hiệu', icon: <Trophy size={18} /> },
@@ -37,6 +47,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     if (path === '/admin/words' && location.pathname.startsWith('/admin/words')) return true;
     if (path === '/admin/courses' && location.pathname.startsWith('/admin/courses')) return true;
     if (path === '/admin/tests' && location.pathname.startsWith('/admin/tests')) return true;
+    if (path === '/admin/keywords' && location.pathname.startsWith('/admin/keywords')) return true;
     return location.pathname === path;
   };
 
@@ -82,10 +93,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
 
           {/* Right Section (Notification, Profile) */}
           <div className="navbar-right">
-            <button className="navbar-icon-btn notification-btn">
-              <Bell size={30} />
-              <span className="notification-badge">3</span> {/*sửa cái thông báo này lại*/}
-            </button>
+            <AdminNotificationDropdown />
             
             <div className="navbar-profile-section">
               <img src="https://ui-avatars.com/api/?name=Admin&background=3b82f6&color=fff" alt="Admin" className="navbar-avatar" />

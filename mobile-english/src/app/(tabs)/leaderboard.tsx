@@ -4,8 +4,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as SecureStore from 'expo-secure-store';
 import { axiosClient } from '../../api/axiosClient';
+import { useAppTheme } from '../../context/ThemeContext';
 
 export default function LeaderboardScreen() {
+  const { isDark, theme } = useAppTheme();
   const [userInfo, setUserInfo] = useState<any>(null);
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
   const [leaderboardData, setLeaderboardData] = useState<any>(null);
@@ -39,8 +41,8 @@ export default function LeaderboardScreen() {
 
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color="#3b82f6" />
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: theme.background }}>
+        <ActivityIndicator size="large" color={theme.primary} />
       </View>
     );
   }
@@ -50,36 +52,36 @@ export default function LeaderboardScreen() {
   const currentXp = leaderboardData?.currentUser?.xpPoints || 0;
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Bảng xếp hạng</Text>
-        <Text style={styles.headerSubtitle}>Thi đua học tập cùng bạn bè</Text>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+      <View style={[styles.header, { backgroundColor: theme.card, borderBottomColor: theme.border }]}>
+        <Text style={[styles.headerTitle, { color: theme.text }]}>Bảng xếp hạng</Text>
+        <Text style={[styles.headerSubtitle, { color: theme.subtext }]}>Thi đua học tập cùng bạn bè</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {topUsers.length === 0 ? (
            <View style={styles.emptyState}>
-             <Ionicons name="trophy-outline" size={48} color="#d1d5db" />
-             <Text style={styles.emptyTitle}>Chưa có dữ liệu xếp hạng</Text>
+             <Ionicons name="trophy-outline" size={48} color={theme.subtext} />
+             <Text style={[styles.emptyTitle, { color: theme.subtext }]}>Chưa có dữ liệu xếp hạng</Text>
            </View>
         ) : (
           topUsers.map((user: any, index: number) => {
             const rank = index + 1;
-            let rankColor = '#6b7280';
+            let rankColor = theme.subtext;
             if (rank === 1) rankColor = '#fbbf24';
             if (rank === 2) rankColor = '#94a3b8';
             if (rank === 3) rankColor = '#b45309';
 
             return (
-              <View key={user.id} style={styles.rankCard}>
-                <Text style={[styles.rankNumber, {color: rank <= 3 ? rankColor : '#9ca3af'}]}>{rank}</Text>
+              <View key={user.id} style={[styles.rankCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
+                <Text style={[styles.rankNumber, {color: rank <= 3 ? rankColor : theme.subtext}]}>{rank}</Text>
                 <Image 
                   source={user.avatarUrl ? { uri: user.avatarUrl.startsWith('http') ? user.avatarUrl : baseURL + user.avatarUrl } : require('../../../assets/images/gacon.gif')} 
-                  style={styles.rankAvatar} 
+                  style={[styles.rankAvatar, { backgroundColor: theme.cardSecondary }]} 
                 />
                 <View style={styles.rankInfo}>
-                  <Text style={styles.rankName}>{user.username}</Text>
-                  <Text style={styles.rankLevel}>Level {user.cefrLevel || 'A1'}</Text>
+                  <Text style={[styles.rankName, { color: theme.text }]}>{user.username}</Text>
+                  <Text style={[styles.rankLevel, { color: theme.subtext }]}>Level {user.cefrLevel || 'A1'}</Text>
                 </View>
                 <Text style={styles.rankXp}>{user.xpPoints} XP</Text>
               </View>
@@ -89,15 +91,15 @@ export default function LeaderboardScreen() {
       </ScrollView>
 
       {/* Current User Rank Sticky */}
-      <View style={styles.currentUserCard}>
-        <Text style={styles.currentUserRank}>{currentRank}</Text>
+      <View style={[styles.currentUserCard, { backgroundColor: theme.card, borderTopColor: theme.border }]}>
+        <Text style={[styles.currentUserRank, { color: theme.primary }]}>{currentRank}</Text>
         <Image 
           source={avatarUri ? { uri: avatarUri.startsWith('http') ? avatarUri : baseURL + avatarUri } : require('../../../assets/images/gacon.gif')} 
-          style={styles.rankAvatar} 
+          style={[styles.rankAvatar, { backgroundColor: theme.cardSecondary }]} 
         />
         <View style={styles.rankInfo}>
-          <Text style={styles.currentUserName}>{username}</Text>
-          <Text style={styles.currentUserStatus}>Hạng của bạn</Text>
+          <Text style={[styles.currentUserName, { color: theme.text }]}>{username}</Text>
+          <Text style={[styles.currentUserStatus, { color: theme.primary }]}>Hạng của bạn</Text>
         </View>
         <Text style={styles.currentUserXp}>{currentXp} XP</Text>
       </View>

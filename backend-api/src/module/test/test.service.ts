@@ -68,7 +68,11 @@ export class TestService {
 
         const quesionText = row['Câu hỏi'];
         const typeStr = row['Loại']?.toString().toLowerCase() || 'trắc nghiệm';
-        const questionType = typeStr.includes('điền') ? 'fill_in_blank' : 'multiple_choice';
+        const questionType: "multiple_choice" | "fill_in_blank" | "listening" | "speaking" | "writing" =
+          typeStr.includes('điền') ? 'fill_in_blank' :
+          typeStr.includes('nghe') ? 'listening' :
+          typeStr.includes('nói') ? 'speaking' :
+          typeStr.includes('viết') ? 'writing' : 'multiple_choice';
         const points = Number(row['Điểm']) || 10;
         
         const answers = [];
@@ -89,10 +93,21 @@ export class TestService {
           answers.push({ answerText: 'Đáp án tự động', isCorrect: true });
         }
 
+        const difficultyElo = Number(row['Độ khó']) || Number(row['Elo']) || 1200;
+        const skillCategory = row['Kỹ năng'] || row['Skill'] || (
+          questionType === 'listening' ? 'Listening' :
+          questionType === 'speaking' ? 'Speaking' :
+          questionType === 'writing' ? 'Writing' : 'Vocabulary'
+        );
+        const topic = row['Chủ đề'] || row['Topic'] || null;
+
         const q = await this.testRepo.createQuestionWithAnswers(testId, {
           quesionText,
           questionType,
-          points
+          points,
+          difficultyElo,
+          skillCategory,
+          topic
         }, answers);
         
         importedQuestions.push(q);

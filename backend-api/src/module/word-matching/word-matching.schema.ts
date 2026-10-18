@@ -14,7 +14,7 @@ export const StartWordMatchingSchema = z.object({
       .int()
       .min(4, "Cần tối thiểu 4 từ để chơi")
       .max(20, "Tối đa 20 từ mỗi ván")
-      .default(10), // Mặc định 10 từ vựng theo luật chơi
+      .default(6),
   }),
   params: z.object({}),
 });

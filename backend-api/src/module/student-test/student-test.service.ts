@@ -1,6 +1,8 @@
 import { achievementEvaluator } from '../achievement/achievement.evaluator.js';
 import { prisma } from '../../config/prisma.js';
 import { ApiError } from '../../shared/http/api-error.js';
+import { updateAdvancedElo, getCEFRLevel } from '../onboarding/fame-kt.js';
+import { notificationService } from '../notification/notification.service.js';
 
 export class StudentTestService {
   /**
@@ -37,6 +39,7 @@ export class StudentTestService {
     let newGrammarElo = user.grammarElo;
     let newVocabElo = user.vocabElo;
     let newReadingElo = user.readingElo;
+    let newListeningElo = user.listeningElo;
 
     const assessmentHistories: any[] = [];
     let correctCount = 0;
@@ -46,72 +49,86 @@ export class StudentTestService {
       if (!q) continue;
 
       let isCorrect = false;
-        if (q.questionType === 'multiple_choice' || q.questionType === 'listening') {
-          const correctAns = q.answers.find(a => a.isCorrect);
-          if (correctAns && correctAns.id === sub.selectedAnswerId) {
+      const correctAns = q.answers.find(a => a.isCorrect);
+
+      if (q.questionType === 'multiple_choice' || (q.questionType === 'listening' && sub.selectedAnswerId)) {
+        if (correctAns && correctAns.id === sub.selectedAnswerId) {
+          isCorrect = true;
+        }
+      } else if (q.questionType === 'fill_in_blank') {
+        if (correctAns && sub.textAnswer) {
+          const cleanUserAns = sub.textAnswer.trim().toLowerCase().replace(/[.,!?;:]/g, '');
+          const cleanCorrectAns = correctAns.answerText.trim().toLowerCase().replace(/[.,!?;:]/g, '');
+          if (cleanUserAns === cleanCorrectAns) {
             isCorrect = true;
           }
-        } else if (q.questionType === 'fill_in_blank' || q.questionType === 'writing') {
-          const correctAns = q.answers.find(a => a.isCorrect);
-          if (sub.textAnswer && sub.textAnswer.includes('[Điểm AI:')) {
-            const match = sub.textAnswer.match(/\[Điểm AI:\s*(\d+)%\]/);
-            if (match && parseInt(match[1]) >= 60) {
-              isCorrect = true;
-            }
-          } else if (correctAns) {
-            if (sub.textAnswer && correctAns.answerText.toLowerCase() === sub.textAnswer.toLowerCase().trim()) {
-              isCorrect = true;
-            }
-          } else if (sub.textAnswer && sub.textAnswer.trim().length > 0) {
+        }
+      } else if (q.questionType === 'writing' || q.questionType === 'speaking') {
+        // Kiểm tra điểm từ AI đánh giá hoặc so sánh với đáp án chuẩn
+        if (correctAns && sub.textAnswer) {
+          const cleanUserAns = sub.textAnswer.trim().toLowerCase().replace(/[.,!?;:]/g, '');
+          const cleanCorrectAns = correctAns.answerText.trim().toLowerCase().replace(/[.,!?;:]/g, '');
+          if (cleanUserAns === cleanCorrectAns) {
             isCorrect = true;
           }
-        } else if (q.questionType === 'speaking') {
-          if (sub.textAnswer && sub.textAnswer.includes('[Điểm AI:')) {
-            const match = sub.textAnswer.match(/\[Điểm AI:\s*(\d+)%\]/);
-            if (match && parseInt(match[1]) >= 60) {
+        }
+        
+        // Nếu có điểm AI đính kèm từ luồng làm bài thực hành
+        if (!isCorrect && sub.textAnswer && sub.textAnswer.includes('[Điểm AI:')) {
+          const match = sub.textAnswer.match(/\[Điểm AI:\s*(\d+)%\]/);
+          if (match) {
+            const scorePercent = parseInt(match[1], 10);
+            // Chỉ công nhận đạt nếu điểm AI >= 60 và nội dung trả lời thực tế có độ dài hợp lệ (> 3 ký tự)
+            const actualText = sub.textAnswer.replace(/\[Điểm AI:\s*\d+%\]/, '').replace(/\(Nói:[^)]*\)/, '').trim();
+            if (scorePercent >= 60 && (actualText.length >= 3 || sub.textAnswer.includes('(Nói:'))) {
               isCorrect = true;
             }
           }
         }
+      }
 
       if (isCorrect) {
         totalScore += Number(q.points || 10);
         correctCount++;
       }
 
-      // FAME-KT ELO LOGIC (Rapid Guessing Threshold: 2s)
+      // FAME-KT ELO LOGIC: Tích hợp IRT Guessing Factor & Psychometrics Time Factor
+      const timeTakenMs = sub.timeTakenMs || 5000;
       let eloTarget = newVocabElo;
-      if (q.skillCategory === 'Grammar') eloTarget = newGrammarElo;
-      if (q.skillCategory === 'Reading') eloTarget = newReadingElo;
+      const skillCat = q.skillCategory || 'Vocabulary';
 
-      const timeS = (sub.timeTakenMs || 5000) / 1000;
-      // Filter Rapid-guessing: if time < 2s, we do NOT penalize them if wrong, or reward if right (it's just a guess)
-      if (timeS >= 2.0) {
-        const expectedScore = 1 / (1 + Math.pow(10, (q.difficultyElo - eloTarget) / 400));
-        const actualScore = isCorrect ? 1 : 0;
-        
-        // K factor: dynamic based on time? Default K=32
-        const K = 32;
-        const eloChange = Math.round(K * (actualScore - expectedScore));
-        
-        eloTarget += eloChange;
+      if (skillCat === 'Grammar') eloTarget = newGrammarElo;
+      else if (skillCat === 'Reading') eloTarget = newReadingElo;
+      else if (skillCat === 'Listening') eloTarget = newListeningElo;
+      else eloTarget = newVocabElo;
 
-        // Apply back
-        if (q.skillCategory === 'Grammar') newGrammarElo = eloTarget;
-        else if (q.skillCategory === 'Reading') newReadingElo = eloTarget;
-        else newVocabElo = eloTarget;
-      }
+      // c_guessing = 0.25 cho trắc nghiệm, 0.05 cho tự luận/viết
+      const c_guessing = (q.questionType === 'multiple_choice' || q.questionType === 'listening') ? 0.25 : 0.05;
 
-      const avgEloAfter = Math.round((newGrammarElo + newVocabElo + newReadingElo) / 3);
+      const { newUserElo } = updateAdvancedElo(
+        eloTarget,
+        q.difficultyElo || 1200,
+        isCorrect,
+        timeTakenMs,
+        c_guessing
+      );
+
+      // Cập nhật lại vào biến Elo tương ứng
+      if (skillCat === 'Grammar') newGrammarElo = newUserElo;
+      else if (skillCat === 'Reading') newReadingElo = newUserElo;
+      else if (skillCat === 'Listening') newListeningElo = newUserElo;
+      else newVocabElo = newUserElo;
+
+      const avgEloAfter = Math.round((newGrammarElo + newVocabElo + newReadingElo + newListeningElo) / 4);
 
       assessmentHistories.push({
-          userId,
-          questionId: q.id,
-          isCorrect,
-          timeTakenMs: sub.timeTakenMs || 5000,
-          avgEloAfter,
-          userAnswer: sub.textAnswer || (sub.selectedAnswerId ? sub.selectedAnswerId.toString() : null)
-        });
+        userId,
+        questionId: q.id,
+        isCorrect,
+        timeTakenMs,
+        avgEloAfter,
+        userAnswer: sub.textAnswer || (sub.selectedAnswerId ? sub.selectedAnswerId.toString() : null)
+      });
     }
 
     // Save records in transaction
@@ -134,19 +151,10 @@ export class StudentTestService {
         });
       }
 
-      // 3. Update User Elo & XP
-      
-      
-      // Update User Elo & XP (Chỉ cập nhật nếu KHÔNG PHẢI retake)
+      // 3. Update User Elo & XP (Chỉ cập nhật nếu KHÔNG PHẢI retake)
       if (!isRetake) {
-        const avgElo = Math.round((newGrammarElo + newVocabElo + newReadingElo) / 3);
-        let newCefr = user.cefrLevel;
-        if (avgElo < 1100) newCefr = 'A1';
-        else if (avgElo < 1300) newCefr = 'A2';
-        else if (avgElo < 1500) newCefr = 'B1';
-        else if (avgElo < 1700) newCefr = 'B2';
-        else if (avgElo < 1900) newCefr = 'C1';
-        else newCefr = 'C2';
+        const avgElo = Math.round((newGrammarElo + newVocabElo + newReadingElo + newListeningElo) / 4);
+        const newCefr = getCEFRLevel(avgElo);
 
         await tx.user.update({
           where: { id: userId },
@@ -154,27 +162,37 @@ export class StudentTestService {
             grammarElo: newGrammarElo,
             vocabElo: newVocabElo,
             readingElo: newReadingElo,
+            listeningElo: newListeningElo,
             cefrLevel: newCefr,
             xpPoints: { increment: xpGained }
           }
         });
+
+        if (user.cefrLevel && user.cefrLevel !== newCefr) {
+          notificationService.notifyAdmins(
+            "Học viên thăng hạng trình độ 🚀",
+            `Học viên ${user.username} vừa thăng hạng từ ${user.cefrLevel} lên ${newCefr} sau khi hoàn thành bài thi "${test.title}".`
+          ).catch(() => {});
+        }
       }
-
-
     });
 
     // Tự động quét thành tựu
     await achievementEvaluator.evaluateUserAchievements(userId);
 
+    const actualXpGained = isRetake ? 0 : xpGained;
+
     return {
       totalScore,
       correctCount,
       totalQuestions: test.questions.length,
-      xpGained,
+      xpGained: actualXpGained,
+      isRetake,
       newElo: {
         grammar: newGrammarElo,
         vocab: newVocabElo,
-        reading: newReadingElo
+        reading: newReadingElo,
+        listening: newListeningElo
       }
     };
   }

@@ -7,10 +7,28 @@ export class DashboardService {
     const totalWords = await prisma.word.count();
     const totalTests = await prisma.test.count();
     
-    // Level distribution
-    const soCap = await prisma.user.count({ where: { role: 'user', xpPoints: { lt: 100 } } });
-    const trungCap = await prisma.user.count({ where: { role: 'user', xpPoints: { gte: 100, lt: 500 } } });
-    const caoCap = await prisma.user.count({ where: { role: 'user', xpPoints: { gte: 500 } } });
+    // Level distribution based on actual CEFR level
+    const soCap = await prisma.user.count({
+      where: {
+        role: 'user',
+        OR: [
+          { cefrLevel: { in: ['A1', 'A2'] } },
+          { cefrLevel: null }
+        ]
+      }
+    });
+    const trungCap = await prisma.user.count({
+      where: {
+        role: 'user',
+        cefrLevel: { in: ['B1', 'B2'] }
+      }
+    });
+    const caoCap = await prisma.user.count({
+      where: {
+        role: 'user',
+        cefrLevel: { in: ['C1', 'C2'] }
+      }
+    });
 
     const levelData = [
       { name: 'Sơ cấp (A1-A2)', value: soCap },
@@ -31,9 +49,11 @@ export class DashboardService {
         where: { createdAt: { gte: startOfDay, lte: endOfDay }, role: 'user' }
       });
       
-      const activeUsers = await prisma.loginLog.count({
+      const activeUserGroups = await prisma.loginLog.groupBy({
+        by: ['userId'],
         where: { loginTime: { gte: startOfDay, lte: endOfDay } }
       });
+      const activeUsers = activeUserGroups.length;
 
       const dayNames = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
       trafficData.push({

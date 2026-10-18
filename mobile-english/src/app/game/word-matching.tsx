@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { axiosClient } from '../../api/axiosClient';
 import { API_URL } from '../../constants/api';
+import { useAppTheme } from '../../context/ThemeContext';
 
 const getFixedImageURI = (url: string) => {
   if (!url) return null;
@@ -14,6 +15,7 @@ const getFixedImageURI = (url: string) => {
 
 export default function WordMatchingScreen() {
   const router = useRouter();
+  const { isDark, theme } = useAppTheme();
   const [loading, setLoading] = useState(true);
   
   const [columnA, setColumnA] = useState<any[]>([]);
@@ -136,9 +138,11 @@ export default function WordMatchingScreen() {
         key={"A-" + item.id}
         style={[
           styles.card,
+          { backgroundColor: theme.card },
           styles.cardA,
+          isDark && { borderColor: '#2563eb' },
           isSelected && styles.cardSelected,
-          isConnected && styles.cardConnected
+          isConnected && [styles.cardConnected, isDark && { backgroundColor: '#052e16', borderColor: '#10b981' }]
         ]}
         onPress={() => handleSelectA(item.id)}
         onLayout={(e) => {
@@ -146,8 +150,8 @@ export default function WordMatchingScreen() {
           setLayoutsA(prev => ({ ...prev, [item.id]: { y: layout.y, height: layout.height } }));
         }}
       >
-        <Text style={[styles.cardText, isConnected && styles.textConnected]}>{item.word}</Text>
-        <Text style={styles.cardPhonetic}>{item.phonetic}</Text>
+        <Text style={[styles.cardText, { color: theme.text }, isConnected && [styles.textConnected, isDark && { color: '#34d399' }]]}>{item.word}</Text>
+        <Text style={[styles.cardPhonetic, { color: theme.subtext }]}>{item.phonetic}</Text>
       </TouchableOpacity>
     );
   };
@@ -161,9 +165,11 @@ export default function WordMatchingScreen() {
         key={"B-" + item.id}
         style={[
           styles.card,
+          { backgroundColor: theme.card },
           styles.cardB,
+          isDark && { borderColor: '#d97706' },
           isSelected && styles.cardSelected,
-          isConnected && styles.cardConnected
+          isConnected && [styles.cardConnected, isDark && { backgroundColor: '#052e16', borderColor: '#10b981' }]
         ]}
         onPress={() => handleSelectB(item.id)}
         onLayout={(e) => {
@@ -171,35 +177,35 @@ export default function WordMatchingScreen() {
           setLayoutsB(prev => ({ ...prev, [item.id]: { y: layout.y, height: layout.height } }));
         }}
       >
-        <Text style={[styles.cardText, isConnected && styles.textConnected]}>{item.meaning}</Text>
+        <Text style={[styles.cardText, { color: theme.text }, isConnected && [styles.textConnected, isDark && { color: '#34d399' }]]}>{item.meaning}</Text>
       </TouchableOpacity>
     );
   };
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
+      <View style={[styles.loadingContainer, { backgroundColor: theme.background }]}>
         <ActivityIndicator size="large" color="#10b981" />
-        <Text style={{marginTop: 10}}>Đang chuẩn bị từ vựng...</Text>
+        <Text style={{ marginTop: 10, color: theme.subtext }}>Đang chuẩn bị từ vựng...</Text>
       </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+      <View style={[styles.header, { backgroundColor: theme.card, borderBottomColor: isDark ? theme.border : '#6ee7b7' }]}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="close" size={28} color="#111827" />
+          <Ionicons name="close" size={28} color={theme.text} />
         </TouchableOpacity>
-        <Text style={styles.titleText}>Nối Từ</Text>
-        <View style={styles.timerBox}>
+        <Text style={[styles.titleText, { color: isDark ? '#34d399' : '#047857' }]}>Nối Từ</Text>
+        <View style={[styles.timerBox, { backgroundColor: isDark ? '#450a0a' : '#fee2e2' }]}>
           <Ionicons name="timer-outline" size={16} color="#ef4444" />
           <Text style={styles.timerText}>{timeLeft}s</Text>
         </View>
       </View>
 
       <ScrollView style={{flex: 1}} contentContainerStyle={{padding: 15, paddingBottom: 100}}>
-        <Text style={styles.instruction}>Chạm vào một ô bên trái, sau đó chạm vào ô bên phải để nối cặp. Chạm lại để hủy nối.</Text>
+        <Text style={[styles.instruction, { color: theme.subtext }]}>Chạm vào một ô bên trái, sau đó chạm vào ô bên phải để nối cặp. Chạm lại để hủy nối.</Text>
         
         <View style={styles.columnsContainer} onLayout={(e) => setContainerWidth(e.nativeEvent.layout.width)}>
           
@@ -243,21 +249,21 @@ export default function WordMatchingScreen() {
           })}
           
           <View style={styles.column}>
-            <Text style={styles.colTitle}>Tiếng Anh</Text>
+            <Text style={[styles.colTitle, { color: theme.text }]}>Tiếng Anh</Text>
             {columnA.map(renderColumnAItem)}
           </View>
           
-          <View style={styles.divider}></View>
+          <View style={[styles.divider, { backgroundColor: theme.border }]}></View>
           
           <View style={styles.column}>
-            <Text style={styles.colTitle}>Tiếng Việt</Text>
+            <Text style={[styles.colTitle, { color: theme.text }]}>Tiếng Việt</Text>
             {columnB.map(renderColumnBItem)}
           </View>
         </View>
       </ScrollView>
 
       {!gameOver && connections.length === columnA.length && (
-        <View style={styles.submitContainer}>
+        <View style={[styles.submitContainer, { backgroundColor: theme.card, borderTopColor: theme.border }]}>
           <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit}>
             <Text style={styles.submitBtnText}>Nộp bài ngay</Text>
           </TouchableOpacity>
@@ -268,44 +274,43 @@ export default function WordMatchingScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f0fdf4' },
+  container: { flex: 1 },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, backgroundColor: '#ffffff', borderBottomWidth: 2, borderBottomColor: '#6ee7b7' },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 2 },
   backBtn: { padding: 5 },
-  titleText: { fontSize: 18, fontWeight: 'bold', color: '#047857' },
-  timerBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fee2e2', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 15 },
+  titleText: { fontSize: 18, fontWeight: 'bold' },
+  timerBox: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 15 },
   timerText: { color: '#ef4444', fontWeight: 'bold', marginLeft: 4 },
   
-  instruction: { fontSize: 13, color: '#4b5563', textAlign: 'center', marginBottom: 20, fontStyle: 'italic' },
+  instruction: { fontSize: 13, textAlign: 'center', marginBottom: 20, fontStyle: 'italic' },
   
   columnsContainer: { flexDirection: 'row', justifyContent: 'space-between' },
   column: { flex: 1, alignItems: 'center' },
-  divider: { width: 1, backgroundColor: '#d1d5db', marginHorizontal: 10 },
-  colTitle: { fontSize: 16, fontWeight: 'bold', color: '#111827', marginBottom: 15 },
+  divider: { width: 1, marginHorizontal: 10 },
+  colTitle: { fontSize: 16, fontWeight: 'bold', marginBottom: 15 },
   
   card: { 
     width: '100%', 
     minHeight: 80, 
-    backgroundColor: '#ffffff', 
     borderRadius: 12, 
     marginBottom: 15, 
     justifyContent: 'center', 
     alignItems: 'center', 
-    padding: 10,
+    padding: 10, 
     elevation: 2, shadowColor: '#000', shadowOffset: {width: 0, height: 1}, shadowOpacity: 0.1, shadowRadius: 2,
-    borderWidth: 2, borderColor: '#e5e7eb'
+    borderWidth: 2
   },
   cardA: { borderColor: '#93c5fd' },
   cardB: { borderColor: '#fcd34d' },
   cardSelected: { borderColor: '#ef4444', borderWidth: 3, transform: [{ scale: 1.05 }] },
   cardConnected: { backgroundColor: '#d1fae5', borderColor: '#10b981', opacity: 0.7 },
   
-  cardText: { fontSize: 16, fontWeight: 'bold', color: '#1f2937', textAlign: 'center' },
+  cardText: { fontSize: 16, fontWeight: 'bold', textAlign: 'center' },
   textConnected: { color: '#047857' },
-  cardPhonetic: { fontSize: 12, color: '#6b7280', marginTop: 5 },
+  cardPhonetic: { fontSize: 12, marginTop: 5 },
   cardImage: { width: 60, height: 60, resizeMode: 'cover', borderRadius: 8 },
   
-  submitContainer: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: 20, backgroundColor: '#ffffff', borderTopWidth: 1, borderTopColor: '#e5e7eb' },
+  submitContainer: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: 20, borderTopWidth: 1 },
   submitBtn: { backgroundColor: '#10b981', paddingVertical: 15, borderRadius: 12, alignItems: 'center' },
   submitBtnText: { color: '#ffffff', fontSize: 16, fontWeight: 'bold' }
 });

@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Image, TextInput, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Image, TextInput, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { axiosClient } from '../../api/axiosClient';
 import { useRouter } from 'expo-router';
+import { useAppTheme } from '../../context/ThemeContext';
 
 export default function ExploreScreen() {
+  const { isDark, theme } = useAppTheme();
   const [courses, setCourses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [enrollingId, setEnrollingId] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('ALL');
   const router = useRouter();
@@ -53,10 +56,51 @@ export default function ExploreScreen() {
       return 0;
     });
 
+  const handleStartLearning = async (course: any) => {
+    try {
+      setEnrollingId(course.id);
+      const res = await axiosClient.post(`/student/courses/${course.id}/enroll`);
+      const { alreadyEnrolled } = res.data?.data || {};
+
+      if (alreadyEnrolled) {
+        Alert.alert(
+          'Thông báo',
+          'Bạn đang học chủ đề này.',
+          [
+            { text: 'Đóng', style: 'cancel' },
+            { 
+              text: 'Tiếp tục học', 
+              onPress: () => router.push({ pathname: '/(tabs)/course/[id]', params: { id: course.id } } as any) 
+            }
+          ]
+        );
+      } else {
+        Alert.alert(
+          'Thành công',
+          'Đã thêm chủ đề vào phần học chính của bạn!',
+          [
+            { 
+              text: 'Bắt đầu học', 
+              onPress: () => router.push({ pathname: '/(tabs)/course/[id]', params: { id: course.id } } as any) 
+            }
+          ]
+        );
+      }
+    } catch (error: any) {
+      console.log('Error enrolling course:', error);
+      // Fallback nếu có lỗi mạng vẫn cho phép mở khóa học
+      router.push({ pathname: '/(tabs)/course/[id]', params: { id: course.id } } as any);
+    } finally {
+      setEnrollingId(null);
+    }
+  };
+
   const renderCourse = ({ item }: { item: any }) => {
+    const isEnrolling = enrollingId === item.id;
+
     return (
       <TouchableOpacity 
-        style={styles.courseCard}
+        style={[styles.courseCard, { backgroundColor: theme.card, borderColor: theme.border }]}
         onPress={() => router.push({ pathname: '/(tabs)/course/[id]', params: { id: item.id } } as any)}
       >
         <Image 
@@ -65,19 +109,27 @@ export default function ExploreScreen() {
           resizeMode="cover"
         />
         <View style={styles.courseContent}>
-          <View style={styles.levelBadge}>
+          <View style={[styles.levelBadge, { borderColor: theme.card }]}>
             <Text style={styles.levelText}>{item.cefrLevel || 'A1'}</Text>
           </View>
-          <Text style={styles.courseTitle} numberOfLines={2}>{item.title}</Text>
-          <Text style={styles.courseDesc} numberOfLines={2}>{item.description}</Text>
+          <Text style={[styles.courseTitle, { color: theme.text }]} numberOfLines={2}>{item.title}</Text>
+          <Text style={[styles.courseDesc, { color: theme.subtext }]} numberOfLines={2}>{item.description}</Text>
           
-          <View style={styles.courseFooter}>
+          <View style={[styles.courseFooter, { borderTopColor: theme.border }]}>
             <View style={styles.statInfo}>
-              <Ionicons name="book-outline" size={14} color="#6b7280" style={{marginRight: 4}} />
-              <Text style={styles.statText}>{item.totalLessons || 0} bài học</Text>
+              <Ionicons name="book-outline" size={14} color={theme.subtext} style={{marginRight: 4}} />
+              <Text style={[styles.statText, { color: theme.subtext }]}>{item.totalLessons || 0} bài học</Text>
             </View>
-            <TouchableOpacity style={styles.startBtn} onPress={() => router.push({ pathname: '/(tabs)/course/[id]', params: { id: item.id } } as any)}>
-              <Text style={styles.startBtnText}>Học ngay</Text>
+            <TouchableOpacity 
+              style={[styles.startBtn, { backgroundColor: isDark ? '#1e293b' : '#eff6ff', minWidth: 80, alignItems: 'center' }]} 
+              onPress={() => handleStartLearning(item)}
+              disabled={isEnrolling}
+            >
+              {isEnrolling ? (
+                <ActivityIndicator size="small" color={isDark ? '#60a5fa' : '#2563eb'} />
+              ) : (
+                <Text style={[styles.startBtnText, { color: isDark ? '#60a5fa' : '#2563eb' }]}>Học ngay</Text>
+              )}
             </TouchableOpacity>
           </View>
         </View>
@@ -86,36 +138,46 @@ export default function ExploreScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Khám phá khóa học</Text>
-        <Text style={styles.headerSubtitle}>Tìm kiếm các chủ đề tiếng Anh thú vị phù hợp với bạn</Text>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+      <View style={[styles.header, { backgroundColor: theme.card, borderBottomColor: theme.border }]}>
+        <Text style={[styles.headerTitle, { color: theme.text }]}>Khám phá khóa học</Text>
+        <Text style={[styles.headerSubtitle, { color: theme.subtext }]}>Tìm kiếm các chủ đề tiếng Anh thú vị phù hợp với bạn</Text>
       </View>
 
-      <View style={styles.searchContainer}>
-        <View style={styles.searchBox}>
-          <Ionicons name="search" size={20} color="#9ca3af" style={styles.searchIcon} />
+      <View style={[styles.searchContainer, { backgroundColor: theme.card }]}>
+        <View style={[styles.searchBox, { backgroundColor: theme.inputBg, borderColor: theme.border, borderWidth: 1 }]}>
+          <Ionicons name="search" size={20} color={theme.subtext} style={styles.searchIcon} />
           <TextInput
-            style={styles.searchInput}
+            style={[styles.searchInput, { color: theme.inputText }]}
             placeholder="Tìm kiếm khóa học, chủ đề..."
-            placeholderTextColor="#9ca3af"
+            placeholderTextColor={theme.subtext}
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
         </View>
       </View>
 
-      <View style={styles.filtersContainer}>
+      <View style={[styles.filtersContainer, { backgroundColor: theme.card, borderBottomColor: theme.border }]}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{paddingHorizontal: 20}}>
           {FILTER_OPTIONS.map((f) => {
             const isActive = selectedFilter === f.id;
             return (
               <TouchableOpacity 
                 key={f.id} 
-                style={[styles.filterChip, isActive && styles.filterChipActive]}
+                style={[
+                  styles.filterChip, 
+                  { backgroundColor: isDark ? theme.cardSecondary : '#f3f4f6' },
+                  isActive && { backgroundColor: isDark ? '#1e3a8a' : '#eff6ff', borderWidth: 1, borderColor: theme.primary }
+                ]}
                 onPress={() => setSelectedFilter(f.id)}
               >
-                <Text style={[styles.filterText, isActive && styles.filterTextActive]}>{f.label}</Text>
+                <Text style={[
+                  styles.filterText, 
+                  { color: isDark ? '#d4d4d8' : '#4b5563' },
+                  isActive && { color: isDark ? '#93c5fd' : '#2563eb', fontWeight: 'bold' }
+                ]}>
+                  {f.label}
+                </Text>
               </TouchableOpacity>
             );
           })}
@@ -124,7 +186,7 @@ export default function ExploreScreen() {
 
       {loading ? (
         <View style={styles.loader}>
-          <ActivityIndicator size="large" color="#3b82f6" />
+          <ActivityIndicator size="large" color={theme.primary} />
         </View>
       ) : (
         <FlatList
@@ -135,8 +197,8 @@ export default function ExploreScreen() {
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
             <View style={styles.emptyState}>
-              <Ionicons name="search-outline" size={48} color="#d1d5db" />
-              <Text style={styles.emptyText}>Không tìm thấy khóa học nào</Text>
+              <Ionicons name="search-outline" size={48} color={theme.subtext} />
+              <Text style={[styles.emptyText, { color: theme.subtext }]}>Không tìm thấy khóa học nào</Text>
             </View>
           }
         />

@@ -10,6 +10,9 @@ export class CommunityService {
         user: {
           select: { id: true, username: true, avatarUrl: true }
         },
+        images: {
+          select: { id: true, imageUrl: true }
+        },
         _count: {
           select: { comments: true, postLikes: true }
         },
@@ -30,11 +33,19 @@ export class CommunityService {
     }));
   }
 
-  async createPost(userId: number, content: string) {
+  async createPost(userId: number, content: string, imageUrl?: string) {
     const post = await prisma.communityPost.create({
-      data: { userId, content },
+      data: {
+        userId,
+        content,
+        imageUrl,
+        images: imageUrl ? {
+          create: [{ imageUrl }]
+        } : undefined
+      },
       include: {
-        user: { select: { id: true, username: true, avatarUrl: true } }
+        user: { select: { id: true, username: true, avatarUrl: true } },
+        images: { select: { id: true, imageUrl: true } }
       }
     });
     return { ...post, hasLiked: false, likesCount: 0, commentsCount: 0 };

@@ -12,6 +12,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { axiosClient } from '../api/axiosClient';
 import { notificationService } from '../service/notificationService';
+import { useAppTheme } from '../context/ThemeContext';
 
 export interface NotificationItem {
   id: number;
@@ -41,6 +42,7 @@ export default function NotificationModal({
   onMarkAsRead,
   onMarkAllAsRead,
 }: NotificationModalProps) {
+  const { isDark, theme } = useAppTheme();
   const [testing, setTesting] = useState(false);
   const [habitTime, setHabitTime] = useState<string | null>(null);
 
@@ -80,12 +82,24 @@ export default function NotificationModal({
 
   const getNotificationIcon = (title: string) => {
     if (title.includes('chuỗi') || title.includes('mất chuỗi')) {
-      return { name: 'flame' as const, color: '#ea580c', bg: '#ffedd5' };
+      return { 
+        name: 'flame' as const, 
+        color: isDark ? '#fb923c' : '#ea580c', 
+        bg: isDark ? '#431407' : '#ffedd5' 
+      };
     }
     if (title.includes('giờ học') || title.includes('nhắc nhở')) {
-      return { name: 'alarm' as const, color: '#2563eb', bg: '#dbeafe' };
+      return { 
+        name: 'alarm' as const, 
+        color: isDark ? '#60a5fa' : '#2563eb', 
+        bg: isDark ? '#1e3a8a' : '#dbeafe' 
+      };
     }
-    return { name: 'notifications' as const, color: '#7c3aed', bg: '#ede9fe' };
+    return { 
+      name: 'notifications' as const, 
+      color: isDark ? '#c084fc' : '#7c3aed', 
+      bg: isDark ? '#3b0764' : '#ede9fe' 
+    };
   };
 
   const handleTestLocalNotification = async () => {
@@ -108,51 +122,51 @@ export default function NotificationModal({
       onRequestClose={onClose}
     >
       <View style={styles.overlay}>
-        <View style={styles.container}>
+        <View style={[styles.container, { backgroundColor: theme.card }]}>
           {/* Header */}
-          <View style={styles.header}>
+          <View style={[styles.header, { borderBottomColor: theme.border }]}>
             <View style={styles.headerTitleContainer}>
-              <Text style={styles.headerTitle}>Thông báo</Text>
+              <Text style={[styles.headerTitle, { color: theme.text }]}>Thông báo</Text>
               {unreadCount > 0 && (
-                <View style={styles.badge}>
-                  <Text style={styles.badgeText}>{unreadCount} mới</Text>
+                <View style={[styles.badge, isDark && { backgroundColor: '#450a0a' }]}>
+                  <Text style={[styles.badgeText, isDark && { color: '#f87171' }]}>{unreadCount} mới</Text>
                 </View>
               )}
             </View>
             <View style={styles.headerActions}>
               {unreadCount > 0 && (
                 <TouchableOpacity onPress={onMarkAllAsRead} style={styles.markAllBtn}>
-                  <Text style={styles.markAllText}>Đọc tất cả</Text>
+                  <Text style={[styles.markAllText, { color: theme.primary }]}>Đọc tất cả</Text>
                 </TouchableOpacity>
               )}
               <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-                <Ionicons name="close" size={24} color="#6b7280" />
+                <Ionicons name="close" size={24} color={theme.subtext} />
               </TouchableOpacity>
             </View>
           </View>
 
           {/* Smart Habit Reminder Banner */}
           {habitTime && (
-            <View style={styles.habitBanner}>
-              <View style={styles.habitIconBg}>
-                <Ionicons name="sparkles" size={16} color="#4f46e5" />
+            <View style={[styles.habitBanner, isDark && { backgroundColor: '#1e1b4b', borderColor: '#3730a3' }]}>
+              <View style={[styles.habitIconBg, isDark && { backgroundColor: '#312e81' }]}>
+                <Ionicons name="sparkles" size={16} color={isDark ? '#a5b4fc' : '#4f46e5'} />
               </View>
               <View style={{ flex: 1, marginLeft: 10 }}>
-                <Text style={styles.habitTitle}>Khung giờ học thói quen: {habitTime}</Text>
-                <Text style={styles.habitSubtitle}>Đã tự động đặt lịch nhắc nhở mỗi ngày</Text>
+                <Text style={[styles.habitTitle, isDark && { color: '#e0e7ff' }]}>Khung giờ học thói quen: {habitTime}</Text>
+                <Text style={[styles.habitSubtitle, isDark && { color: '#a5b4fc' }]}>Đã tự động đặt lịch nhắc nhở mỗi ngày</Text>
               </View>
             </View>
           )}
 
           {/* Test Notification Button */}
-          <View style={styles.testBar}>
+          <View style={[styles.testBar, { backgroundColor: isDark ? theme.cardSecondary : '#f8fafc', borderBottomColor: theme.border }]}>
             <TouchableOpacity
-              style={styles.testBtn}
+              style={[styles.testBtn, isDark && { backgroundColor: '#1e293b', borderColor: '#3b82f6' }]}
               onPress={handleTestLocalNotification}
               disabled={testing}
             >
-              <Ionicons name="phone-portrait-outline" size={16} color="#2563eb" style={{ marginRight: 6 }} />
-              <Text style={styles.testBtnText}>
+              <Ionicons name="phone-portrait-outline" size={16} color={isDark ? '#60a5fa' : '#2563eb'} style={{ marginRight: 6 }} />
+              <Text style={[styles.testBtnText, isDark && { color: '#93c5fd' }]}>
                 {testing ? 'Đang gửi...' : 'Test thông báo màn hình khóa'}
               </Text>
             </TouchableOpacity>
@@ -161,15 +175,15 @@ export default function NotificationModal({
           {/* Content */}
           {loading ? (
             <View style={styles.centerContainer}>
-              <ActivityIndicator size="large" color="#2563eb" />
+              <ActivityIndicator size="large" color={theme.primary} />
             </View>
           ) : notifications.length === 0 ? (
             <View style={styles.centerContainer}>
-              <View style={styles.emptyIconBg}>
-                <Ionicons name="notifications-off-outline" size={40} color="#9ca3af" />
+              <View style={[styles.emptyIconBg, { backgroundColor: theme.cardSecondary }]}>
+                <Ionicons name="notifications-off-outline" size={40} color={theme.subtext} />
               </View>
-              <Text style={styles.emptyTitle}>Chưa có thông báo nào</Text>
-              <Text style={styles.emptySubtitle}>
+              <Text style={[styles.emptyTitle, { color: theme.text }]}>Chưa có thông báo nào</Text>
+              <Text style={[styles.emptySubtitle, { color: theme.subtext }]}>
                 Hệ thống sẽ gửi nhắc nhở khi đến khung giờ học quen thuộc của bạn!
               </Text>
             </View>
@@ -185,7 +199,14 @@ export default function NotificationModal({
                   <TouchableOpacity
                     style={[
                       styles.itemCard,
-                      !item.isRead && styles.unreadCard,
+                      {
+                        backgroundColor: isDark 
+                          ? (item.isRead ? theme.cardSecondary : '#052e16') 
+                          : (item.isRead ? '#ffffff' : '#f0fdf4'),
+                        borderColor: isDark 
+                          ? (item.isRead ? theme.border : '#14532d') 
+                          : (item.isRead ? '#f3f4f6' : '#bbf7d0'),
+                      }
                     ]}
                     activeOpacity={0.7}
                     onPress={() => {
@@ -197,12 +218,12 @@ export default function NotificationModal({
                     </View>
                     <View style={styles.itemContent}>
                       <View style={styles.itemHeader}>
-                        <Text style={[styles.itemTitle, !item.isRead && styles.unreadTitle]}>
+                        <Text style={[styles.itemTitle, { color: theme.text }, !item.isRead && styles.unreadTitle]}>
                           {item.title}
                         </Text>
-                        <Text style={styles.itemTime}>{formatTime(item.createdAt)}</Text>
+                        <Text style={[styles.itemTime, { color: theme.subtext }]}>{formatTime(item.createdAt)}</Text>
                       </View>
-                      <Text style={styles.itemBody}>{item.body}</Text>
+                      <Text style={[styles.itemBody, { color: theme.subtext }]}>{item.body}</Text>
                     </View>
                     {!item.isRead && <View style={styles.unreadDot} />}
                   </TouchableOpacity>

@@ -5,9 +5,11 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { axiosClient } from '../api/axiosClient';
 import * as SecureStore from 'expo-secure-store';
+import { useAppTheme } from '../context/ThemeContext';
 
 export default function OnboardingScreen() {
   const router = useRouter();
+  const { isDark, theme } = useAppTheme();
 
   const JOB_OPTIONS = ['Học sinh / Sinh viên', 'Người đi làm', 'Giáo viên', 'Khác'];
   const INTEREST_OPTIONS = ['Công nghệ (IT)', 'Du lịch', 'Kinh doanh', 'Giải trí / Game', 'Văn hóa nghệ thuật', 'Giao tiếp hàng ngày', 'Kỹ năng mềm', 'Học thuật'];
@@ -105,52 +107,60 @@ export default function OnboardingScreen() {
 
   if (loading) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color="#2563eb" />
-        <Text style={{marginTop: 10, color: '#64748b'}}>Đang xử lý...</Text>
+      <View style={[styles.center, { backgroundColor: theme.background }]}>
+        <ActivityIndicator size="large" color={theme.primary} />
+        <Text style={{marginTop: 10, color: theme.subtext}}>Đang xử lý...</Text>
       </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       {/* BƯỚC 1: LẤY THÔNG TIN CÁ NHÂN */}
       {step === 1 && (
         <ScrollView contentContainerStyle={styles.content}>
-          <Text style={styles.title}>Chào mừng bạn mới! 👋</Text>
-          <Text style={styles.subtitle}>Hãy cho chúng tôi biết một chút về bạn để xây dựng lộ trình học phù hợp nhất nhé.</Text>
+          <Text style={[styles.title, { color: theme.text }]}>Chào mừng bạn mới! 👋</Text>
+          <Text style={[styles.subtitle, { color: theme.subtext }]}>Hãy cho chúng tôi biết một chút về bạn để xây dựng lộ trình học phù hợp nhất nhé.</Text>
           
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Nghề nghiệp hiện tại của bạn:</Text>
+            <Text style={[styles.label, { color: theme.text }]}>Nghề nghiệp hiện tại của bạn:</Text>
             <View style={styles.chipContainer}>
               {JOB_OPTIONS.map((opt) => (
                 <TouchableOpacity 
                   key={opt}
-                  style={[styles.chip, job === opt && styles.chipSelected]}
+                  style={[
+                    styles.chip, 
+                    { backgroundColor: theme.cardSecondary, borderColor: theme.border },
+                    job === opt && [styles.chipSelected, { backgroundColor: isDark ? '#1c2438' : '#eff6ff', borderColor: theme.primary }]
+                  ]}
                   onPress={() => setJob(opt)}
                 >
-                  <Text style={[styles.chipText, job === opt && styles.chipTextSelected]}>{opt}</Text>
+                  <Text style={[styles.chipText, { color: theme.subtext }, job === opt && [styles.chipTextSelected, { color: theme.primary }]]}>{opt}</Text>
                 </TouchableOpacity>
               ))}
             </View>
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Sở thích cá nhân (Chọn nhiều):</Text>
+            <Text style={[styles.label, { color: theme.text }]}>Sở thích cá nhân (Chọn nhiều):</Text>
             <View style={styles.chipContainer}>
               {INTEREST_OPTIONS.map((opt) => (
                 <TouchableOpacity 
                   key={opt}
-                  style={[styles.chip, interests.includes(opt) && styles.chipSelected]}
+                  style={[
+                    styles.chip, 
+                    { backgroundColor: theme.cardSecondary, borderColor: theme.border },
+                    interests.includes(opt) && [styles.chipSelected, { backgroundColor: isDark ? '#1c2438' : '#eff6ff', borderColor: theme.primary }]
+                  ]}
                   onPress={() => toggleInterest(opt)}
                 >
-                  <Text style={[styles.chipText, interests.includes(opt) && styles.chipTextSelected]}>{opt}</Text>
+                  <Text style={[styles.chipText, { color: theme.subtext }, interests.includes(opt) && [styles.chipTextSelected, { color: theme.primary }]]}>{opt}</Text>
                 </TouchableOpacity>
               ))}
             </View>
           </View>
 
-          <TouchableOpacity style={styles.btnPrimary} onPress={startTest} disabled={interests.length === 0}>
+          <TouchableOpacity style={[styles.btnPrimary, { backgroundColor: theme.primary }]} onPress={startTest} disabled={interests.length === 0}>
             <Text style={styles.btnText}>Làm bài Test năng lực</Text>
             <Ionicons name="arrow-forward" size={20} color="#fff" style={{marginLeft: 8}} />
           </TouchableOpacity>
@@ -160,20 +170,20 @@ export default function OnboardingScreen() {
       {/* BƯỚC 2: LÀM BÀI TEST */}
       {step === 2 && questions.length > 0 && (
         <View style={styles.content}>
-          <Text style={styles.progressText}>Câu hỏi {currentQIndex + 1} / {questions.length}</Text>
-          <View style={styles.progressBar}>
-            <View style={[styles.progressFill, { width: `${((currentQIndex + 1) / questions.length) * 100}%` }]} />
+          <Text style={[styles.progressText, { color: theme.subtext }]}>Câu hỏi {currentQIndex + 1} / {questions.length}</Text>
+          <View style={[styles.progressBar, { backgroundColor: theme.cardSecondary }]}>
+            <View style={[styles.progressFill, { width: `${((currentQIndex + 1) / questions.length) * 100}%`, backgroundColor: theme.primary }]} />
           </View>
           
-          <Text style={styles.questionText}>{questions[currentQIndex].question}</Text>
+          <Text style={[styles.questionText, { color: theme.text }]}>{questions[currentQIndex].question}</Text>
           
           {questions[currentQIndex].options.map((opt: string, idx: number) => (
             <TouchableOpacity 
               key={idx} 
-              style={styles.optionBtn}
+              style={[styles.optionBtn, { backgroundColor: theme.card, borderColor: theme.border }]}
               onPress={() => selectAnswer(opt)}
             >
-              <Text style={styles.optionText}>{opt}</Text>
+              <Text style={[styles.optionText, { color: theme.text }]}>{opt}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -183,30 +193,30 @@ export default function OnboardingScreen() {
       {step === 3 && result && (
         <View style={styles.content}>
           <Ionicons name="trophy" size={80} color="#f59e0b" style={{alignSelf: 'center', marginBottom: 20}} />
-          <Text style={styles.title}>Hoàn tất đánh giá!</Text>
+          <Text style={[styles.title, { color: theme.text }]}>Hoàn tất đánh giá!</Text>
           
-          <View style={styles.resultCard}>
+          <View style={[styles.resultCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
             
-    <Text style={styles.resultLabel}>Điểm số: <Text style={styles.resultValue}>{result.score}</Text></Text>
+    <Text style={[styles.resultLabel, { color: theme.subtext }]}>Điểm số: <Text style={[styles.resultValue, { color: theme.text }]}>{result.score}</Text></Text>
     {result.stoppedEarly && (
-      <View style={{backgroundColor: '#dbeafe', padding: 10, borderRadius: 8, marginTop: 10, marginBottom: 5}}>
-        <Text style={{color: '#1e40af', fontSize: 13, fontWeight: '500'}}>
+      <View style={{backgroundColor: isDark ? '#1e293b' : '#dbeafe', padding: 10, borderRadius: 8, marginTop: 10, marginBottom: 5}}>
+        <Text style={{color: isDark ? '#93c5fd' : '#1e40af', fontSize: 13, fontWeight: '500'}}>
           ⚡ Tính năng Tự động dừng (Auto-stop): Thuật toán thông minh FAME-KT đã phân tích xong trình độ của bạn chỉ sau {result.questionsUsed} câu hỏi mà không cần làm hết bài!
         </Text>
       </View>
     )}
   
-            <Text style={styles.resultLabel}>Trình độ CEFR: <Text style={[styles.resultValue, {color: '#2563eb'}]}>{result.cefrLevel}</Text></Text>
+            <Text style={[styles.resultLabel, { color: theme.subtext }]}>Trình độ CEFR: <Text style={[styles.resultValue, {color: theme.primary}]}>{result.cefrLevel}</Text></Text>
             {result.eloProfile && (
               <View style={{marginTop: 10}}>
-                <Text style={styles.resultLabel}>Phân tích năng lực (FAME-KT Elo):</Text>
-                <Text style={{color: '#64748b'}}>Ngữ pháp: {result.eloProfile.Grammar} | Từ vựng: {result.eloProfile.Vocabulary}</Text>
-                <Text style={{color: '#64748b'}}>Nghe: {result.eloProfile.Listening} | Đọc: {result.eloProfile.Reading}</Text>
+                <Text style={[styles.resultLabel, { color: theme.subtext }]}>Phân tích năng lực (FAME-KT Elo):</Text>
+                <Text style={{color: theme.subtext}}>Ngữ pháp: {result.eloProfile.Grammar} | Từ vựng: {result.eloProfile.Vocabulary}</Text>
+                <Text style={{color: theme.subtext}}>Nghe: {result.eloProfile.Listening} | Đọc: {result.eloProfile.Reading}</Text>
               </View>
             )}
           </View>
 
-          <Text style={styles.subtitle}>Hãy chọn mục tiêu học tập của bạn:</Text>
+          <Text style={[styles.subtitle, { color: theme.subtext }]}>Hãy chọn mục tiêu học tập của bạn:</Text>
           
           {[
             { id: 'A1-A2', title: 'Dễ (A1 - A2)', desc: 'Dành cho người mới bắt đầu', levels: ['A1', 'A2'] },
@@ -217,16 +227,20 @@ export default function OnboardingScreen() {
             return (
               <TouchableOpacity 
                 key={group.id} 
-                style={[styles.courseCard, isRecommended && { borderColor: '#10b981', backgroundColor: '#ecfdf5', borderWidth: 2 }]}
+                style={[
+                  styles.courseCard, 
+                  { backgroundColor: theme.card, borderColor: theme.border },
+                  isRecommended && { borderColor: '#10b981', backgroundColor: isDark ? '#052e16' : '#ecfdf5', borderWidth: 2 }
+                ]}
                 onPress={async () => {
                   await SecureStore.setItemAsync('targetLevelGroup', group.id);
                   router.replace('/(tabs)');
                 }}
               >
-                <Text style={[styles.courseTitle, isRecommended && { color: '#047857' }]}>
+                <Text style={[styles.courseTitle, { color: theme.text }, isRecommended && { color: isDark ? '#34d399' : '#047857' }]}>
                   {group.title} {isRecommended && '✨ (Phù hợp với bạn)'}
                 </Text>
-                <Text style={styles.courseDesc}>{group.desc}</Text>
+                <Text style={[styles.courseDesc, { color: theme.subtext }]}>{group.desc}</Text>
               </TouchableOpacity>
             )
           })}
@@ -237,34 +251,33 @@ export default function OnboardingScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#ffffff' },
+  container: { flex: 1 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   content: { padding: 24 },
-  title: { fontSize: 26, fontWeight: 'bold', color: '#1e293b', marginBottom: 12, textAlign: 'center' },
-  subtitle: { fontSize: 15, color: '#64748b', marginBottom: 24, textAlign: 'center', lineHeight: 22 },
+  title: { fontSize: 26, fontWeight: 'bold', marginBottom: 12, textAlign: 'center' },
+  subtitle: { fontSize: 15, marginBottom: 24, textAlign: 'center', lineHeight: 22 },
   inputGroup: { marginBottom: 20 },
-  label: { fontSize: 14, fontWeight: '600', color: '#334155', marginBottom: 8 },
-  input: { backgroundColor: '#f1f5f9', borderRadius: 12, padding: 16, fontSize: 15, color: '#0f172a' },
-  btnPrimary: { backgroundColor: '#2563eb', borderRadius: 12, padding: 16, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 10 },
+  label: { fontSize: 14, fontWeight: '600', marginBottom: 8 },
+  input: { borderRadius: 12, padding: 16, fontSize: 15 },
+  btnPrimary: { borderRadius: 12, padding: 16, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 10 },
   btnText: { color: '#ffffff', fontSize: 16, fontWeight: 'bold' },
   chipContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 5 },
-  chip: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 20, backgroundColor: '#f1f5f9', borderWidth: 1, borderColor: '#e2e8f0' },
-  chipSelected: { backgroundColor: '#eff6ff', borderColor: '#3b82f6' },
-  chipText: { color: '#475569', fontSize: 14, fontWeight: '500' },
-  chipTextSelected: { color: '#2563eb', fontWeight: 'bold' },
+  chip: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 20, borderWidth: 1 },
+  chipSelected: {},
+  chipText: { fontSize: 14, fontWeight: '500' },
+  chipTextSelected: { fontWeight: 'bold' },
 
-  
-  progressText: { fontSize: 14, fontWeight: '600', color: '#64748b', marginBottom: 8 },
-  progressBar: { height: 6, backgroundColor: '#e2e8f0', borderRadius: 3, marginBottom: 30 },
-  progressFill: { height: '100%', backgroundColor: '#2563eb', borderRadius: 3 },
-  questionText: { fontSize: 22, fontWeight: 'bold', color: '#1e293b', marginBottom: 30, lineHeight: 32 },
-  optionBtn: { padding: 18, borderWidth: 2, borderColor: '#e2e8f0', borderRadius: 12, marginBottom: 12 },
-  optionText: { fontSize: 16, fontWeight: '500', color: '#334155', textAlign: 'center' },
+  progressText: { fontSize: 14, fontWeight: '600', marginBottom: 8 },
+  progressBar: { height: 6, borderRadius: 3, marginBottom: 30 },
+  progressFill: { height: '100%', borderRadius: 3 },
+  questionText: { fontSize: 22, fontWeight: 'bold', marginBottom: 30, lineHeight: 32 },
+  optionBtn: { padding: 18, borderWidth: 2, borderRadius: 12, marginBottom: 12 },
+  optionText: { fontSize: 16, fontWeight: '500', textAlign: 'center' },
 
-  resultCard: { backgroundColor: '#f8fafc', padding: 20, borderRadius: 16, marginBottom: 24, borderWidth: 1, borderColor: '#e2e8f0' },
-  resultLabel: { fontSize: 16, color: '#475569', marginBottom: 8 },
-  resultValue: { fontSize: 20, fontWeight: 'bold', color: '#0f172a' },
-  courseCard: { padding: 16, backgroundColor: '#ffffff', borderRadius: 12, borderWidth: 1, borderColor: '#e2e8f0', marginBottom: 12 },
-  courseTitle: { fontSize: 16, fontWeight: 'bold', color: '#1e293b' },
-  courseDesc: { fontSize: 13, color: '#64748b', marginTop: 4 }
+  resultCard: { padding: 20, borderRadius: 16, marginBottom: 24, borderWidth: 1 },
+  resultLabel: { fontSize: 16, marginBottom: 8 },
+  resultValue: { fontSize: 20, fontWeight: 'bold' },
+  courseCard: { padding: 16, borderRadius: 12, borderWidth: 1, marginBottom: 12 },
+  courseTitle: { fontSize: 16, fontWeight: 'bold' },
+  courseDesc: { fontSize: 13, marginTop: 4 }
 });

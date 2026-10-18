@@ -165,19 +165,61 @@ router.get(
   })
 );
 
-// Admin: Lấy danh sách hội thoại
+// Admin: Thống kê tổng quan AI Chat
+router.get(
+  "/admin/stats",
+  Authenticate,
+  authorize([Role.admin]),
+  asyncHandler(async (req, res) => {
+    const totalSessions = await prisma.aiChatSession.count();
+    const totalMessages = await prisma.aiChatMessage.count();
+    const userGroups = await prisma.aiChatSession.groupBy({
+      by: ['userId']
+    });
+    const avgMessages = totalSessions > 0 ? (totalMessages / totalSessions).toFixed(1) : "0";
+
+    res.status(200).json({
+      success: true,
+      data: {
+        totalSessions,
+        totalMessages,
+        activeUsers: userGroups.length,
+        avgMessagesPerSession: Number(avgMessages)
+      }
+    });
+  })
+);
+
+// Admin: Lấy danh sách hội thoại (có tìm kiếm & trích đoạn tin nhắn mới nhất)
 router.get(
   "/admin/sessions",
   Authenticate,
   authorize([Role.admin]),
   asyncHandler(async (req, res) => {
+    const search = req.query.search ? String(req.query.search).trim() : '';
+
+    const where: any = {};
+    if (search) {
+      where.OR = [
+        { title: { contains: search } },
+        { user: { username: { contains: search } } },
+        { user: { email: { contains: search } } }
+      ];
+    }
+
     const sessions = await prisma.aiChatSession.findMany({
+      where,
       include: {
-        user: { select: { username: true, email: true } },
-        _count: { select: { messages: true } }
+        user: { select: { id: true, username: true, email: true, avatarUrl: true, cefrLevel: true } },
+        _count: { select: { messages: true } },
+        messages: {
+          take: 1,
+          orderBy: { createdAt: 'desc' },
+          select: { messageText: true, sender: true, createdAt: true }
+        }
       },
       orderBy: { startedAt: 'desc' },
-      take: 50
+      take: 100
     });
     res.status(200).json({ success: true, data: sessions });
   })
@@ -195,6 +237,19 @@ router.get(
       orderBy: { createdAt: 'asc' }
     });
     res.status(200).json({ success: true, data: messages });
+  })
+);
+
+// Admin: Xóa 1 phiên hội thoại
+router.delete(
+  "/admin/sessions/:id",
+  Authenticate,
+  authorize([Role.admin]),
+  asyncHandler(async (req, res) => {
+    const sessionId = parseInt(req.params.id as string);
+    await prisma.aiChatMessage.deleteMany({ where: { sessionId } });
+    await prisma.aiChatSession.delete({ where: { id: sessionId } });
+    res.status(200).json({ success: true, message: "Đã xóa cuộc hội thoại thành công" });
   })
 );
 

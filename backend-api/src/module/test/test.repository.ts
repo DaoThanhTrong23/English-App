@@ -74,6 +74,9 @@ export class TestRepository {
         quesionText: questionData.quesionText,
         questionType: questionData.questionType,
         points: questionData.points,
+        difficultyElo: questionData.difficultyElo ? Number(questionData.difficultyElo) : 1200,
+        skillCategory: questionData.skillCategory || null,
+        topic: questionData.topic || null,
         audioUrl: questionData.audioUrl || null,
         imageUrl: questionData.imageUrl || null,
         answers: {
@@ -92,6 +95,9 @@ export class TestRepository {
           quesionText: questionData.quesionText,
           questionType: questionData.questionType,
           points: questionData.points,
+          difficultyElo: questionData.difficultyElo !== undefined ? Number(questionData.difficultyElo) : undefined,
+          skillCategory: questionData.skillCategory !== undefined ? questionData.skillCategory : undefined,
+          topic: questionData.topic !== undefined ? questionData.topic : undefined,
           audioUrl: questionData.audioUrl !== undefined ? questionData.audioUrl : undefined,
           imageUrl: questionData.imageUrl !== undefined ? questionData.imageUrl : undefined,
         }

@@ -36,6 +36,9 @@ const TestDetail: React.FC = () => {
     quesionText: '',
     questionType: 'multiple_choice',
     points: 10,
+    difficultyElo: 1200,
+    skillCategory: 'Vocabulary',
+    topic: '',
     audioUrl: '',
     imageUrl: '',
     answers: [
@@ -70,6 +73,9 @@ const TestDetail: React.FC = () => {
         quesionText: question.quesionText || '',
         questionType: question.questionType || 'multiple_choice',
         points: Number(question.points) || 10,
+        difficultyElo: Number(question.difficultyElo) || 1200,
+        skillCategory: question.skillCategory || 'Vocabulary',
+        topic: question.topic || '',
         audioUrl: question.audioUrl || '',
         imageUrl: question.imageUrl || '',
         answers: question.answers && question.answers.length > 0
@@ -82,6 +88,9 @@ const TestDetail: React.FC = () => {
         quesionText: '',
         questionType: 'multiple_choice',
         points: 10,
+        difficultyElo: 1200,
+        skillCategory: 'Vocabulary',
+        topic: '',
         audioUrl: '',
         imageUrl: '',
         answers: [
@@ -241,6 +250,9 @@ const TestDetail: React.FC = () => {
                       <div className="question-meta">
                         <span className="question-badge">{getQuestionTypeLabel(q.questionType)}</span>
                         <span className="question-badge">{q.points} điểm</span>
+                        <span className="question-badge" style={{ color: '#0284c7', fontWeight: 600 }}>⭐ Elo {q.difficultyElo || 1200}</span>
+                        <span className="question-badge" style={{ color: '#059669', fontWeight: 600 }}>🎯 {q.skillCategory || 'Vocabulary'}</span>
+                        {q.topic && <span className="question-badge" style={{ color: '#6366f1' }}>🏷️ {q.topic}</span>}
                         {q.audioUrl && <span className="question-badge" style={{ color: '#3b82f6' }}>🎵 Có Audio</span>}
                         {q.imageUrl && <span className="question-badge" style={{ color: '#8b5cf6' }}>🖼️ Có Ảnh</span>}
                       </div>
@@ -295,7 +307,15 @@ const TestDetail: React.FC = () => {
                       <label>Loại câu hỏi</label>
                       <select
                         value={formData.questionType}
-                        onChange={(e) => setFormData({ ...formData, questionType: e.target.value })}
+                        onChange={(e) => {
+                          const newType = e.target.value;
+                          let newSkill = formData.skillCategory;
+                          if (newType === 'listening') newSkill = 'Listening';
+                          else if (newType === 'speaking') newSkill = 'Speaking';
+                          else if (newType === 'writing') newSkill = 'Writing';
+                          else if (newType === 'multiple_choice' && newSkill === 'Listening') newSkill = 'Reading';
+                          setFormData({ ...formData, questionType: newType, skillCategory: newSkill });
+                        }}
                       >
                         <option value="multiple_choice">Đọc - Trắc nghiệm</option>
                         <option value="fill_in_blank">Viết - Điền khuyết</option>
@@ -314,6 +334,46 @@ const TestDetail: React.FC = () => {
                         onChange={(e) => setFormData({ ...formData, points: Number(e.target.value) })}
                       />
                     </div>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '16px' }}>
+                    <div className="form-group" style={{ flex: 1 }}>
+                      <label>Kỹ năng FAME-KT (*)</label>
+                      <select
+                        value={formData.skillCategory}
+                        onChange={(e) => setFormData({ ...formData, skillCategory: e.target.value })}
+                      >
+                        <option value="Vocabulary">Từ vựng (Vocabulary)</option>
+                        <option value="Grammar">Ngữ pháp (Grammar)</option>
+                        <option value="Reading">Đọc hiểu (Reading)</option>
+                        <option value="Listening">Nghe hiểu (Listening)</option>
+                        <option value="Speaking">Nói (Speaking)</option>
+                        <option value="Writing">Viết (Writing)</option>
+                      </select>
+                    </div>
+                    <div className="form-group" style={{ width: '140px' }}>
+                      <label>Độ khó (Elo)</label>
+                      <input
+                        type="number"
+                        min="500"
+                        max="3000"
+                        step="10"
+                        required
+                        placeholder="1200"
+                        value={formData.difficultyElo}
+                        onChange={(e) => setFormData({ ...formData, difficultyElo: Number(e.target.value) })}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label>Chủ đề câu hỏi (Topic) - Tuỳ chọn</label>
+                    <input
+                      type="text"
+                      placeholder="VD: Du lịch, Kinh doanh, Công nghệ..."
+                      value={formData.topic}
+                      onChange={(e) => setFormData({ ...formData, topic: e.target.value })}
+                    />
                   </div>
 
                   <div style={{ display: 'flex', gap: '16px' }}>

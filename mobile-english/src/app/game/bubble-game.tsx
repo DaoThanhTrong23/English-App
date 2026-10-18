@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { axiosClient } from '../../api/axiosClient';
 import { API_URL } from '../../constants/api';
+import { useAppTheme } from '../../context/ThemeContext';
 
 const { width, height } = Dimensions.get('window');
 const BUBBLE_SIZE = 110;
@@ -27,6 +28,7 @@ const getFixedImageURI = (url: string) => {
 // A floating Bubble component
 const FloatingBubble = ({ item, isSelected, onPress, type }: any) => {
   const pan = useRef(new Animated.ValueXY(getRandomPosition())).current;
+  const { isDark } = useAppTheme();
 
   useEffect(() => {
     moveRandomly();
@@ -49,7 +51,9 @@ const FloatingBubble = ({ item, isSelected, onPress, type }: any) => {
         onPress={() => onPress(item, type)}
         style={[
             styles.bubble, 
-            type === 'word' ? styles.bubbleWord : styles.bubbleMeaning,
+            type === 'word' 
+              ? (isDark ? styles.bubbleWordDark : styles.bubbleWord) 
+              : (isDark ? styles.bubbleMeaningDark : styles.bubbleMeaning),
             isSelected && styles.bubbleSelected
           ]}
       >
@@ -57,9 +61,9 @@ const FloatingBubble = ({ item, isSelected, onPress, type }: any) => {
         <View style={styles.bubbleHighlight} />
         <View style={styles.bubbleReflection} />
         {type === 'word' ? (
-          <Text style={styles.bubbleText}>{item.word}</Text>
+          <Text style={[styles.bubbleText, isDark && { color: '#ffffff' }]}>{item.word}</Text>
         ) : (
-          <Text style={styles.bubbleTextMeaning}>{item.meaning}</Text>
+          <Text style={[styles.bubbleTextMeaning, isDark && { color: '#ffffff' }]}>{item.meaning}</Text>
         )}
       </TouchableOpacity>
     </Animated.View>
@@ -68,6 +72,7 @@ const FloatingBubble = ({ item, isSelected, onPress, type }: any) => {
 
 export default function BubbleGameScreen() {
   const router = useRouter();
+  const { isDark, theme } = useAppTheme();
   const [loading, setLoading] = useState(true);
   
   const [allWords, setAllWords] = useState<any[]>([]);
@@ -228,9 +233,9 @@ export default function BubbleGameScreen() {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#3b82f6" />
-        <Text style={{marginTop: 10}}>Đang tải bong bóng và hình ảnh...</Text>
+      <View style={[styles.loadingContainer, { backgroundColor: theme.background }]}>
+        <ActivityIndicator size="large" color={theme.primary} />
+        <Text style={{ marginTop: 10, color: theme.subtext }}>Đang tải bong bóng và hình ảnh...</Text>
       </View>
     );
   }
@@ -240,14 +245,14 @@ export default function BubbleGameScreen() {
   const activeMeaningBubbles = allMeanings.filter(m => activeIds.includes(m.id));
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
+    <SafeAreaView style={[styles.container, { backgroundColor: isDark ? '#000000' : '#cffafe' }]}>
+      <View style={[styles.header, { backgroundColor: theme.card, borderBottomColor: isDark ? theme.border : '#0ea5e9' }]}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="close" size={28} color="#111827" />
+          <Ionicons name="close" size={28} color={theme.text} />
         </TouchableOpacity>
         
-        <Text style={{fontSize: 12, color: "#4b5563", fontStyle: "italic", marginLeft: 10}}>Chạm 1 Bóng Chữ & 1 Bóng Hình</Text>
-        <View style={styles.timerBox}>
+        <Text style={{fontSize: 12, color: theme.subtext, fontStyle: "italic", marginLeft: 10}}>Chạm 1 Bóng Chữ & 1 Bóng Nghĩa</Text>
+        <View style={[styles.timerBox, { backgroundColor: isDark ? '#450a0a' : '#fee2e2' }]}>
           <Ionicons name="timer-outline" size={16} color="#ef4444" />
           <Text style={styles.timerText}>{timeElapsed}s</Text>
         </View>
@@ -279,12 +284,12 @@ export default function BubbleGameScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#cffafe' },
+  container: { flex: 1 },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, backgroundColor: '#ffffff', borderBottomWidth: 2, borderBottomColor: '#0ea5e9', zIndex: 10 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 2, zIndex: 10 },
   backBtn: { padding: 5 },
-  scoreText: { fontSize: 18, fontWeight: 'bold', color: '#1d4ed8' },
-  timerBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fee2e2', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 15 },
+  scoreText: { fontSize: 18, fontWeight: 'bold' },
+  timerBox: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 15 },
   timerText: { color: '#ef4444', fontWeight: 'bold', marginLeft: 4 },
   
   gameArea: { flex: 1, position: 'relative', overflow: 'hidden' },
@@ -323,7 +328,9 @@ const styles = StyleSheet.create({
     transform: [{ rotate: '-45deg' }]
   },
   bubbleWord: { backgroundColor: 'rgba(186, 230, 253, 0.75)', borderWidth: 1, borderColor: 'rgba(56, 189, 248, 0.8)' },
+  bubbleWordDark: { backgroundColor: 'rgba(30, 58, 138, 0.7)', borderWidth: 1.5, borderColor: '#3b82f6' },
   bubbleMeaning: { backgroundColor: 'rgba(254, 240, 138, 0.75)', borderWidth: 1, borderColor: 'rgba(234, 179, 8, 0.8)' },
+  bubbleMeaningDark: { backgroundColor: 'rgba(113, 63, 18, 0.7)', borderWidth: 1.5, borderColor: '#eab308' },
   bubbleSelected: { borderWidth: 4, borderColor: '#22c55e', transform: [{ scale: 1.1 }] },
   bubbleText: { fontSize: 14, fontWeight: 'bold', color: '#1e3a8a', textAlign: 'center' },
   bubbleTextMeaning: { fontSize: 12, fontWeight: 'bold', color: '#854d0e', textAlign: 'center', padding: 5 },

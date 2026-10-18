@@ -53,6 +53,24 @@ studentCourseRouter.get(
 );
 
 /**
+ * POST /api/student/courses/:courseId/enroll - Đăng ký / thêm chủ đề vào phần học chính
+ */
+studentCourseRouter.post(
+  "/:courseId/enroll",
+  validate(StudentCourseIdParamSchema),
+  asyncHandler(async (req: AuthenticateRequest, res) => {
+    const userId = Number(req.user?.userId);
+    const courseId = Number(req.params.courseId);
+    const result = await studentLessonService.enrollCourse(userId, courseId);
+    res.status(200).json({
+      success: true,
+      message: result.message,
+      data: result,
+    });
+  })
+);
+
+/**
  * GET /api/student/courses/:courseId/lessons - Lấy danh sách bài học thuộc khóa học
  */
 studentCourseRouter.get(

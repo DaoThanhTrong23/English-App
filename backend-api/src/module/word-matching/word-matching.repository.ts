@@ -17,11 +17,13 @@ export class WordMatchingRepository {
   // 1. Lấy danh sách từ vựng theo bài học hoặc ngẫu nhiên từ database
   async getWordsForGame(userId: number, fallbackLimit: number = 6, lessonId?: number) {
     let limit = fallbackLimit;
-    const gameSetting = await prisma.gameSetting.findFirst({
-      where: { game: { code: 'MATCHING' }, difficulty: 'NORMAL' }
-    });
-    if (gameSetting) {
-      limit = gameSetting.itemCount;
+    if (!fallbackLimit || fallbackLimit === 6) {
+      const gameSetting = await prisma.gameSetting.findFirst({
+        where: { game: { code: 'MATCHING' }, difficulty: 'NORMAL' }
+      });
+      if (gameSetting) {
+        limit = gameSetting.itemCount;
+      }
     }
 
     if (lessonId) {

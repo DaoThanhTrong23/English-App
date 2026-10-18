@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { axiosClient } from '../api/axiosClient';
+import { useAppTheme } from '../context/ThemeContext';
 
 interface Message {
   id: string;
@@ -13,6 +14,7 @@ interface Message {
 
 export default function AiChatScreen() {
   const router = useRouter();
+  const { isDark, theme } = useAppTheme();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -121,33 +123,35 @@ export default function AiChatScreen() {
   const renderMessage = ({ item }: { item: Message }) => (
     <View style={[styles.messageWrapper, item.isUser ? styles.messageWrapperUser : styles.messageWrapperBot]}>
       {!item.isUser && (
-        <View style={styles.botAvatar}>
-          {/* Icon cũ: <Ionicons name="sparkles" size={16} color="#ffffff" /> */}
+        <View style={[styles.botAvatar, { backgroundColor: theme.cardSecondary, borderColor: theme.border }]}>
           <Image 
             source={require('../../assets/images/gacon.gif')} 
             style={styles.botAvatarImage} 
           />
         </View>
       )}
-      <View style={[styles.messageBubble, item.isUser ? styles.userBubble : styles.botBubble]}>
-        <Text style={[styles.messageText, item.isUser ? styles.userText : styles.botText]}>{item.text}</Text>
+      <View style={[
+        styles.messageBubble, 
+        item.isUser ? [styles.userBubble, { backgroundColor: theme.primary }] : [styles.botBubble, { backgroundColor: theme.card, borderColor: theme.border }]
+      ]}>
+        <Text style={[styles.messageText, item.isUser ? styles.userText : [styles.botText, { color: theme.text }]]}>{item.text}</Text>
       </View>
     </View>
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+      <View style={[styles.header, { backgroundColor: theme.card, borderBottomColor: theme.border }]}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={24} color="#111827" />
+          <Ionicons name="arrow-back" size={24} color={theme.text} />
         </TouchableOpacity>
         <View style={styles.headerTitleContainer}>
           <Image 
             source={require('../../assets/images/gacon.gif')} 
-            style={styles.headerAvatar} 
+            style={[styles.headerAvatar, { borderColor: theme.border }]} 
           />
           <View>
-            <Text style={styles.headerTitle}>Gia sư Gà Con AI</Text>
+            <Text style={[styles.headerTitle, { color: theme.text }]}>Gia sư Gà Con AI</Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
               <View style={styles.onlineIndicator} />
               <Text style={{ fontSize: 11, color: '#10b981', marginLeft: 4, fontWeight: '500' }}>Đang hoạt động</Text>
@@ -155,7 +159,7 @@ export default function AiChatScreen() {
           </View>
         </View>
         <TouchableOpacity onPress={() => { fetchSessionsList(); setHistoryModalVisible(true); }}>
-          <Ionicons name="time-outline" size={26} color="#3b82f6" />
+          <Ionicons name="time-outline" size={26} color={theme.primary} />
         </TouchableOpacity>
       </View>
 
@@ -175,26 +179,34 @@ export default function AiChatScreen() {
         {loading && (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="small" color="#8b5cf6" />
-            <Text style={styles.loadingText}>Gà đang gõ...</Text>
+            <Text style={[styles.loadingText, { color: theme.subtext }]}>Gà đang gõ...</Text>
           </View>
         )}
 
-        <View style={styles.inputContainer}>
+        <View style={[styles.inputContainer, { backgroundColor: theme.card, borderTopColor: theme.border }]}>
           <TextInput
-            style={styles.input}
+            style={[
+              styles.input, 
+              { 
+                backgroundColor: theme.inputBg, 
+                color: theme.inputText,
+                borderColor: theme.border,
+                borderWidth: isDark ? 1 : 0
+              }
+            ]}
             placeholder="Hỏi Gà bất cứ điều gì..."
-            placeholderTextColor="#9ca3af"
+            placeholderTextColor={theme.subtext}
             value={input}
             onChangeText={setInput}
             multiline
             maxLength={500}
           />
           <TouchableOpacity 
-            style={[styles.sendBtn, !input.trim() && {backgroundColor: '#e5e7eb'}]} 
+            style={[styles.sendBtn, !input.trim() && { backgroundColor: isDark ? '#27272a' : '#e5e7eb' }]} 
             onPress={sendMessage}
             disabled={!input.trim() || loading}
           >
-            <Ionicons name="send" size={20} color={input.trim() ? "#ffffff" : "#9ca3af"} />
+            <Ionicons name="send" size={20} color={input.trim() ? "#ffffff" : (isDark ? '#71717a' : "#9ca3af")} />
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -202,11 +214,11 @@ export default function AiChatScreen() {
       {/* History Modal */}
       <Modal visible={historyModalVisible} animationType="slide" transparent={true}>
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Lịch sử trò chuyện</Text>
+          <View style={[styles.modalContent, { backgroundColor: theme.card }]}>
+            <View style={[styles.modalHeader, { borderColor: theme.border }]}>
+              <Text style={[styles.modalTitle, { color: theme.text }]}>Lịch sử trò chuyện</Text>
               <TouchableOpacity onPress={() => setHistoryModalVisible(false)}>
-                <Ionicons name="close" size={24} color="#111827" />
+                <Ionicons name="close" size={24} color={theme.text} />
               </TouchableOpacity>
             </View>
             <TouchableOpacity style={styles.newChatBtn} onPress={startNewChat}>
@@ -214,12 +226,12 @@ export default function AiChatScreen() {
               <Text style={styles.newChatText}>Cuộc trò chuyện mới</Text>
             </TouchableOpacity>
             <ScrollView style={{flex: 1, padding: 15}}>
-              {loadingHistory ? <ActivityIndicator color="#3b82f6"/> : sessions.map(s => (
-                <TouchableOpacity key={s.id} style={styles.sessionItem} onPress={() => loadSessionMessages(s.id)}>
-                  <Ionicons name="chatbubbles-outline" size={24} color="#6b7280" />
+              {loadingHistory ? <ActivityIndicator color={theme.primary}/> : sessions.map(s => (
+                <TouchableOpacity key={s.id} style={[styles.sessionItem, { borderColor: theme.border }]} onPress={() => loadSessionMessages(s.id)}>
+                  <Ionicons name="chatbubbles-outline" size={24} color={theme.subtext} />
                   <View style={{marginLeft: 15, flex: 1}}>
-                    <Text style={styles.sessionTitle} numberOfLines={1}>{s.title}</Text>
-                    <Text style={styles.sessionTime}>{new Date(s.startedAt).toLocaleDateString()}</Text>
+                    <Text style={[styles.sessionTitle, { color: theme.text }]} numberOfLines={1}>{s.title}</Text>
+                    <Text style={[styles.sessionTime, { color: theme.subtext }]}>{new Date(s.startedAt).toLocaleDateString()}</Text>
                   </View>
                   {sessionId === s.id && <Ionicons name="checkmark" size={20} color="#10b981" />}
                 </TouchableOpacity>

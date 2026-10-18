@@ -7,6 +7,7 @@ import WordList from './features/words/pages/WordList';
 import CourseList from './features/courses/pages/CourseList';
 import CourseDetail from './features/courses/pages/CourseDetail';
 import TopicList from './features/topics/pages/TopicList';
+import KeywordSettings from './features/keywords/pages/KeywordSettings';
 import AchievementList from './features/achievements/pages/AchievementList';
 import SystemLogs from './features/system-logs/pages/SystemLogs';
 import Settings from './features/settings/pages/Settings';
@@ -39,6 +40,7 @@ function App() {
         
         {/* Đường dẫn của trang Quản lý Bài học & Chủ đề */}
         <Route path="/admin/topics" element={<TopicList />} />
+        <Route path="/admin/keywords" element={<KeywordSettings />} />
         <Route path="/admin/courses" element={<CourseList />} />
         <Route path="/admin/courses/:courseId" element={<CourseDetail />} />
 

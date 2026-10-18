@@ -199,7 +199,7 @@ export class StudentVocabularyService {
     const dueProgress = await prisma.userProgress.findMany({
       where: { 
         userId,
-        status: { in: ['learning', 'mastered'] },
+        status: { in: ['new', 'learning', 'mastered'] },
         nextReviewDate: { lte: now }
       },
       include: { word: true }
@@ -214,7 +214,8 @@ export class StudentVocabularyService {
 
     if (!progress) throw new ApiError(404, "not_found", "Không tìm thấy tiến trình từ vựng này");
 
-    let { memoryLevel, status } = progress;
+    let { memoryLevel } = progress;
+    let status: LearningStatus = progress.status;
     let nextReviewDate = new Date();
 
     if (isCorrect) {
@@ -223,19 +224,38 @@ export class StudentVocabularyService {
       const intervals = [1, 3, 7, 14, 30, 90];
       const addDays = intervals[Math.min(memoryLevel - 1, intervals.length - 1)];
       nextReviewDate.setDate(nextReviewDate.getDate() + addDays);
-      if (memoryLevel >= 4) status = 'mastered';
+      status = memoryLevel >= 4 ? LearningStatus.mastered : LearningStatus.learning;
     } else {
-      memoryLevel = Math.max(1, memoryLevel - 1); // Trừ cấp
+      memoryLevel = Math.max(0, memoryLevel - 1); // Trừ cấp an toàn (không tăng từ 0 lên 1)
       nextReviewDate.setDate(nextReviewDate.getDate() + 1); // Mai học lại
-      status = 'learning';
+      status = LearningStatus.learning;
     }
 
-    const updated = await prisma.userProgress.update({
-      where: { id: progress.id },
-      data: { memoryLevel, nextReviewDate, status }
-    });
+    // Cộng điểm thưởng XP (+5 XP nếu đúng, +1 XP khích lệ nếu sai)
+    const xpReward = isCorrect ? 5 : 1;
 
-    return updated;
+    const [updated] = await prisma.$transaction([
+      prisma.userProgress.update({
+        where: { id: progress.id },
+        data: { memoryLevel, nextReviewDate, status }
+      }),
+      prisma.user.update({
+        where: { id: userId },
+        data: { xpPoints: { increment: xpReward } }
+      }),
+      prisma.activityLog.create({
+        data: {
+          userId,
+          actionType: "STUDENT_REVIEW_VOCABULARY",
+          description: `Học viên ôn tập từ vựng #${wordId} (${isCorrect ? 'Đúng' : 'Sai'}), +${xpReward} XP`
+        }
+      })
+    ]);
+
+    return {
+      ...updated,
+      xpAwarded: xpReward
+    };
   }
 
 }

@@ -53,6 +53,12 @@ export interface StudentDetailResponse {
       email: string;
       xpPoints: number;
       isLocked?: boolean;
+      cefrLevel?: string | null;
+      grammarElo?: number;
+      vocabElo?: number;
+      readingElo?: number;
+      listeningElo?: number;
+      preferredTopics?: string | null;
       lastLoginDate: string | null;
       joinedAt: string;
     };

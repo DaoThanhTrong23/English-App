@@ -35,7 +35,10 @@ const WordList: React.FC = () => {
   };
 
   useEffect(() => {
-    loadWords();
+    const timer = setTimeout(() => {
+      loadWords();
+    }, 300);
+    return () => clearTimeout(timer);
   }, [page, search]);
 
   const handleDelete = async (id: string, headword: string) => {

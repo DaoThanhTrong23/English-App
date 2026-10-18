@@ -5,9 +5,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useCallback } from 'react';
 import { axiosClient } from '../api/axiosClient';
+import { useAppTheme } from '../context/ThemeContext';
 
 export default function GamesHubScreen() {
   const router = useRouter();
+  const { isDark, theme } = useAppTheme();
   const [stats, setStats] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -42,41 +44,45 @@ export default function GamesHubScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+      <View style={[styles.header, { backgroundColor: theme.card, borderBottomColor: theme.border }]}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={24} color="#111827" />
+          <Ionicons name="arrow-back" size={24} color={theme.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Góc Giải Trí</Text>
+        <Text style={[styles.headerTitle, { color: theme.text }]}>Góc Giải Trí</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.banner}>
+        <View style={[styles.banner, { backgroundColor: isDark ? '#18181b' : '#1e3a8a', borderColor: theme.border, borderWidth: isDark ? 1 : 0 }]}>
           <Ionicons name="game-controller" size={48} color="#fbbf24" style={{marginBottom: 10}} />
           <Text style={styles.bannerTitle}>Học mà chơi, chơi mà học!</Text>
-          <Text style={styles.bannerDesc}>Vượt qua các thử thách Mini Game để kiếm thêm nhiều XP và củng cố từ vựng nhé.</Text>
+          <Text style={[styles.bannerDesc, { color: isDark ? '#a1a1aa' : '#bfdbfe' }]}>Vượt qua các thử thách Mini Game để kiếm thêm nhiều XP và củng cố từ vựng nhé.</Text>
         </View>
 
-        <Text style={styles.sectionTitle}>Danh sách Trò chơi & Thành tích</Text>
+        <Text style={[styles.sectionTitle, { color: theme.text }]}>Danh sách Trò chơi & Thành tích</Text>
         
         {loading ? <ActivityIndicator size="large" color="#fbbf24" style={{marginTop: 20}} /> : 
         games.map(game => {
           const gameStat = getGameStat(game.code);
           return (
-            <TouchableOpacity key={game.id} style={styles.gameCard} onPress={() => { router.push(`/game/${game.id}` as any) }}>
+            <TouchableOpacity 
+              key={game.id} 
+              style={[styles.gameCard, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1 }]} 
+              onPress={() => { router.push(`/game/${game.id}` as any) }}
+            >
               <View style={[styles.iconBox, { backgroundColor: game.color + '20' }]}>
                 <Ionicons name={game.icon as any} size={28} color={game.color} />
               </View>
               <View style={styles.info}>
-                <Text style={styles.gameName}>{game.name}</Text>
-                <Text style={styles.gameDesc}>{game.desc}</Text>
+                <Text style={[styles.gameName, { color: theme.text }]}>{game.name}</Text>
+                <Text style={[styles.gameDesc, { color: theme.subtext }]}>{game.desc}</Text>
                 {gameStat ? (
                   <View style={styles.statRow}>
-                    <Text style={styles.statText}>🏆 Kỷ lục: <Text style={{color: '#f59e0b', fontWeight: 'bold'}}>{gameStat._max.score}</Text> điểm</Text>
-                    <Text style={styles.statText}>🎮 Đã chơi: <Text style={{fontWeight: 'bold'}}>{gameStat._count.id}</Text> lần</Text>
+                    <Text style={[styles.statText, { backgroundColor: theme.cardSecondary, color: theme.subtext }]}>🏆 Kỷ lục: <Text style={{color: '#f59e0b', fontWeight: 'bold'}}>{gameStat._max.score}</Text> điểm</Text>
+                    <Text style={[styles.statText, { backgroundColor: theme.cardSecondary, color: theme.subtext }]}>🎮 Đã chơi: <Text style={{fontWeight: 'bold', color: theme.text}}>{gameStat._count.id}</Text> lần</Text>
                   </View>
                 ) : (
-                  <Text style={styles.statTextEmpty}>Chưa chơi lần nào</Text>
+                  <Text style={[styles.statTextEmpty, { color: theme.subtext }]}>Chưa chơi lần nào</Text>
                 )}
               </View>
               <Ionicons name="play-circle" size={32} color={game.color} />
@@ -89,21 +95,21 @@ export default function GamesHubScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f9fafb' },
-  header: { flexDirection: 'row', alignItems: 'center', padding: 20, backgroundColor: '#ffffff', borderBottomWidth: 1, borderBottomColor: '#f3f4f6' },
+  container: { flex: 1 },
+  header: { flexDirection: 'row', alignItems: 'center', padding: 20, borderBottomWidth: 1 },
   backBtn: { padding: 5, marginRight: 15 },
-  headerTitle: { fontSize: 20, fontWeight: 'bold', color: '#111827' },
+  headerTitle: { fontSize: 20, fontWeight: 'bold' },
   content: { padding: 20, paddingBottom: 40 },
-  banner: { backgroundColor: '#1e3a8a', borderRadius: 16, padding: 20, alignItems: 'center', marginBottom: 25 },
+  banner: { borderRadius: 16, padding: 20, alignItems: 'center', marginBottom: 25 },
   bannerTitle: { fontSize: 20, fontWeight: 'bold', color: '#ffffff', marginBottom: 5 },
-  bannerDesc: { fontSize: 14, color: '#bfdbfe', textAlign: 'center', lineHeight: 20 },
-  sectionTitle: { fontSize: 18, fontWeight: 'bold', color: '#374151', marginBottom: 15 },
-  gameCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#ffffff', padding: 15, borderRadius: 16, marginBottom: 15, elevation: 2, shadowColor: '#000', shadowOffset: {width: 0, height: 2}, shadowOpacity: 0.05, shadowRadius: 3 },
+  bannerDesc: { fontSize: 14, textAlign: 'center', lineHeight: 20 },
+  sectionTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 15 },
+  gameCard: { flexDirection: 'row', alignItems: 'center', padding: 15, borderRadius: 16, marginBottom: 15, elevation: 2, shadowColor: '#000', shadowOffset: {width: 0, height: 2}, shadowOpacity: 0.05, shadowRadius: 3 },
   iconBox: { width: 50, height: 50, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginRight: 15 },
   info: { flex: 1 },
-  gameName: { fontSize: 16, fontWeight: 'bold', color: '#111827', marginBottom: 2 },
-  gameDesc: { fontSize: 12, color: '#6b7280', marginBottom: 6 },
+  gameName: { fontSize: 16, fontWeight: 'bold', marginBottom: 2 },
+  gameDesc: { fontSize: 12, marginBottom: 6 },
   statRow: { flexDirection: 'row', gap: 10 },
-  statText: { fontSize: 11, color: '#4b5563', backgroundColor: '#f3f4f6', paddingHorizontal: 6, paddingVertical: 3, borderRadius: 6, overflow: 'hidden' },
-  statTextEmpty: { fontSize: 11, color: '#9ca3af', fontStyle: 'italic' }
+  statText: { fontSize: 11, paddingHorizontal: 6, paddingVertical: 3, borderRadius: 6, overflow: 'hidden' },
+  statTextEmpty: { fontSize: 11, fontStyle: 'italic' }
 });

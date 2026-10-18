@@ -13,7 +13,8 @@ export const RegisterSchema = z.object({
             .regex(/[A-Z]/, "Mật khẩu phải chứa ít nhất 1 chữ hoa")
             .regex(/[0-9]/, "Mật khẩu phải chứa ít nhất 1 chữ số")
             .regex(/[\W_]/, "Mật khẩu phải chứa ít nhất 1 ký tự đặc biệt")
-            .max(100)
+            .max(100),
+        deviceInfo: z.string().optional()
     }),
     query: z.object({}),
     params: z.object({})

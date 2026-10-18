@@ -41,14 +41,14 @@ export class WordMatchingService {
   @logExecution()
   @recordActivity("USER_START_WORD_MATCHING", (_result, userId) => `Người dùng ID ${userId} bắt đầu ván chơi nối từ vựng mới`)
   async startGame(userId: number, query: StartWordMatchingQuery) {
-    const limit = query.limit || 10;
-    const words = await this.repository.getWordsForGame(userId, query.limit || 6, query.lessonId);
+    const limit = query.limit || 6;
+    const words = await this.repository.getWordsForGame(userId, limit, query.lessonId);
 
-    if (!words || words.length < limit) {
+    if (!words || words.length < 4) {
       throw new ApiError(
         400,
         "not_enough_words",
-        `Không đủ từ vựng để tạo bàn chơi nối từ (cần tối thiểu ${limit} từ).`
+        `Không đủ từ vựng để tạo bàn chơi nối từ (cần tối thiểu 4 từ, hiện có ${words?.length || 0} từ).`
       );
     }
 

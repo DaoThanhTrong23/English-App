@@ -23,8 +23,15 @@ const Settings: React.FC = () => {
       setMessage({ type: 'error', text: 'Mật khẩu mới không khớp!' });
       return;
     }
-    if (newPassword.length < 6) {
-      setMessage({ type: 'error', text: 'Mật khẩu mới phải có ít nhất 6 ký tự!' });
+    if (newPassword.length < 8) {
+      setMessage({ type: 'error', text: 'Mật khẩu mới phải dài ít nhất 8 ký tự!' });
+      return;
+    }
+    if (!/[a-z]/.test(newPassword) || !/[A-Z]/.test(newPassword) || !/[0-9]/.test(newPassword) || !/[\W_]/.test(newPassword)) {
+      setMessage({ 
+        type: 'error', 
+        text: 'Mật khẩu mới phải chứa ít nhất 1 chữ thường, 1 chữ hoa, 1 chữ số và 1 ký tự đặc biệt!' 
+      });
       return;
     }
 
@@ -115,6 +122,9 @@ const Settings: React.FC = () => {
                       onChange={(e) => setNewPassword(e.target.value)}
                       required
                     />
+                    <small style={{ display: 'block', marginTop: '6px', color: '#64748b', fontSize: '0.8rem' }}>
+                      Tối thiểu 8 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt.
+                    </small>
                   </div>
                   <div>
                     <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#475569' }}>Xác nhận mật khẩu mới</label>

@@ -9,6 +9,7 @@ import * as SecureStore from 'expo-secure-store';
 import { API_URL } from '../../constants/api';
 import * as Speech from 'expo-speech';
 import { useAudioRecorder, useAudioRecorderState, useAudioPlayer, RecordingPresets, requestRecordingPermissionsAsync, setAudioModeAsync } from 'expo-audio';
+import { useAppTheme } from '../../context/ThemeContext';
 
 const OBSTACLES = [
   { name: 'flame', color: '#f97316' },
@@ -17,6 +18,7 @@ const OBSTACLES = [
 
 export default function MarioVoiceRunScreen() {
   const router = useRouter();
+  const { isDark, theme } = useAppTheme();
   const [loading, setLoading] = useState(true);
   const [words, setWords] = useState<any[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -243,36 +245,36 @@ export default function MarioVoiceRunScreen() {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
+      <View style={[styles.loadingContainer, { backgroundColor: theme.background }]}>
         <ActivityIndicator size="large" color="#ef4444" />
-        <Text style={{ marginTop: 10 }}>Đang nạp dữ liệu đường đua...</Text>
+        <Text style={{ marginTop: 10, color: theme.subtext }}>Đang nạp dữ liệu đường đua...</Text>
       </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: isDark ? '#09090b' : '#38bdf8' }]}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="close" size={28} color="#111827" />
+        <TouchableOpacity onPress={() => router.back()} style={[styles.backBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.5)' }]}>
+          <Ionicons name="close" size={28} color={theme.text} />
         </TouchableOpacity>
         <Text style={styles.scoreText}>Điểm: {score}</Text>
-        <View style={styles.stageBox}>
-          <Text style={styles.stageText}>{currentIndex + 1}/{words.length}</Text>
+        <View style={[styles.stageBox, { backgroundColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.8)' }]}>
+          <Text style={[styles.stageText, { color: isDark ? '#ffffff' : '#0369a1' }]}>{currentIndex + 1}/{words.length}</Text>
         </View>
       </View>
 
       <View style={styles.gameArea}>
         {/* Background Clouds */}
         <Animated.View style={[styles.clouds, { transform: [{ translateX: groundAnim }] }]}>
-          <Ionicons name="cloud" size={60} color="#ffffff" style={{ marginLeft: 50, opacity: 0.8 }} />
-          <Ionicons name="cloud" size={40} color="#ffffff" style={{ marginLeft: 150, marginTop: 20, opacity: 0.6 }} />
-          <Ionicons name="cloud" size={80} color="#ffffff" style={{ marginLeft: 100, opacity: 0.7 }} />
+          <Ionicons name="cloud" size={60} color={isDark ? '#3f3f46' : '#ffffff'} style={{ marginLeft: 50, opacity: isDark ? 0.4 : 0.8 }} />
+          <Ionicons name="cloud" size={40} color={isDark ? '#3f3f46' : '#ffffff'} style={{ marginLeft: 150, marginTop: 20, opacity: isDark ? 0.3 : 0.6 }} />
+          <Ionicons name="cloud" size={80} color={isDark ? '#3f3f46' : '#ffffff'} style={{ marginLeft: 100, opacity: isDark ? 0.35 : 0.7 }} />
         </Animated.View>
 
         {/* Ground */}
-        <View style={styles.groundBase}>
-          <Animated.View style={[styles.groundPattern, { transform: [{ translateX: groundAnim }] }]} />
+        <View style={[styles.groundBase, isDark && { backgroundColor: '#18181b', borderTopColor: '#27272a' }]}>
+          <Animated.View style={[styles.groundPattern, isDark && { borderTopColor: '#3f3f46' }, { transform: [{ translateX: groundAnim }] }]} />
         </View>
 
         {/* Chicken */}
@@ -289,14 +291,14 @@ export default function MarioVoiceRunScreen() {
         {/* Popup */}
         {showPopup && words[currentIndex] && (
           <View style={styles.popupOverlay}>
-            <View style={styles.popup}>
-              <Text style={styles.wordText}>{words[currentIndex].headword}</Text>
-              <Text style={styles.phoneticText}>/{words[currentIndex].phonetic}/</Text>
+            <View style={[styles.popup, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1 }]}>
+              <Text style={[styles.wordText, { color: theme.text }]}>{words[currentIndex].headword}</Text>
+              <Text style={[styles.phoneticText, { color: theme.primary }]}>/{words[currentIndex].phonetic}/</Text>
               
-              <TouchableOpacity onPress={handlePlayAudio} style={{ marginBottom: 10, backgroundColor: '#f3f4f6', padding: 8, borderRadius: 20 }}>
-                  <Ionicons name="volume-high" size={24} color="#3b82f6" />
+              <TouchableOpacity onPress={handlePlayAudio} style={{ marginBottom: 10, backgroundColor: theme.cardSecondary, padding: 8, borderRadius: 20 }}>
+                  <Ionicons name="volume-high" size={24} color={theme.primary} />
                 </TouchableOpacity>
-              <Text style={styles.meaningText}>{words[currentIndex].meaning}</Text>
+              <Text style={[styles.meaningText, { color: isDark ? '#34d399' : '#10b981' }]}>{words[currentIndex].meaning}</Text>
 
               <View style={styles.actionRow}>
                 <TouchableOpacity style={styles.skipBtn} onPress={skipWord}>
@@ -311,11 +313,11 @@ export default function MarioVoiceRunScreen() {
                   <Ionicons name="mic" size={32} color="#ffffff" />
                 </TouchableOpacity>
               </View>
-              <Text style={{ marginTop: 10, color: '#6b7280', fontSize: 12 }}>
+              <Text style={{ marginTop: 10, color: theme.subtext, fontSize: 12 }}>
                 {isRecording ? "Đang ghi âm..." : "Nhấn giữ để phát âm"}
               </Text>
               {isRecording && (
-                <View style={{ width: '100%', height: 10, backgroundColor: '#e5e7eb', borderRadius: 5, marginTop: 10, overflow: 'hidden' }}>
+                <View style={{ width: '100%', height: 10, backgroundColor: theme.cardSecondary, borderRadius: 5, marginTop: 10, overflow: 'hidden' }}>
                   <Animated.View style={{
                     height: '100%',
                     backgroundColor: '#10b981',
@@ -332,13 +334,13 @@ export default function MarioVoiceRunScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#38bdf8' },
-  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#ffffff' },
+  container: { flex: 1 },
+  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, zIndex: 10 },
-  backBtn: { padding: 5, backgroundColor: 'rgba(255,255,255,0.5)', borderRadius: 20 },
+  backBtn: { padding: 5, borderRadius: 20 },
   scoreText: { fontSize: 20, fontWeight: 'bold', color: '#ffffff', textShadowColor: 'rgba(0,0,0,0.3)', textShadowOffset: { width: 1, height: 1 }, textShadowRadius: 2 },
-  stageBox: { backgroundColor: 'rgba(255,255,255,0.8)', paddingHorizontal: 15, paddingVertical: 5, borderRadius: 15 },
-  stageText: { color: '#0369a1', fontWeight: 'bold' },
+  stageBox: { paddingHorizontal: 15, paddingVertical: 5, borderRadius: 15 },
+  stageText: { fontWeight: 'bold' },
 
   gameArea: { flex: 1, position: 'relative' },
   clouds: { flexDirection: 'row', position: 'absolute', top: 50, width: 1000 },
@@ -349,11 +351,11 @@ const styles = StyleSheet.create({
   chicken: { position: 'absolute', bottom: 150, left: 50 },
   obstacle: { position: 'absolute', bottom: 150 },
 
-  popupOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', zIndex: 20 },
-  popup: { backgroundColor: '#ffffff', padding: 25, borderRadius: 20, width: '80%', alignItems: 'center', elevation: 5 },
-  wordText: { fontSize: 28, fontWeight: 'bold', color: '#111827' },
-  phoneticText: { fontSize: 16, color: '#6366f1', marginVertical: 5 },
-  meaningText: { fontSize: 18, color: '#10b981', marginBottom: 20 },
+  popupOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', zIndex: 20 },
+  popup: { padding: 25, borderRadius: 20, width: '80%', alignItems: 'center', elevation: 5 },
+  wordText: { fontSize: 28, fontWeight: 'bold' },
+  phoneticText: { fontSize: 16, marginVertical: 5 },
+  meaningText: { fontSize: 18, marginBottom: 20 },
   actionRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', width: '100%' },
   skipBtn: { padding: 10 },
   recordBtn: { backgroundColor: '#3b82f6', width: 70, height: 70, borderRadius: 35, justifyContent: 'center', alignItems: 'center', elevation: 3 },

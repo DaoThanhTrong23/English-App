@@ -17,10 +17,11 @@ const extractBearerToken = (req: Request): string | undefined => {
 };
 
 Authrouter.post("/register", validate(RegisterSchema), asyncHandler(async (req, res) => {
-    const result = await authService.register(req.body);
+    const clientIp = req.ip;
+    const result = await authService.register(req.body, clientIp);
     res.status(201).json({
         success: true,
-        messages: "Đăng ký tài khoản thành công",
+        message: "Đăng ký tài khoản thành công",
         data: result
     });
 }));

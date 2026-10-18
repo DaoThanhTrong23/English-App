@@ -101,7 +101,7 @@ export default function ProfileScreen() {
           return;
         }
         result = await ImagePicker.launchCameraAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          mediaTypes: ['images'],
           allowsEditing: true,
           aspect: [1, 1],
           quality: 0.8,
@@ -113,7 +113,7 @@ export default function ProfileScreen() {
           return;
         }
         result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          mediaTypes: ['images'],
           allowsEditing: true,
           aspect: [1, 1],
           quality: 0.8,
@@ -254,7 +254,6 @@ export default function ProfileScreen() {
   const xpPoints = userInfo?.xpPoints || 0;
   const cefrLevel = userInfo?.cefrLevel || "Chưa đánh giá";
   const streak = userInfo?.streak || 0;
-  const masteredWords = userInfo?.masteredWordsCount || 0;
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
@@ -288,46 +287,30 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* 4-GRID STATISTICS DASHBOARD */}
+        {/* 3-ITEM STATISTICS DASHBOARD */}
         <View style={styles.statsGrid}>
           <View style={[styles.statBox, { backgroundColor: theme.card, borderColor: theme.border }]}>
             <View style={[styles.statIconBox, { backgroundColor: isDark ? '#27272a' : '#fef3c7' }]}>
               <Ionicons name="star" size={20} color={isDark ? '#facc15' : '#d97706'} />
             </View>
-            <View style={{flex: 1}}>
-              <Text style={[styles.statLabel, { color: theme.subtext }]}>Kinh nghiệm</Text>
-              <Text style={[styles.statNumber, { color: theme.text }]}>{xpPoints} XP</Text>
-            </View>
+            <Text style={[styles.statNumber, { color: theme.text }]}>{xpPoints} XP</Text>
+            <Text style={[styles.statLabel, { color: theme.subtext }]}>Kinh nghiệm</Text>
           </View>
 
           <View style={[styles.statBox, { backgroundColor: theme.card, borderColor: theme.border }]}>
             <View style={[styles.statIconBox, { backgroundColor: isDark ? '#27272a' : '#dbeafe' }]}>
               <Ionicons name="ribbon" size={20} color={isDark ? '#60a5fa' : '#2563eb'} />
             </View>
-            <View style={{flex: 1}}>
-              <Text style={[styles.statLabel, { color: theme.subtext }]}>Trình độ CEFR</Text>
-              <Text style={[styles.statNumber, { color: theme.text }]}>{cefrLevel}</Text>
-            </View>
+            <Text style={[styles.statNumber, { color: theme.text }]}>{cefrLevel}</Text>
+            <Text style={[styles.statLabel, { color: theme.subtext }]}>Trình độ CEFR</Text>
           </View>
 
           <View style={[styles.statBox, { backgroundColor: theme.card, borderColor: theme.border }]}>
             <View style={[styles.statIconBox, { backgroundColor: isDark ? '#27272a' : '#ffedd5' }]}>
               <Ionicons name="flame" size={20} color={isDark ? '#fb923c' : '#ea580c'} />
             </View>
-            <View style={{flex: 1}}>
-              <Text style={[styles.statLabel, { color: theme.subtext }]}>Chuỗi học tập</Text>
-              <Text style={[styles.statNumber, { color: theme.text }]}>{streak} ngày</Text>
-            </View>
-          </View>
-
-          <View style={[styles.statBox, { backgroundColor: theme.card, borderColor: theme.border }]}>
-            <View style={[styles.statIconBox, { backgroundColor: isDark ? '#27272a' : '#dcfce7' }]}>
-              <Ionicons name="book" size={20} color={isDark ? '#4ade80' : '#16a34a'} />
-            </View>
-            <View style={{flex: 1}}>
-              <Text style={[styles.statLabel, { color: theme.subtext }]}>Đã thuộc</Text>
-              <Text style={[styles.statNumber, { color: theme.text }]}>{masteredWords} từ</Text>
-            </View>
+            <Text style={[styles.statNumber, { color: theme.text }]}>{streak} ngày</Text>
+            <Text style={[styles.statLabel, { color: theme.subtext }]}>Chuỗi học tập</Text>
           </View>
         </View>
 
@@ -335,14 +318,6 @@ export default function ProfileScreen() {
         <View style={[styles.menuContainer, { backgroundColor: theme.card }]}>
           <Text style={[styles.sectionTitle, { color: theme.text }]}>Học tập & Tiến trình</Text>
           
-          <TouchableOpacity style={[styles.menuItem, { borderBottomColor: theme.border }]} onPress={() => { /* @ts-ignore */ router.push('/saved-words')}}>
-            <View style={[styles.menuIcon, { backgroundColor: isDark ? '#27272a' : '#eff6ff' }]}>
-              <Ionicons name="bookmark-outline" size={20} color={isDark ? '#60a5fa' : '#2563eb'} />
-            </View>
-            <Text style={[styles.menuText, { color: theme.text }]}>Từ vựng đã học (SRS)</Text>
-            <Ionicons name="chevron-forward" size={20} color={theme.subtext} />
-          </TouchableOpacity>
-
           <TouchableOpacity style={[styles.menuItem, { borderBottomColor: theme.border }]} onPress={() => { /* @ts-ignore */ router.push('/history')}}>
             <View style={[styles.menuIcon, { backgroundColor: isDark ? '#27272a' : '#f0fdf4' }]}>
               <Ionicons name="time-outline" size={20} color={isDark ? '#4ade80' : '#16a34a'} />
@@ -541,11 +516,11 @@ const styles = StyleSheet.create({
   editBtn: { backgroundColor: '#eff6ff', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 20 },
   editBtnText: { color: '#3b82f6', fontWeight: 'bold', fontSize: 14 },
 
-  statsGrid: { flexDirection: 'row', flexWrap: 'wrap', padding: 15, gap: 10 },
-  statBox: { width: '48%', flexDirection: 'row', alignItems: 'center', backgroundColor: '#ffffff', padding: 12, borderRadius: 14, borderWidth: 1, borderColor: '#e5e7eb', elevation: 1, shadowColor: '#000', shadowOffset: {width: 0, height: 1}, shadowOpacity: 0.04, shadowRadius: 2 },
-  statIconBox: { width: 38, height: 38, borderRadius: 10, justifyContent: 'center', alignItems: 'center', marginRight: 10 },
-  statLabel: { fontSize: 11, color: '#6b7280', marginBottom: 2 },
-  statNumber: { fontSize: 14, fontWeight: 'bold', color: '#111827' },
+  statsGrid: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 15, paddingVertical: 12, gap: 10 },
+  statBox: { flex: 1, alignItems: 'center', backgroundColor: '#ffffff', paddingVertical: 14, paddingHorizontal: 8, borderRadius: 14, borderWidth: 1, borderColor: '#e5e7eb', elevation: 1, shadowColor: '#000', shadowOffset: {width: 0, height: 1}, shadowOpacity: 0.04, shadowRadius: 2 },
+  statIconBox: { width: 38, height: 38, borderRadius: 10, justifyContent: 'center', alignItems: 'center', marginBottom: 6 },
+  statLabel: { fontSize: 11, color: '#6b7280', marginBottom: 2, textAlign: 'center' },
+  statNumber: { fontSize: 13, fontWeight: 'bold', color: '#111827', textAlign: 'center' },
 
   menuContainer: { backgroundColor: '#ffffff', padding: 20, borderTopLeftRadius: 24, borderTopRightRadius: 24, flex: 1, marginTop: 10 },
   sectionTitle: { fontSize: 15, fontWeight: 'bold', color: '#111827', marginBottom: 10 },

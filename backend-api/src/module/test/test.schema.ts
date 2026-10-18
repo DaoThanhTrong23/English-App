@@ -29,6 +29,9 @@ export const CreateQuestionSchema = z.object({
     quesionText: z.string().min(1, "Câu hỏi không được để trống"), // typo in DB: quesionText
     questionType: z.enum(["multiple_choice", "fill_in_blank", "listening", "speaking", "writing"]).default("multiple_choice"),
     points: z.number().positive().default(10),
+    difficultyElo: z.coerce.number().int().min(500).max(3000).default(1200).optional(),
+    skillCategory: z.string().max(50).optional().nullable(),
+    topic: z.string().max(100).optional().nullable(),
     audioUrl: z.string().optional().nullable(),
     imageUrl: z.string().optional().nullable(),
     answers: z.array(z.object({
@@ -47,6 +50,9 @@ export const UpdateQuestionSchema = z.object({
     quesionText: z.string().min(1).optional(),
     questionType: z.enum(["multiple_choice", "fill_in_blank", "listening", "speaking", "writing"]).optional(),
     points: z.number().positive().optional(),
+    difficultyElo: z.coerce.number().int().min(500).max(3000).optional(),
+    skillCategory: z.string().max(50).optional().nullable(),
+    topic: z.string().max(100).optional().nullable(),
     audioUrl: z.string().optional().nullable(),
     imageUrl: z.string().optional().nullable(),
     answers: z.array(z.object({

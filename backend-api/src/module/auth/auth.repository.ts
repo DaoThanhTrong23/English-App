@@ -46,8 +46,12 @@ export class AuthRepository {
             select: {
                 id: true,
                 username: true,
+                email: true,
                 xpPoints: true,
                 role: true,
+                avatarUrl: true,
+                onboardingCompleted: true,
+                cefrLevel: true,
                 createdAt: true
             }
         });

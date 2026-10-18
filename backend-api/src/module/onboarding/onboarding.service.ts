@@ -2,6 +2,8 @@ import fs from 'fs';
 import path from 'path';
 import { prisma } from '../../config/prisma.js';
 import { updateAdvancedElo, getCEFRLevel, createNewUserProficiency, recommendPersonalizedPath, UserProficiency, checkEarlyStop } from './fame-kt.js';
+import { keywordSettingService } from '../keyword-setting/keyword-setting.service.js';
+import { notificationService } from '../notification/notification.service.js';
 
 export class OnboardingService {
   private questionBank: any[] = [];
@@ -115,22 +117,52 @@ export class OnboardingService {
     );
     const cefrLevel = getCEFRLevel(avgElo);
 
-    // Xử lý Interests 
-    const userTopics = interests.split(',').map(x => x.trim());
+    // Xử lý Interests và mở rộng từ khóa đồng nghĩa từ synonyms.csv
+    const userTopics = interests.split(',').map(x => x.trim()).filter(Boolean);
+    const synonymDict = keywordSettingService.getSynonymDict();
+    const expandedKeywords = new Set<string>();
+
+    userTopics.forEach((t: string) => {
+      const syns = synonymDict[t.toLowerCase()];
+      if (syns) {
+        syns.forEach(s => expandedKeywords.add(s.toLowerCase()));
+      } else {
+        expandedKeywords.add(t.toLowerCase());
+      }
+    });
 
     // 4. Lấy bài học trong Database để Recommender hệ thống FAME-KT đánh giá
     const allCoursesDB = await prisma.topic.findMany({ include: { lessons: true } });
     
-    const algoCourses = allCoursesDB.map(c => ({
-      id: c.id.toString(),
-      title: c.title,
-      cefr: c.cefrLevel || 'A1',
-      topic: c.description || 'General',
-      skillCategory: 'Grammar' as keyof UserProficiency, 
-      dbModel: c
-    }));
+    const algoCourses = allCoursesDB.map((c, idx) => {
+      const titleLower = (c.title || '').toLowerCase();
+      const descLower = (c.description || '').toLowerCase();
+      
+      // Suy luận kỹ năng chủ đạo của chủ đề
+      let skillCategory: keyof UserProficiency = 'Vocabulary';
+      if (titleLower.includes('ngữ pháp') || titleLower.includes('grammar') || descLower.includes('ngữ pháp')) {
+        skillCategory = 'Grammar';
+      } else if (titleLower.includes('nghe') || titleLower.includes('listening') || descLower.includes('nghe')) {
+        skillCategory = 'Listening';
+      } else if (titleLower.includes('đọc') || titleLower.includes('reading') || descLower.includes('đọc')) {
+        skillCategory = 'Reading';
+      } else {
+        // Phân bổ đều cho các chủ đề chung
+        const skills: (keyof UserProficiency)[] = ['Vocabulary', 'Grammar', 'Reading', 'Listening'];
+        skillCategory = skills[idx % skills.length];
+      }
 
-    const recommended = recommendPersonalizedPath(userProficiency, userTopics, algoCourses);
+      return {
+        id: c.id.toString(),
+        title: c.title,
+        cefr: c.cefrLevel || 'A1',
+        topic: c.description || c.title,
+        skillCategory,
+        dbModel: c
+      };
+    });
+
+    const recommended = recommendPersonalizedPath(userProficiency, userTopics, algoCourses, expandedKeywords);
     
     const recommendedCourses = recommended.slice(0, 3).map(r => (r as any).dbModel);
 
@@ -139,16 +171,33 @@ export class OnboardingService {
       finalCourses = await prisma.topic.findMany({ take: 3 });
     }
 
-    // 5. Cập nhật vào DB
+    const preferredTopics = finalCourses.map((c: any) => c.id).join(',');
+
+    // 5. Cập nhật vào DB đầy đủ 4 trường Elo, CEFR và chủ đề học chính ban đầu
     await prisma.user.update({
       where: { id: userId },
       data: {
         job: job || '',
         interests: interests || '',
         cefrLevel: cefrLevel,
+        grammarElo: userProficiency.Grammar,
+        vocabElo: userProficiency.Vocabulary,
+        readingElo: userProficiency.Reading,
+        listeningElo: userProficiency.Listening,
+        preferredTopics: preferredTopics,
         onboardingCompleted: true
       }
     });
+
+    // Thông báo cho Quản trị viên
+    prisma.user.findUnique({ where: { id: userId }, select: { username: true } }).then(u => {
+      if (u) {
+        notificationService.notifyAdmins(
+          "Học viên được xếp hạng trình độ 🎓",
+          `Học viên ${u.username} đã hoàn thành bài đánh giá năng lực và đạt trình độ ${cefrLevel}.`
+        ).catch(() => {});
+      }
+    }).catch(() => {});
 
     return {
       cefrLevel,
