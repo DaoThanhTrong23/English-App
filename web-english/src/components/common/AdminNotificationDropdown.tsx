@@ -22,9 +22,11 @@ import {
   clearAllNotifications,
   type AdminNotification 
 } from '../../features/notifications/api/notification.api';
+import { useToast } from '../../context/ToastContext';
 import './AdminNotificationDropdown.css';
 
 export const AdminNotificationDropdown: React.FC = () => {
+  const { toast, confirmModal } = useToast();
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<AdminNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -112,18 +114,27 @@ export const AdminNotificationDropdown: React.FC = () => {
     }
   };
 
-  const handleClearAll = async () => {
-    if (!window.confirm('Bạn có chắc muốn xóa tất cả thông báo?')) return;
-    try {
-      setLoading(true);
-      await clearAllNotifications();
-      setNotifications([]);
-      setUnreadCount(0);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
+  const handleClearAll = () => {
+    confirmModal({
+      title: 'Xóa tất cả thông báo',
+      message: 'Bạn có chắc chắn muốn xóa toàn bộ thông báo hệ thống?',
+      confirmText: 'Xóa tất cả',
+      isDestructive: true,
+      onConfirm: async () => {
+        try {
+          setLoading(true);
+          await clearAllNotifications();
+          setNotifications([]);
+          setUnreadCount(0);
+          toast.success('Đã xóa tất cả thông báo!');
+        } catch (err) {
+          console.error(err);
+          toast.error('Lỗi khi xóa thông báo');
+        } finally {
+          setLoading(false);
+        }
+      }
+    });
   };
 
   const handleNotificationClick = (notif: AdminNotification) => {

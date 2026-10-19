@@ -6,6 +6,13 @@ import { Trophy, Activity, Users as UsersIcon, BookOpen, BarChart2, RefreshCw, A
 import { XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell, Legend } from 'recharts';
 import './Dashboard.css';
 
+const getAvatarUrl = (url?: string | null) => {
+  if (!url) return '';
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  const baseUrl = (import.meta as any).env?.VITE_API_URL?.replace(/\/api\/?$/, '') || 'http://localhost:3000';
+  return `${baseUrl}${url.startsWith('/') ? '' : '/'}${url}`;
+};
+
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b'];
 
 const Dashboard: React.FC = () => {
@@ -242,14 +249,23 @@ const Dashboard: React.FC = () => {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', overflowY: 'auto' }}>
                   {topStudents.map((student, index) => (
                     <div key={student.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '6px 0', borderBottom: index < topStudents.length - 1 ? '1px solid #f1f5f9' : 'none' }}>
-                      <div style={{ width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '0.9rem', background: index === 0 ? '#fef3c7' : index === 1 ? '#f1f5f9' : index === 2 ? '#ffedd5' : '#f8fafc', color: index === 0 ? '#f59e0b' : index === 1 ? '#64748b' : index === 2 ? '#ea580c' : '#94a3b8' }}>
+                      <div style={{ width: '30px', height: '30px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '0.85rem', flexShrink: 0, background: index === 0 ? '#fef3c7' : index === 1 ? '#f1f5f9' : index === 2 ? '#ffedd5' : '#f8fafc', color: index === 0 ? '#f59e0b' : index === 1 ? '#64748b' : index === 2 ? '#ea580c' : '#94a3b8' }}>
                         {index + 1}
                       </div>
+                      <img 
+                        src={getAvatarUrl(student.avatarUrl) || `https://ui-avatars.com/api/?name=${encodeURIComponent(student.username || 'Student')}&background=3b82f6&color=fff`}
+                        alt={student.username || 'Student'}
+                        style={{ width: '34px', height: '34px', borderRadius: '50%', objectFit: 'cover', border: '1px solid #e2e8f0', flexShrink: 0 }}
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(student.username || 'Student')}&background=3b82f6&color=fff`;
+                        }}
+                      />
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontWeight: 600, color: '#1e293b', fontSize: '0.9rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{student.username || student.fullName}</div>
                         <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{student.email}</div>
                       </div>
-                      <div style={{ fontWeight: 'bold', color: '#2563eb', fontSize: '0.85rem', background: '#eff6ff', padding: '4px 10px', borderRadius: '16px' }}>{student.xpPoints} XP</div>
+                      <div style={{ fontWeight: 'bold', color: '#2563eb', fontSize: '0.85rem', background: '#eff6ff', padding: '4px 10px', borderRadius: '16px', flexShrink: 0 }}>{student.xpPoints} XP</div>
                     </div>
                   ))}
                 </div>

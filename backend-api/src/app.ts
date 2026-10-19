@@ -35,6 +35,7 @@ import { studentTestRouter } from "./module/student-test/student-test.route.js";
 import { notificationRouter } from "./module/notification/notification.route.js";
 import { questRouter } from "./module/quest/quest.route.js";
 import { keywordRouter } from "./module/keyword-setting/keyword-setting.route.js";
+import { topicSettingRouter } from "./module/topic-setting/topic-setting.route.js";
 
 export function createapp() {
     const app = express();
@@ -51,7 +52,9 @@ export function createapp() {
         customSuccessMessage: (req, res) => `${req.method} ${req.url} ${res.statusCode}`,
         customErrorMessage: (req, res, err) => `${req.method} ${req.url} ${res.statusCode} - ${err.message}`,
     }));
-    app.use(helmet());
+    app.use(helmet({
+        crossOriginResourcePolicy: { policy: "cross-origin" }
+    }));
     app.use(cors({ origin: env.CORS_ORIGIN, credentials: false }));
 
     // Giới hạn 100kb/request json
@@ -82,6 +85,7 @@ app.use("/api/onboarding", onboardingRouter);
     app.use("/api/admin/courses", courseRouter);
     app.use("/api/admin/topics", topicRouter);
     app.use("/api/admin/keywords", keywordRouter);
+    app.use("/api/admin/topic-settings", topicSettingRouter);
     app.use("/api/admin/achievements", achievementRouter);
     // Đăng ký route quản lý bài kiểm tra
     app.use("/api/admin/tests", testRouter);

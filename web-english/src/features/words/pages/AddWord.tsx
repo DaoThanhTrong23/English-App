@@ -1,14 +1,16 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Search, FileUp, Save, UploadCloud, Type, Image as ImageIcon, Volume2, ArrowLeft, Download, CheckCircle, AlertTriangle, FileSpreadsheet } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import AdminLayout from '../../../components/layout/AdminLayout';
+import { useToast } from '../../../context/ToastContext';
 import './AddWord.css';
-import { fetchTopics, createWord, createBulkWords } from '../api/words.api';
+import { createWord, createBulkWords } from '../api/words.api';
 
 const AddWord: React.FC = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<'manual' | 'file'>('manual');
   
   // States for file upload
@@ -26,8 +28,6 @@ const AddWord: React.FC = () => {
 
   const [previewImages, setPreviewImages] = useState<string[]>([]);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
-  const [loadingT, setloadingTopic] = useState(false);
-  const [topics, setTopics] = useState<any[]>([]);
 
   const [wordData, setWordData] = useState({
     headword: '',
@@ -40,39 +40,9 @@ const AddWord: React.FC = () => {
     imageUrl: ''
   });
 
-  const guessCefrLevel = (word: string) => {
-    const len = word.length;
-    if (len <= 4) return 'A1';
-    if (len <= 6) return 'A2';
-    if (len <= 8) return 'B1';
-    if (len <= 10) return 'B2';
-    return 'C1';
-  };
-
-
-  const loadTopic = async () => {
-    setloadingTopic(true);
-    try {
-
-      const res = await fetchTopics();
-      if (res.data) setTopics(res.data);
-    } catch (err) {
-      console.error("Lỗi: không thể load danh sách chủ đề", err);
-    }
-    finally {
-      setloadingTopic(false)
-    }
-
-  };
-
-  useEffect(() => {
-
-
-  });
-
   const handleSearch = async () => {
     if (!searchEn.trim() && !searchVi.trim()) {
-      alert("Vui lòng nhập từ khóa để tra cứu.");
+      toast.info("Vui lòng nhập từ khóa để tra cứu.");
       return;
     }
 
@@ -99,7 +69,6 @@ const AddWord: React.FC = () => {
         ...wordData,
         headword: engWord,
         meaning: vieWord,
-        cefrLevel: guessCefrLevel(engWord),
         partOfSpeech: '',
         phonetic: '',
         exampleSentence: '',
@@ -199,7 +168,7 @@ const AddWord: React.FC = () => {
       setPreviewImages(fetchedImages);
       setWordData(newData);
     } catch (error) {
-      alert("Tra cứu thất bại. Vui lòng kiểm tra lại kết nối hoặc từ vựng.");
+      toast.error("Tra cứu thất bại. Vui lòng kiểm tra lại kết nối hoặc từ vựng.");
     } finally {
       setIsSearching(false);
     }
@@ -217,16 +186,16 @@ const AddWord: React.FC = () => {
 
   const handleSaveWord = async () => {
     if (!wordData.headword.trim()) {
-      alert('Vui lòng nhập từ vựng (Headword)');
+      toast.error('Vui lòng nhập từ vựng (Headword)');
       return;
     }
 
     try {
       await createWord(wordData);
-      alert(`Đã thêm từ vựng "${wordData.headword}" thành công!`);
+      toast.success(`Đã thêm từ vựng "${wordData.headword}" thành công!`);
       navigate('/admin/words');
     } catch (error: any) {
-      alert("Lỗi khi lưu từ vựng: " + (error.response?.data?.message || error.message));
+      toast.error("Lỗi khi lưu từ vựng: " + (error.response?.data?.message || error.message));
     }
   };
 
@@ -339,7 +308,7 @@ const AddWord: React.FC = () => {
 
   const handleFileUpload = async () => {
     if (parsedWords.length === 0) {
-      alert('Vui lòng chọn file chứa từ vựng hợp lệ!');
+      toast.error('Vui lòng chọn file chứa từ vựng hợp lệ!');
       return;
     }
 
@@ -350,7 +319,7 @@ const AddWord: React.FC = () => {
     try {
       await createBulkWords(parsedWords);
       setUploadSuccess(`Đã thêm thành công ${parsedWords.length} từ vựng vào hệ thống!`);
-      alert(`Đã thêm thành công ${parsedWords.length} từ vựng vào hệ thống!`);
+      toast.success(`Đã thêm thành công ${parsedWords.length} từ vựng vào hệ thống!`);
       setSelectedFile(null);
       setParsedWords([]);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -359,7 +328,7 @@ const AddWord: React.FC = () => {
       console.error('Error uploading words:', error);
       const msg = error.response?.data?.message || 'Có lỗi xảy ra khi lưu dữ liệu từ vựng.';
       setParseError(msg);
-      alert('Lỗi: ' + msg);
+      toast.error('Lỗi: ' + msg);
     } finally {
       setIsUploading(false);
     }

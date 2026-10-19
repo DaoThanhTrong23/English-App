@@ -3,10 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { fetchWords, deleteWord, updateWord } from '../api/words.api';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import { Plus, Edit2, Trash2 } from 'lucide-react';
+import { useToast } from '../../../context/ToastContext';
 import './WordList.css';
 
 const WordList: React.FC = () => {
   const navigate = useNavigate();
+  const { toast, confirmModal } = useToast();
   const [words, setWords] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -30,6 +32,7 @@ const WordList: React.FC = () => {
       setTotal(res.meta.totalItems);
     } catch (error) {
       console.error("Lỗi tải danh sách từ vựng", error);
+      toast.error('Lỗi khi tải danh sách từ vựng');
     } finally {
       setLoading(false);
     }
@@ -42,16 +45,22 @@ const WordList: React.FC = () => {
     return () => clearTimeout(timer);
   }, [page, search]);
 
-  const handleDelete = async (id: string, headword: string) => {
-    if (window.confirm(`Bạn có chắc chắn muốn xóa từ vựng "${headword}"?`)) {
-      try {
-        await deleteWord(id);
-        alert('Xóa thành công');
-        loadWords();
-      } catch (error) {
-        alert('Xóa thất bại');
+  const handleDelete = (id: string, headword: string) => {
+    confirmModal({
+      title: 'Xóa từ vựng',
+      message: `Bạn có chắc chắn muốn xóa từ vựng "${headword}"?`,
+      confirmText: 'Xóa từ vựng',
+      isDestructive: true,
+      onConfirm: async () => {
+        try {
+          await deleteWord(id);
+          toast.success('Xóa từ vựng thành công');
+          loadWords();
+        } catch (error) {
+          toast.error('Xóa từ vựng thất bại');
+        }
       }
-    }
+    });
   };
 
   const handleEditClick = (word: any) => {
@@ -177,8 +186,10 @@ const WordList: React.FC = () => {
         exampleSentence,
         audioUrl
       }));
+      toast.success('Đã tự động điền các thông tin tìm kiếm được');
     } catch (err) {
       console.error(err);
+      toast.error('Lỗi khi tra cứu tự động');
     } finally {
       setIsFetching(false);
     }
@@ -188,14 +199,13 @@ const WordList: React.FC = () => {
     e.preventDefault();
     try {
       await updateWord(editingWord.id, editFormData);
-      alert('Sửa thành công');
+      toast.success('Cập nhật từ vựng thành công');
       setEditingWord(null);
       loadWords();
     } catch (error) {
-      alert('Sửa thất bại');
+      toast.error('Cập nhật từ vựng thất bại');
     }
   };
-
 
   const totalPages = Math.ceil(total / limit) || 1;
 
@@ -254,7 +264,15 @@ const WordList: React.FC = () => {
                       <td>{w.meaning}</td>
                       <td>
                         {w.imageUrl ? (
-                          <img src={w.imageUrl} alt={w.headword} className="word-thumbnail" />
+                          <img 
+                            src={w.imageUrl} 
+                            alt={w.headword} 
+                            className="word-thumbnail" 
+                            onError={(e) => {
+                              e.currentTarget.onerror = null;
+                              e.currentTarget.src = 'https://placehold.co/40x40?text=Word';
+                            }}
+                          />
                         ) : (
                           <div className="no-image">N/A</div>
                         )}
@@ -287,7 +305,7 @@ const WordList: React.FC = () => {
           </button>
           <span>Trang {page} / {totalPages}</span>
           <button
-            disabled={page === totalPages}
+            disabled={page >= totalPages}
             onClick={() => setPage(p => p + 1)}
           >
             Trang sau
@@ -321,29 +339,20 @@ const WordList: React.FC = () => {
                 </div>
                 <div className="form-group">
                   <label>Loại từ</label>
-                  <select name="partOfSpeech" value={editFormData.partOfSpeech || ''} onChange={handleEditChange}>
-                    <option value="">-- Chọn loại từ --</option>
-                    <option value="noun">Danh từ (Noun)</option>
-                    <option value="verb">Động từ (Verb)</option>
-                    <option value="adjective">Tính từ (Adjective)</option>
-                    <option value="adverb">Trạng từ (Adverb)</option>
-                    <option value="pronoun">Đại từ (Pronoun)</option>
-                    <option value="preposition">Giới từ (Preposition)</option>
-                    <option value="conjunction">Liên từ (Conjunction)</option>
-                  </select>
+                  <input type="text" name="partOfSpeech" value={editFormData.partOfSpeech || ''} onChange={handleEditChange} />
                 </div>
                 <div className="form-group">
                   <label>Phiên âm</label>
                   <input type="text" name="phonetic" value={editFormData.phonetic || ''} onChange={handleEditChange} />
                 </div>
-              </div>
-              <div className="form-group" style={{ marginTop: '16px' }}>
-                <label>Nghĩa tiếng Việt</label>
-                <input type="text" name="meaning" value={editFormData.meaning || ''} onChange={handleEditChange} />
-              </div>
-              <div className="form-group" style={{ marginTop: '16px' }}>
-                <label>Câu ví dụ</label>
-                <textarea name="exampleSentence" value={editFormData.exampleSentence || ''} onChange={handleEditChange} rows={2} />
+                <div className="form-group full-width">
+                  <label>Nghĩa tiếng Việt</label>
+                  <textarea name="meaning" value={editFormData.meaning || ''} onChange={handleEditChange} required />
+                </div>
+                <div className="form-group full-width">
+                  <label>Câu ví dụ</label>
+                  <textarea name="exampleSentence" value={editFormData.exampleSentence || ''} onChange={handleEditChange} />
+                </div>
               </div>
               {editFormData.audioUrl && (
                 <div className="form-group" style={{ marginTop: '16px' }}>
@@ -357,7 +366,15 @@ const WordList: React.FC = () => {
                 <div className="form-group" style={{ marginTop: '16px' }}>
                   <label>Hình ảnh hiện tại</label>
                   <div style={{ marginTop: '8px' }}>
-                    <img src={editFormData.imageUrl} alt="Current" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '4px' }} />
+                    <img 
+                      src={editFormData.imageUrl} 
+                      alt="Current" 
+                      style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '4px' }} 
+                      onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = 'https://placehold.co/80x80?text=Invalid';
+                      }}
+                    />
                   </div>
                 </div>
               )}
@@ -378,7 +395,15 @@ const WordList: React.FC = () => {
                         }}
                         onClick={() => setEditFormData({ ...editFormData, imageUrl: url })}
                       >
-                        <img src={url} alt={`Option ${idx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <img 
+                          src={url} 
+                          alt={`Option ${idx + 1}`} 
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                          onError={(e) => {
+                            e.currentTarget.onerror = null;
+                            e.currentTarget.src = 'https://placehold.co/80x80?text=Invalid';
+                          }}
+                        />
                       </div>
                     ))}
                   </div>
@@ -395,8 +420,5 @@ const WordList: React.FC = () => {
     </AdminLayout>
   );
 };
-
-
-
 
 export default WordList;

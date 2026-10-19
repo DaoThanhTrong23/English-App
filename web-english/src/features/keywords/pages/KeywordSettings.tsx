@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import { Plus, Edit, Trash2, Download, Search, RefreshCw, Hash, Tag, Layers, X } from 'lucide-react';
 import { fetchKeywords, createKeyword, updateKeyword, deleteKeyword, downloadKeywordCsv, type KeywordGroup } from '../api/keyword.api';
+import { useToast } from '../../../context/ToastContext';
 import '../../courses/pages/CourseList.css';
 import './KeywordSettings.css';
 
 const KeywordSettings: React.FC = () => {
+  const { toast, confirmModal } = useToast();
   const [groups, setGroups] = useState<KeywordGroup[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
@@ -24,7 +26,7 @@ const KeywordSettings: React.FC = () => {
       if (res.data) setGroups(res.data);
     } catch (e: any) {
       console.error(e);
-      alert(e.response?.data?.message || 'Lỗi khi tải danh sách từ khóa');
+      toast.error(e.response?.data?.message || 'Lỗi khi tải danh sách từ khóa');
     } finally {
       setLoading(false);
     }
@@ -59,7 +61,7 @@ const KeywordSettings: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.group.trim()) {
-      alert('Vui lòng nhập tên nhóm từ khóa');
+      toast.info('Vui lòng nhập tên nhóm từ khóa');
       return;
     }
 
@@ -74,38 +76,45 @@ const KeywordSettings: React.FC = () => {
           group: formData.group.trim(),
           keywords
         });
-        alert('Cập nhật nhóm từ khóa thành công!');
+        toast.success('Cập nhật nhóm từ khóa thành công!');
       } else {
         await createKeyword({
           group: formData.group.trim(),
           keywords
         });
-        alert('Thêm nhóm từ khóa mới thành công!');
+        toast.success('Thêm nhóm từ khóa mới thành công!');
       }
       handleCloseModal();
       loadData();
     } catch (e: any) {
-      alert(e.response?.data?.message || 'Có lỗi xảy ra khi lưu');
+      toast.error(e.response?.data?.message || 'Có lỗi xảy ra khi lưu');
     }
   };
 
-  const handleDelete = async (id: string, groupName: string) => {
-    if (window.confirm(`Bạn có chắc chắn muốn xóa nhóm từ khóa "${groupName}" khỏi từ điển đồng nghĩa?`)) {
-      try {
-        await deleteKeyword(id);
-        alert('Đã xóa nhóm từ khóa thành công!');
-        loadData();
-      } catch (e: any) {
-        alert(e.response?.data?.message || 'Có lỗi xảy ra khi xóa');
+  const handleDelete = (id: string, groupName: string) => {
+    confirmModal({
+      title: 'Xóa nhóm từ khóa',
+      message: `Bạn có chắc chắn muốn xóa nhóm từ khóa "${groupName}" khỏi từ điển đồng nghĩa?`,
+      confirmText: 'Xóa nhóm',
+      isDestructive: true,
+      onConfirm: async () => {
+        try {
+          await deleteKeyword(id);
+          toast.success('Đã xóa nhóm từ khóa thành công!');
+          loadData();
+        } catch (e: any) {
+          toast.error(e.response?.data?.message || 'Có lỗi xảy ra khi xóa');
+        }
       }
-    }
+    });
   };
 
   const handleDownloadCsv = async () => {
     try {
       await downloadKeywordCsv();
+      toast.success('Đã bắt đầu tải file CSV');
     } catch (e) {
-      alert('Không thể tải file CSV');
+      toast.error('Không thể tải file CSV');
     }
   };
 

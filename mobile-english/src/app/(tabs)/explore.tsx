@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { axiosClient } from '../../api/axiosClient';
 import { useRouter } from 'expo-router';
 import { useAppTheme } from '../../context/ThemeContext';
+import { getFullMediaUrl } from '../../utils/media';
 
 export default function ExploreScreen() {
   const { isDark, theme } = useAppTheme();
@@ -97,6 +98,7 @@ export default function ExploreScreen() {
 
   const renderCourse = ({ item }: { item: any }) => {
     const isEnrolling = enrollingId === item.id;
+    const topicImg = getFullMediaUrl(item.imageUrl);
 
     return (
       <TouchableOpacity 
@@ -104,7 +106,7 @@ export default function ExploreScreen() {
         onPress={() => router.push({ pathname: '/(tabs)/course/[id]', params: { id: item.id } } as any)}
       >
         <Image 
-          source={item.imageUrl ? { uri: item.imageUrl } : require('../../../assets/images/gacon.gif')} 
+          source={topicImg ? { uri: topicImg } : require('../../../assets/images/gacon.gif')} 
           style={styles.courseImage}
           resizeMode="cover"
         />

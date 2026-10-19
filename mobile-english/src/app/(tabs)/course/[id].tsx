@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { axiosClient } from '../../../api/axiosClient';
 import * as SecureStore from 'expo-secure-store';
 import { useAppTheme } from '../../../context/ThemeContext';
+import { getFullMediaUrl } from '../../../utils/media';
 
 export default function CourseDetailScreen() {
   const { id } = useLocalSearchParams();
@@ -83,8 +84,20 @@ export default function CourseDetailScreen() {
         {/* HERO CARD */}
         <View style={styles.heroCard}>
           <View style={styles.heroTop}>
-            <View style={styles.heroTag}>
-              <Text style={styles.heroTagText}>👋 CHỦ ĐỀ ({courseData.cefrLevel})</Text>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              <View style={styles.heroTag}>
+                <Text style={styles.heroTagText}>👋 CHỦ ĐỀ ({courseData.cefrLevel})</Text>
+              </View>
+              {(() => {
+                const topicImg = getFullMediaUrl(courseData.imageUrl);
+                return (
+                  <Image 
+                    source={topicImg ? { uri: topicImg } : require('../../../../assets/images/gacon.gif')} 
+                    style={{ width: 44, height: 44, borderRadius: 22, borderWidth: 2, borderColor: '#ffffff', backgroundColor: 'rgba(255,255,255,0.2)' }} 
+                    resizeMode="cover" 
+                  />
+                );
+              })()}
             </View>
           </View>
           
@@ -148,15 +161,33 @@ export default function CourseDetailScreen() {
               barWidth = "100%";
               circleBg = isDark ? '#1e3a8a' : "#dbeafe";
               circleColor = isDark ? '#60a5fa' : "#3b82f6";
-            } else if (isFirstIncomplete) {
+            } else if (progressPercent > 0) {
               badgeText = "Đang học";
               badgeBg = isDark ? '#1e3a8a' : "#dbeafe";
               badgeColor = isDark ? '#60a5fa' : "#2563eb";
               barColor = "#3b82f6";
-              barWidth = `${Math.max(15, progressPercent)}%`;
+              barWidth = `${progressPercent}%`;
               circleBg = isDark ? '#1e3a8a' : "#dbeafe";
               circleColor = isDark ? '#60a5fa' : "#3b82f6";
               cardBorder = "#3b82f6";
+            } else if (isFirstIncomplete) {
+              badgeText = "Chưa học";
+              badgeBg = isDark ? '#27272a' : "#f3f4f6";
+              badgeColor = isDark ? '#a1a1aa' : "#6b7280";
+              barColor = isDark ? '#27272a' : "#e5e7eb";
+              barWidth = "0%";
+              circleBg = isDark ? '#1e3a8a' : "#dbeafe";
+              circleColor = isDark ? '#60a5fa' : "#3b82f6";
+              cardBorder = "#3b82f6";
+            } else {
+              badgeText = "Chưa mở";
+              badgeBg = isDark ? '#27272a' : "#f3f4f6";
+              badgeColor = isDark ? '#71717a' : "#9ca3af";
+              barColor = isDark ? '#27272a' : "#e5e7eb";
+              barWidth = "0%";
+              circleBg = isDark ? '#27272a' : "#f3f4f6";
+              circleColor = isDark ? '#71717a' : "#9ca3af";
+              cardBorder = "transparent";
             }
 
             return (

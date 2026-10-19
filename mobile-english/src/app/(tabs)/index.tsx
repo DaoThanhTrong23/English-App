@@ -9,6 +9,7 @@ import NotificationModal, { NotificationItem } from '../../components/Notificati
 import DailyQuestModal from '../../components/DailyQuestModal';
 import { notificationService } from '../../service/notificationService';
 import { useAppTheme } from '../../context/ThemeContext';
+import { getFullMediaUrl } from '../../utils/media';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -253,6 +254,7 @@ export default function HomeScreen() {
           {courses.map((course: any) => {
              
              const pct = course.progressPercentage || 0;
+             const topicImg = getFullMediaUrl(course.imageUrl);
              return (
               <TouchableOpacity 
                 key={course.id} 
@@ -262,7 +264,7 @@ export default function HomeScreen() {
                 }}>
                 <View style={styles.topicHeader}>
                   <View style={[styles.topicIconContainer, { backgroundColor: theme.cardSecondary, padding: 0, overflow: 'hidden' }]}>
-                    <Image source={course.imageUrl ? { uri: course.imageUrl } : require('../../../assets/images/gacon.gif')} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
+                    <Image source={topicImg ? { uri: topicImg } : require('../../../assets/images/gacon.gif')} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
                   </View>
                   <View style={styles.topicInfo}>
                     <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>

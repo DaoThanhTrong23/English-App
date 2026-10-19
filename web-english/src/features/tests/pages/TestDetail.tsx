@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import { Plus, Edit, Trash2, ArrowLeft, CheckCircle2, Circle, Upload, Star, Target, Tag, Music, Image as ImageIcon } from 'lucide-react';
 import { fetchQuestions, createQuestion, updateQuestion, deleteQuestion, importQuestionsFromExcel, uploadMedia } from '../api/test.api';
+import { useToast } from '../../../context/ToastContext';
 import './TestDetail.css';
 import '../pages/TestList.css'; // Reuse modal classes
 
@@ -20,6 +21,7 @@ const getQuestionTypeLabel = (type: string) => {
 const TestDetail: React.FC = () => {
   const { testId } = useParams();
   const navigate = useNavigate();
+  const { toast, confirmModal } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const audioInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -149,7 +151,7 @@ const TestDetail: React.FC = () => {
       // Validate: at least one answer must be correct for non-speaking/writing
       const hasCorrectAnswer = formData.answers.some(a => a.isCorrect);
       if (!hasCorrectAnswer) {
-        alert("Vui lòng chọn ít nhất 1 đáp án đúng!");
+        toast.info("Vui lòng chọn ít nhất 1 đáp án đúng!");
         return;
       }
     }
@@ -157,30 +159,36 @@ const TestDetail: React.FC = () => {
     try {
       if (editingQuestion) {
         await updateQuestion(testId!, editingQuestion.id, finalFormData);
-        alert('Cập nhật câu hỏi thành công!');
+        toast.success('Cập nhật câu hỏi thành công!');
       } else {
         await createQuestion(testId!, finalFormData);
-        alert('Tạo câu hỏi thành công!');
+        toast.success('Tạo câu hỏi thành công!');
       }
       handleCloseModal();
       loadQuestions();
     } catch (error) {
       console.error("Lỗi khi lưu câu hỏi", error);
-      alert('Có lỗi xảy ra khi lưu câu hỏi.');
+      toast.error('Có lỗi xảy ra khi lưu câu hỏi.');
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa câu hỏi này không?')) {
-      try {
-        await deleteQuestion(testId!, id);
-        alert('Xóa câu hỏi thành công!');
-        loadQuestions();
-      } catch (error) {
-        console.error("Lỗi xóa câu hỏi", error);
-        alert('Có lỗi xảy ra khi xóa câu hỏi.');
+  const handleDelete = (id: number) => {
+    confirmModal({
+      title: 'Xóa câu hỏi',
+      message: 'Bạn có chắc chắn muốn xóa câu hỏi này không?',
+      confirmText: 'Xóa',
+      isDestructive: true,
+      onConfirm: async () => {
+        try {
+          await deleteQuestion(testId!, id);
+          toast.success('Xóa câu hỏi thành công!');
+          loadQuestions();
+        } catch (error) {
+          console.error("Lỗi xóa câu hỏi", error);
+          toast.error('Có lỗi xảy ra khi xóa câu hỏi.');
+        }
       }
-    }
+    });
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -190,11 +198,11 @@ const TestDetail: React.FC = () => {
     setImporting(true);
     try {
       const res = await importQuestionsFromExcel(testId!, file);
-      alert(`Nhập dữ liệu thành công! Đã thêm ${res.data?.imported || 0} câu hỏi.`);
+      toast.success(`Nhập dữ liệu thành công! Đã thêm ${res.data?.imported || 0} câu hỏi.`);
       loadQuestions();
     } catch (error) {
       console.error("Lỗi import excel", error);
-      alert("Có lỗi xảy ra khi nhập file Excel. Hãy chắc chắn file đúng định dạng.");
+      toast.error("Có lỗi xảy ra khi nhập file Excel. Hãy chắc chắn file đúng định dạng.");
     } finally {
       setImporting(false);
       // Reset input
@@ -405,8 +413,17 @@ const TestDetail: React.FC = () => {
                         <input type="file" ref={audioInputRef} style={{ display: 'none' }} accept="audio/*" onChange={async (e) => {
                           const file = e.target.files?.[0];
                           if (!file) return;
-                          const res = await uploadMedia(file);
-                          if (res.data?.url) setFormData({ ...formData, audioUrl: res.data.url });
+                          try {
+                            const res = await uploadMedia(file);
+                            if (res.data?.url) {
+                              setFormData(prev => ({ ...prev, audioUrl: res.data.url }));
+                              toast.success('Tải file âm thanh thành công!');
+                            }
+                          } catch (err) {
+                            toast.error('Lỗi khi tải file âm thanh');
+                          } finally {
+                            if (audioInputRef.current) audioInputRef.current.value = '';
+                          }
                         }} />
                         <button type="button" className="add-test-btn" onClick={() => audioInputRef.current?.click()}>Tải lên</button>
                       </div>
@@ -426,8 +443,17 @@ const TestDetail: React.FC = () => {
                         <input type="file" ref={imageInputRef} style={{ display: 'none' }} accept="image/*" onChange={async (e) => {
                           const file = e.target.files?.[0];
                           if (!file) return;
-                          const res = await uploadMedia(file);
-                          if (res.data?.url) setFormData({ ...formData, imageUrl: res.data.url });
+                          try {
+                            const res = await uploadMedia(file);
+                            if (res.data?.url) {
+                              setFormData(prev => ({ ...prev, imageUrl: res.data.url }));
+                              toast.success('Tải hình ảnh thành công!');
+                            }
+                          } catch (err) {
+                            toast.error('Lỗi khi tải hình ảnh');
+                          } finally {
+                            if (imageInputRef.current) imageInputRef.current.value = '';
+                          }
                         }} />
                         <button type="button" className="add-test-btn" onClick={() => imageInputRef.current?.click()}>Tải lên</button>
                       </div>

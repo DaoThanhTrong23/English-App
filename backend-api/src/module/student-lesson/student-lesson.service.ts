@@ -9,6 +9,7 @@ import {
 } from "./student-lesson.repository.js";
 import { GetStudentCoursesQueryInput } from "./student-lesson.schema.js";
 import { keywordSettingService } from "../keyword-setting/keyword-setting.service.js";
+import { topicSettingService } from "../topic-setting/topic-setting.service.js";
 
 export class StudentLessonService {
   constructor(
@@ -67,10 +68,9 @@ export class StudentLessonService {
     // 3. Sắp xếp ưu tiên
     scoredCourses.sort((a: any, b: any) => b.personalizedScore - a.personalizedScore);
 
-    // 4. Giới hạn số lượng (Admin cấu hình, mặc định 7, đảm bảo hiển thị hết các khóa đã đăng ký)
-    // Ưu tiên: admin config từ ENV > query.limit > 7
-    const ADMIN_TOPIC_LIMIT = process.env.ADMIN_TOPIC_LIMIT ? parseInt(process.env.ADMIN_TOPIC_LIMIT) : 7;
-    const limit = query.limit || Math.max(ADMIN_TOPIC_LIMIT, preferredCourseIds.length);
+    // 4. Giới hạn số lượng (Admin cấu hình tùy chỉnh cho từng cấp độ của người học)
+    const levelLimit = topicSettingService.getLimitForLevel(query.targetLevelGroup || userCefr);
+    const limit = query.limit || Math.max(levelLimit, preferredCourseIds.length);
     const page = query.page || 1;
     const totalItems = scoredCourses.length;
     const totalPages = Math.ceil(totalItems / limit) || 1;
@@ -322,6 +322,7 @@ export class StudentLessonService {
       title: course.title,
       description: course.description,
       cefrLevel: course.cefrLevel,
+      imageUrl: course.imageUrl,
       totalLessons: lessonsWithStatus.length,
       completedLessons: completedLessonsCount,
       progressPercentage,
@@ -365,6 +366,7 @@ export class StudentLessonService {
         id: course.id,
         title: course.title,
         cefrLevel: course.cefrLevel,
+        imageUrl: course.imageUrl,
       },
       lessons: items,
     };

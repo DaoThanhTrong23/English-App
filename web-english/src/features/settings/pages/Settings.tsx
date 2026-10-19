@@ -1,21 +1,24 @@
 import React, { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import { changePassword } from '../api/settings.api';
-import { Lock, User, Palette, Info, Sun, Moon } from 'lucide-react';
+import { Lock, User, Info, Eye, EyeOff } from 'lucide-react';
 import '../../courses/pages/CourseList.css'; // Reuse container styles
 
 const Settings: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'profile' | 'appearance' | 'info'>('profile');
-  
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTab = searchParams.get('tab') === 'info' ? 'info' : 'profile';
+  const [activeTab, setActiveTab] = useState<'profile' | 'info'>(initialTab);
+
   // Password state
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showOldPassword, setShowOldPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
-
-  // Appearance state
-  const [theme, setTheme] = useState(() => localStorage.getItem('admin_theme') || 'light');
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,16 +53,6 @@ const Settings: React.FC = () => {
     }
   };
 
-  const handleThemeChange = (newTheme: string) => {
-    setTheme(newTheme);
-    localStorage.setItem('admin_theme', newTheme);
-    // Real implementation would toggle a class on document.body here
-    // setMessage({ type: 'success', text: 'Đã lưu cấu hình giao diện. Sẽ áp dụng ở phiên bản sau.' });
-    setMessage({ type: 'success', text: 'Chưa có làm khỏi nhấn :().' });
-
-    setTimeout(() => setMessage({ type: '', text: '' }), 3000);
-  };
-
   return (
     <AdminLayout>
       <div className="course-list-container">
@@ -71,19 +64,13 @@ const Settings: React.FC = () => {
           <div style={{ display: 'flex', gap: '16px', marginBottom: '24px', borderBottom: '2px solid #e2e8f0' }}>
             <button 
               style={{ padding: '12px 24px', background: 'none', border: 'none', borderBottom: activeTab === 'profile' ? '2px solid #3b82f6' : 'none', color: activeTab === 'profile' ? '#3b82f6' : '#64748b', fontWeight: 'bold', cursor: 'pointer', marginBottom: '-2px' }}
-              onClick={() => setActiveTab('profile')}
+              onClick={() => { setActiveTab('profile'); setSearchParams({ tab: 'profile' }); }}
             >
               <User size={16} style={{ display: 'inline', marginRight: '8px' }}/> Hồ sơ cá nhân
             </button>
             <button 
-              style={{ padding: '12px 24px', background: 'none', border: 'none', borderBottom: activeTab === 'appearance' ? '2px solid #3b82f6' : 'none', color: activeTab === 'appearance' ? '#3b82f6' : '#64748b', fontWeight: 'bold', cursor: 'pointer', marginBottom: '-2px' }}
-              onClick={() => setActiveTab('appearance')}
-            >
-              <Palette size={16} style={{ display: 'inline', marginRight: '8px' }}/> Giao diện
-            </button>
-            <button 
               style={{ padding: '12px 24px', background: 'none', border: 'none', borderBottom: activeTab === 'info' ? '2px solid #3b82f6' : 'none', color: activeTab === 'info' ? '#3b82f6' : '#64748b', fontWeight: 'bold', cursor: 'pointer', marginBottom: '-2px' }}
-              onClick={() => setActiveTab('info')}
+              onClick={() => { setActiveTab('info'); setSearchParams({ tab: 'info' }); }}
             >
               <Info size={16} style={{ display: 'inline', marginRight: '8px' }}/> Thông tin ứng dụng
             </button>
@@ -102,39 +89,66 @@ const Settings: React.FC = () => {
                   </div>
                 )}
 
-                <form onSubmit={handleChangePassword} style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
+                <form onSubmit={handleChangePassword} style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%', boxSizing: 'border-box' }}>
                   <div>
                     <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#475569' }}>Mật khẩu hiện tại</label>
-                    <input 
-                      type="password" 
-                      style={{ width: '95%', padding: '10px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }} 
-                      value={oldPassword}
-                      onChange={(e) => setOldPassword(e.target.value)}
-                      required
-                    />
+                    <div style={{ position: 'relative', width: '100%' }}>
+                      <input 
+                        type={showOldPassword ? 'text' : 'password'} 
+                        style={{ width: '100%', boxSizing: 'border-box', padding: '10px 42px 10px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }} 
+                        value={oldPassword}
+                        onChange={(e) => setOldPassword(e.target.value)}
+                        required
+                      />
+                      <button 
+                        type="button" 
+                        onClick={() => setShowOldPassword(!showOldPassword)}
+                        style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', display: 'flex', alignItems: 'center' }}
+                      >
+                        {showOldPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
                   </div>
                   <div>
                     <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#475569' }}>Mật khẩu mới</label>
-                    <input 
-                      type="password" 
-                      style={{ width: '95%', padding: '10px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }} 
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      required
-                    />
+                    <div style={{ position: 'relative', width: '100%' }}>
+                      <input 
+                        type={showNewPassword ? 'text' : 'password'} 
+                        style={{ width: '100%', boxSizing: 'border-box', padding: '10px 42px 10px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }} 
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        required
+                      />
+                      <button 
+                        type="button" 
+                        onClick={() => setShowNewPassword(!showNewPassword)}
+                        style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', display: 'flex', alignItems: 'center' }}
+                      >
+                        {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
                     <small style={{ display: 'block', marginTop: '6px', color: '#64748b', fontSize: '0.8rem' }}>
                       Tối thiểu 8 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt.
                     </small>
                   </div>
                   <div>
                     <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#475569' }}>Xác nhận mật khẩu mới</label>
-                    <input 
-                      type="password" 
-                      style={{ width: '95%', padding: '10px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }} 
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      required
-                    />
+                    <div style={{ position: 'relative', width: '100%' }}>
+                      <input 
+                        type={showConfirmPassword ? 'text' : 'password'} 
+                        style={{ width: '100%', boxSizing: 'border-box', padding: '10px 42px 10px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }} 
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        required
+                      />
+                      <button 
+                        type="button" 
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', display: 'flex', alignItems: 'center' }}
+                      >
+                        {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
                   </div>
                   
                   <button 
@@ -145,44 +159,6 @@ const Settings: React.FC = () => {
                     {loading ? 'Đang xử lý...' : 'Lưu mật khẩu mới'}
                   </button>
                 </form>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'appearance' && (
-            <div>
-              <div style={{ background: '#f8fafc', padding: '24px', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '24px' }}>
-                <h3 style={{ marginTop: 0, marginBottom: '20px' }}>Chế độ hiển thị</h3>
-                
-                {message.text && (
-                  <div style={{ padding: '12px', borderRadius: '8px', marginBottom: '20px', backgroundColor: message.type === 'error' ? '#fee2e2' : '#dcfce7', color: message.type === 'error' ? '#ef4444' : '#22c55e' }}>
-                    {message.text}
-                  </div>
-                )}
-
-                <div style={{ display: 'flex', gap: '20px' }}>
-                  <div 
-                    onClick={() => handleThemeChange('light')}
-                    style={{ flex: 1, padding: '20px', border: theme === 'light' ? '2px solid #3b82f6' : '1px solid #cbd5e1', borderRadius: '8px', cursor: 'pointer', textAlign: 'center', background: 'white' }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '10px' }}>
-                      <Sun size={28} color="#eab308" />
-                    </div>
-                    <div style={{ fontWeight: 'bold', color: '#1e293b' }}>Giao diện sáng</div>
-                  </div>
-                  <div 
-                    onClick={() => handleThemeChange('dark')}
-                    style={{ flex: 1, padding: '20px', border: theme === 'dark' ? '2px solid #3b82f6' : '1px solid #cbd5e1', borderRadius: '8px', cursor: 'pointer', textAlign: 'center', background: '#1e293b' }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '10px' }}>
-                      <Moon size={28} color="#60a5fa" />
-                    </div>
-                    <div style={{ fontWeight: 'bold', color: 'white' }}>Giao diện tối</div>
-                  </div>
-                </div>
-                {/* <p style={{ color: '#64748b', fontSize: '0.9rem', marginTop: '20px' }}>
-                  * Lưu ý: Hiện tại ứng dụng đang tập trung hoàn thiện tính năng cốt lõi. Chế độ Dark mode sẽ được áp dụng đồng bộ toàn hệ thống trong các phiên bản cập nhật tới.
-                </p> */}
               </div>
             </div>
           )}
@@ -209,7 +185,7 @@ const Settings: React.FC = () => {
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', padding: '16px', background: 'white', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
                     <span style={{ fontWeight: '600', color: '#475569' }}>Bản quyền</span>
-                    <span style={{ color: '#1e293b' }}>© 2026 Mấy con gà :).</span>
+                    <span style={{ color: '#1e293b' }}>© 2026 EnglishApp. All rights reserved.</span>
                   </div>
                 </div>
               </div>

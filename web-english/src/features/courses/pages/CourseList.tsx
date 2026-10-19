@@ -4,11 +4,13 @@ import { Plus, Edit, Trash2, BookOpen } from 'lucide-react';
 import { fetchCourses, createCourse, updateCourse, deleteCourse } from '../api/course.api';
 import { fetchTopics } from '../../topics/api/topic.api';
 import AdminLayout from '../../../components/layout/AdminLayout';
+import { useToast } from '../../../context/ToastContext';
 import './CourseList.css';
 
 const CourseList: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { toast, confirmModal } = useToast();
   const queryParams = new URLSearchParams(location.search);
   const topicIdQuery = queryParams.get('topicId') || '';
   const [courses, setCourses] = useState<any[]>([]);
@@ -17,6 +19,7 @@ const CourseList: React.FC = () => {
 
   // Pagination & Search
   const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [limit] = useState(10);
   const [search, setSearch] = useState('');
   const [cefrLevel, setCefrLevel] = useState('');
@@ -52,13 +55,20 @@ const CourseList: React.FC = () => {
       const result = await fetchCourses(page, limit, search, cefrLevel, filterTopicId);
       if (result.data && Array.isArray(result.data.items)) {
         setCourses(result.data.items);
+        if (result.data.pagination?.totalPages) {
+          setTotalPages(result.data.pagination.totalPages);
+        }
       } else if (result.data && Array.isArray(result.data.courses)) {
         setCourses(result.data.courses);
+        if (result.data.pagination?.totalPages) {
+          setTotalPages(result.data.pagination.totalPages);
+        }
       } else if (Array.isArray(result.data)) {
         setCourses(result.data);
       }
     } catch (error) {
       console.error("Lỗi tải danh sách bài học", error);
+      toast.error('Lỗi khi tải danh sách bài học');
     } finally {
       setLoading(false);
     }
@@ -109,30 +119,36 @@ const CourseList: React.FC = () => {
 
       if (editingCourse) {
         await updateCourse(editingCourse.id, payload);
-        alert('Cập nhật bài học thành công!');
+        toast.success('Cập nhật bài học thành công!');
       } else {
         await createCourse(payload);
-        alert('Tạo bài học thành công!');
+        toast.success('Tạo bài học thành công!');
       }
       handleCloseModal();
       loadCourses();
     } catch (error) {
       console.error("Lỗi khi lưu bài học", error);
-      alert('Có lỗi xảy ra khi lưu bài học.');
+      toast.error('Có lỗi xảy ra khi lưu bài học.');
     }
   };
 
-  const handleDelete = async (id: string | number) => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa bài học này không?')) {
-      try {
-        await deleteCourse(id);
-        alert('Xóa bài học thành công!');
-        loadCourses();
-      } catch (error) {
-        console.error("Lỗi xóa bài học", error);
-        alert('Có lỗi xảy ra khi xóa bài học.');
+  const handleDelete = (id: string | number) => {
+    confirmModal({
+      title: 'Xóa bài học',
+      message: 'Bạn có chắc chắn muốn xóa bài học này không? Tất cả từ vựng và bài tập liên kết sẽ bị gỡ.',
+      confirmText: 'Xóa bài học',
+      isDestructive: true,
+      onConfirm: async () => {
+        try {
+          await deleteCourse(id);
+          toast.success('Xóa bài học thành công!');
+          loadCourses();
+        } catch (error) {
+          console.error("Lỗi xóa bài học", error);
+          toast.error('Có lỗi xảy ra khi xóa bài học.');
+        }
       }
-    }
+    });
   };
 
   return (
@@ -146,38 +162,38 @@ const CourseList: React.FC = () => {
         </div>
 
         <div className="course-filters">
-            <input 
-              type="text" 
-              placeholder="Tìm kiếm bài học..." 
-              className="search-input"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-            <select 
-              className="filter-select"
-              value={cefrLevel}
-              onChange={(e) => setCefrLevel(e.target.value)}
-            >
-              <option value="">Tất cả cấp độ</option>
-              <option value="A1">A1</option>
-              <option value="A2">A2</option>
-              <option value="B1">B1</option>
-              <option value="B2">B2</option>
-              <option value="C1">C1</option>
-              <option value="C2">C2</option>
-            </select>
-            <select 
-              className="filter-select" 
-              value={filterTopicId} 
-              onChange={(e) => { setFilterTopicId(e.target.value); setPage(1); }} 
-              style={{ marginLeft: '10px' }}
-            >
-              <option value="">Tất cả chủ đề</option>
-              {topics.map(t => <option key={t.id} value={t.id}>{t.title}</option>)}
-            </select>
-          </div>
+          <input 
+            type="text" 
+            placeholder="Tìm kiếm bài học..." 
+            className="search-input"
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+          />
+          <select 
+            className="filter-select"
+            value={cefrLevel}
+            onChange={(e) => { setCefrLevel(e.target.value); setPage(1); }}
+          >
+            <option value="">Tất cả cấp độ</option>
+            <option value="A1">A1</option>
+            <option value="A2">A2</option>
+            <option value="B1">B1</option>
+            <option value="B2">B2</option>
+            <option value="C1">C1</option>
+            <option value="C2">C2</option>
+          </select>
+          <select 
+            className="filter-select" 
+            value={filterTopicId} 
+            onChange={(e) => { setFilterTopicId(e.target.value); setPage(1); }} 
+            style={{ marginLeft: '10px' }}
+          >
+            <option value="">Tất cả chủ đề</option>
+            {topics.map(t => <option key={t.id} value={t.id}>{t.title}</option>)}
+          </select>
+        </div>
 
-          <div className="course-table-container">
+        <div className="course-table-container">
           {loading ? (
             <div style={{ padding: '32px', textAlign: 'center' }}>Đang tải dữ liệu...</div>
           ) : (
@@ -205,7 +221,15 @@ const CourseList: React.FC = () => {
                       <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                           {course.thumbnailUrl && (
-                            <img src={course.thumbnailUrl} alt={course.title} style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '4px' }} />
+                            <img 
+                              src={course.thumbnailUrl} 
+                              alt={course.title} 
+                              style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '4px' }}
+                              onError={(e) => {
+                                e.currentTarget.onerror = null;
+                                e.currentTarget.src = 'https://placehold.co/40x40?text=Lesson';
+                              }}
+                            />
                           )}
                           <strong>{course.title}</strong>
                         </div>
@@ -231,11 +255,24 @@ const CourseList: React.FC = () => {
                       <td>
                         <div className="action-buttons">
                           <button 
-                            className="btn-edit" 
-                            title="Xem chi tiết & Quản lý"
+                            className="btn-view-detail" 
+                            style={{
+                              backgroundColor: '#eff6ff',
+                              color: '#2563eb',
+                              border: '1px solid #bfdbfe',
+                              borderRadius: '6px',
+                              padding: '6px 12px',
+                              fontSize: '0.85rem',
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              whiteSpace: 'nowrap'
+                            }}
                             onClick={() => navigate(`/admin/courses/${course.id}`)}
                           >
-                            <BookOpen size={18} />
+                            <BookOpen size={15} /> Xem chi tiết & quản lý
                           </button>
                           <button className="btn-edit" onClick={() => handleOpenModal(course)}>
                             <Edit size={18} />
@@ -256,15 +293,15 @@ const CourseList: React.FC = () => {
         <div className="pagination">
           <button 
             className="page-btn" 
-            disabled={page === 1}
+            disabled={page <= 1}
             onClick={() => setPage(page - 1)}
           >
             Trước
           </button>
-          <span>Trang {page}</span>
+          <span>Trang {page} / {totalPages || 1}</span>
           <button 
             className="page-btn" 
-            disabled={courses.length < limit}
+            disabled={page >= totalPages || courses.length === 0}
             onClick={() => setPage(page + 1)}
           >
             Sau
@@ -329,7 +366,15 @@ const CourseList: React.FC = () => {
                   placeholder="https://example.com/image.jpg"
                 />
                 {formData.thumbnailUrl && (
-                  <img src={formData.thumbnailUrl} alt="Preview" className="thumbnail-preview" />
+                  <img 
+                    src={formData.thumbnailUrl} 
+                    alt="Preview" 
+                    className="thumbnail-preview" 
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = 'https://placehold.co/100x100?text=Invalid+Image';
+                    }}
+                  />
                 )}
               </div>
               

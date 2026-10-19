@@ -28,9 +28,11 @@ import {
   CheckCircle2,
   X
 } from 'lucide-react';
+import { useToast } from '../../../context/ToastContext';
 import './AiChatList.css';
 
 const AiChatList: React.FC = () => {
+  const { toast, confirmModal } = useToast();
   // State data
   const [sessions, setSessions] = useState<AiSession[]>([]);
   const [stats, setStats] = useState<AiChatStats | null>(null);
@@ -100,31 +102,36 @@ const AiChatList: React.FC = () => {
     }
   };
 
-  const handleDeleteSession = async (e: React.MouseEvent, sessionId: number) => {
+  const handleDeleteSession = (e: React.MouseEvent, sessionId: number) => {
     e.stopPropagation();
-    if (!window.confirm('Bạn có chắc chắn muốn xóa phiên hội thoại này không? Toàn bộ tin nhắn liên quan sẽ bị xóa.')) {
-      return;
-    }
-
-    try {
-      const res = await deleteAiSession(sessionId);
-      if (res.success) {
-        setSessions(prev => prev.filter(s => s.id !== sessionId));
-        if (selectedSession?.id === sessionId) {
-          const remaining = sessions.filter(s => s.id !== sessionId);
-          if (remaining.length > 0) {
-            openSession(remaining[0]);
-          } else {
-            setSelectedSession(null);
-            setMessages([]);
+    confirmModal({
+      title: 'Xóa phiên hội thoại',
+      message: 'Bạn có chắc chắn muốn xóa phiên hội thoại này không? Toàn bộ tin nhắn liên quan sẽ bị xóa.',
+      confirmText: 'Xóa hội thoại',
+      isDestructive: true,
+      onConfirm: async () => {
+        try {
+          const res = await deleteAiSession(sessionId);
+          if (res.success) {
+            toast.success('Đã xóa phiên hội thoại thành công');
+            setSessions(prev => prev.filter(s => s.id !== sessionId));
+            if (selectedSession?.id === sessionId) {
+              const remaining = sessions.filter(s => s.id !== sessionId);
+              if (remaining.length > 0) {
+                openSession(remaining[0]);
+              } else {
+                setSelectedSession(null);
+                setMessages([]);
+              }
+            }
+            // Cập nhật lại stats
+            getAiChatStats().then(s => s.success && setStats(s.data)).catch(() => {});
           }
+        } catch (error: any) {
+          toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi xóa hội thoại');
         }
-        // Cập nhật lại stats
-        getAiChatStats().then(s => s.success && setStats(s.data)).catch(() => {});
       }
-    } catch (error: any) {
-      alert(error.response?.data?.message || 'Có lỗi xảy ra khi xóa hội thoại');
-    }
+    });
   };
 
   const handleCopyMessage = (id: number, text: string) => {
@@ -159,7 +166,7 @@ const AiChatList: React.FC = () => {
               <Bot className="title-icon" /> Quản lý hội thoại AI Chat
             </h2>
             <p className="ai-chat-subtitle">
-              Giám sát chất lượng tương tác, trợ giảng Gemini AI và phản hồi của học viên trong thời gian thực.
+              Giám sát chất lượng tương tác, trợ giảng Gà Con AI và phản hồi của học viên trong thời gian thực.
             </p>
           </div>
           <button 
@@ -380,7 +387,7 @@ const AiChatList: React.FC = () => {
                       className={`filter-pill ${roleFilter === 'ai' ? 'active' : ''}`}
                       onClick={() => setRoleFilter('ai')}
                     >
-                      <Bot size={12} /> Gemini AI
+                      <Bot size={12} /> Gà Con AI
                     </button>
                   </div>
                 </div>
@@ -412,7 +419,7 @@ const AiChatList: React.FC = () => {
                           <div className="message-content-wrapper">
                             <div className="message-header-line">
                               <span className="message-sender-name">
-                                {isUser ? (selectedSession.user?.username || 'Học viên') : 'Gemini AI Assistant'}
+                                {isUser ? (selectedSession.user?.username || 'Học viên') : 'Gia sư Gà Con AI'}
                               </span>
                               <span className="message-timestamp">
                                 {formatMessageTime(msg.createdAt)}

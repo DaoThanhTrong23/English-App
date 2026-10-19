@@ -152,6 +152,7 @@ model Topic {
   title       String   @db.VarChar(255)
   description String?  @db.Text
   cefrLevel   String?  @map("cefr_level") @db.VarChar(10)
+  imageUrl    String?  @map("image_url") @db.Text
   createdAt   DateTime @default(now()) @map("created_at")
 
   lessons Lesson[]

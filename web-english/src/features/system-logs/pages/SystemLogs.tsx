@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import { fetchActivities, fetchLoginLogs } from '../api/system-logs.api';
-import { Activity, LogIn, Search, Filter, Download } from 'lucide-react';
+import { Activity, LogIn, Search, Filter, Download, Loader2 } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import { useToast } from '../../../context/ToastContext';
 import '../../courses/pages/CourseList.css';
 
 const SystemLogs: React.FC = () => {
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<'activities' | 'login'>('activities');
   const [activities, setActivities] = useState<any[]>([]);
   const [loginLogs, setLoginLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState('');
@@ -21,60 +24,83 @@ const SystemLogs: React.FC = () => {
       if (activeTab === 'activities') {
         const res = await fetchActivities(currentPage, 20, search, actionType);
         if (res.data) {
-          setActivities(res.data.items);
-          setTotalPages(res.data.pagination.totalPages);
+          setActivities(res.data.items || []);
+          setTotalPages(res.data.pagination?.totalPages || 1);
         }
       } else {
         const res = await fetchLoginLogs(currentPage, 20, search);
         if (res.data) {
-          setLoginLogs(res.data.items);
-          setTotalPages(res.data.pagination.totalPages);
+          setLoginLogs(res.data.items || []);
+          setTotalPages(res.data.pagination?.totalPages || 1);
         }
       }
     } catch (e) {
       console.error(e);
+      toast.error('Lỗi khi tải nhật ký hệ thống');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadData(page);
-  }, [activeTab, page]);
+    const timer = setTimeout(() => {
+      loadData(page);
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [activeTab, page, actionType, search]);
 
   const handleSearch = () => {
     setPage(1);
     loadData(1);
   };
 
-  const handleExportExcel = () => {
+  const handleExportExcel = async () => {
+    setIsExporting(true);
     const isAct = activeTab === 'activities';
-    const dataToExport = isAct ? activities.map((item, idx) => ({
-      STT: idx + 1,
-      'Thời gian': new Date(item.createdAt).toLocaleString('vi-VN'),
-      'Học viên': item.user?.username || 'Hệ thống',
-      'Email': item.user?.email || '-',
-      'Hành động': item.action,
-      'Chi tiết': item.details || '-',
-      'Địa chỉ IP': item.ipAddress || '-'
-    })) : loginLogs.map((item, idx) => ({
-      STT: idx + 1,
-      'Thời gian đăng nhập': new Date(item.loginTime).toLocaleString('vi-VN'),
-      'Học viên': item.user?.username || '-',
-      'Email': item.user?.email || '-',
-      'Thiết bị': item.deviceInfo || '-',
-      'Địa chỉ IP': item.ipAddress || '-'
-    }));
+    try {
+      toast.info('Đang tổng hợp toàn bộ dữ liệu nhật ký để xuất Excel...');
+      let items: any[] = [];
+      if (isAct) {
+        const res = await fetchActivities(1, 5000, search, actionType);
+        items = res.data?.items || [];
+      } else {
+        const res = await fetchLoginLogs(1, 5000, search);
+        items = res.data?.items || [];
+      }
 
-    if (dataToExport.length === 0) {
-      alert('Không có dữ liệu để xuất!');
-      return;
+      if (items.length === 0) {
+        toast.info('Không có dữ liệu phù hợp để xuất!');
+        return;
+      }
+
+      const dataToExport = isAct ? items.map((item, idx) => ({
+        STT: idx + 1,
+        'Thời gian': new Date(item.createdAt).toLocaleString('vi-VN'),
+        'Người dùng': item.user?.username || 'Hệ thống',
+        'Email': item.user?.email || '-',
+        'Hành động': item.actionType || item.action || '-',
+        'Chi tiết': item.description || item.details || '-',
+        'Địa chỉ IP': item.ipAddress || '-'
+      })) : items.map((item, idx) => ({
+        STT: idx + 1,
+        'Thời gian đăng nhập': new Date(item.loginTime).toLocaleString('vi-VN'),
+        'Người dùng': item.user?.username || '-',
+        'Email': item.user?.email || '-',
+        'Thiết bị': item.deviceInfo || '-',
+        'Địa chỉ IP': item.ipAddress || '-'
+      }));
+
+      const ws = XLSX.utils.json_to_sheet(dataToExport);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, isAct ? 'Hoat_dong' : 'Dang_nhap');
+      XLSX.writeFile(wb, `${isAct ? 'nhat_ky_hoat_dong' : 'nhat_ky_dang_nhap'}_${new Date().toISOString().slice(0, 10)}.xlsx`);
+      toast.success(`Đã xuất thành công ${items.length} bản ghi sang file Excel!`);
+    } catch (err) {
+      console.error('Lỗi khi xuất file Excel:', err);
+      toast.error('Có lỗi xảy ra khi tạo file Excel.');
+    } finally {
+      setIsExporting(false);
     }
-
-    const ws = XLSX.utils.json_to_sheet(dataToExport);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, isAct ? 'Hoat_dong' : 'Dang_nhap');
-    XLSX.writeFile(wb, `${isAct ? 'nhat_ky_hoat_dong' : 'nhat_ky_dang_nhap'}_${new Date().toISOString().slice(0, 10)}.xlsx`);
   };
 
   return (
@@ -86,21 +112,23 @@ const SystemLogs: React.FC = () => {
             <button 
               className="add-course-btn" 
               onClick={handleExportExcel}
+              disabled={isExporting}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '6px',
-                backgroundColor: '#10b981',
+                backgroundColor: isExporting ? '#94a3b8' : '#10b981',
                 color: 'white',
                 border: 'none',
                 padding: '8px 16px',
                 borderRadius: '6px',
-                cursor: 'pointer',
+                cursor: isExporting ? 'not-allowed' : 'pointer',
                 fontWeight: 600,
                 fontSize: '0.85rem'
               }}
             >
-              <Download size={16} /> Xuất Excel
+              {isExporting ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
+              {isExporting ? 'Đang xuất...' : 'Xuất Excel'}
             </button>
           </div>
 
@@ -127,7 +155,7 @@ const SystemLogs: React.FC = () => {
                 placeholder={activeTab === 'activities' ? 'Tìm theo email, username, chi tiết...' : 'Tìm theo email, username, IP...'} 
                 style={{ border: 'none', background: 'transparent', outline: 'none', width: '100%', color: '#1e293b' }}
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => { setSearch(e.target.value); setPage(1); }}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
               />
             </div>
@@ -138,21 +166,31 @@ const SystemLogs: React.FC = () => {
                 <select 
                   style={{ border: 'none', background: 'transparent', outline: 'none', color: '#1e293b' }}
                   value={actionType}
-                  onChange={(e) => setActionType(e.target.value)}
+                  onChange={(e) => { setActionType(e.target.value); setPage(1); }}
                 >
                   <option value="">Tất cả hành động</option>
-                  <option value="LOGIN">Đăng nhập</option>
-                  <option value="LOGOUT">Đăng xuất</option>
-                  <option value="CREATE">Thêm mới</option>
-                  <option value="UPDATE">Cập nhật</option>
-                  <option value="DELETE">Xóa</option>
+                  <option value="LOGIN">LOGIN</option>
+                  <option value="LOGOUT">LOGOUT</option>
+                  <option value="REGISTER">REGISTER</option>
+                  <option value="UPDATE_PROFILE">UPDATE_PROFILE</option>
+                  <option value="CHANGE_PASSWORD">CHANGE_PASSWORD</option>
+                  <option value="STUDY">STUDY</option>
+                  <option value="TEST">TEST</option>
                 </select>
               </div>
             )}
             
             <button 
               onClick={handleSearch}
-              style={{ padding: '8px 24px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}
+              style={{
+                backgroundColor: '#3b82f6',
+                color: 'white',
+                border: 'none',
+                padding: '8px 16px',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontWeight: 'bold'
+              }}
             >
               Tìm kiếm
             </button>
@@ -160,7 +198,7 @@ const SystemLogs: React.FC = () => {
 
           <div className="course-table-container">
             {loading ? (
-              <div style={{ textAlign: 'center', padding: '20px' }}>Đang tải...</div>
+              <div style={{ textAlign: 'center', padding: '20px' }}>Đang tải dữ liệu...</div>
             ) : (
               <table className="course-table">
                 <thead>
@@ -175,7 +213,7 @@ const SystemLogs: React.FC = () => {
                     <tr>
                       <th>Thời gian</th>
                       <th>Người dùng</th>
-                      <th>IP</th>
+                      <th>Địa chỉ IP</th>
                       <th>Thiết bị</th>
                     </tr>
                   )}
@@ -210,9 +248,9 @@ const SystemLogs: React.FC = () => {
             )}
             
             <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px', gap: '10px' }}>
-              <button disabled={page === 1} onClick={() => setPage(page - 1)} style={{ padding: '8px 16px', borderRadius: '4px', border: '1px solid #ccc' }}>Trước</button>
-              <span style={{ padding: '8px' }}>Trang {page} / {totalPages}</span>
-              <button disabled={page >= totalPages} onClick={() => setPage(page + 1)} style={{ padding: '8px 16px', borderRadius: '4px', border: '1px solid #ccc' }}>Sau</button>
+              <button disabled={page <= 1} onClick={() => setPage(page - 1)} style={{ padding: '8px 16px', borderRadius: '4px', border: '1px solid #ccc', cursor: page <= 1 ? 'not-allowed' : 'pointer' }}>Trước</button>
+              <span style={{ padding: '8px' }}>Trang {page} / {totalPages || 1}</span>
+              <button disabled={page >= totalPages} onClick={() => setPage(page + 1)} style={{ padding: '8px 16px', borderRadius: '4px', border: '1px solid #ccc', cursor: page >= totalPages ? 'not-allowed' : 'pointer' }}>Sau</button>
             </div>
           </div>
         </div>

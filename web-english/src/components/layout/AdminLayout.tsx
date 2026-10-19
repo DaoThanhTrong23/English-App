@@ -20,7 +20,15 @@ import {
 } from 'lucide-react';
 import mascotGif from '../../assets/images/gacon.gif';
 import { AdminNotificationDropdown } from '../common/AdminNotificationDropdown';
+import { useToast } from '../../context/ToastContext';
 import './AdminLayout.css';
+
+const getAvatarUrl = (url?: string | null) => {
+  if (!url) return '';
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  const baseUrl = (import.meta as any).env?.VITE_API_URL?.replace(/\/api\/?$/, '') || 'http://localhost:3000';
+  return `${baseUrl}${url.startsWith('/') ? '' : '/'}${url}`;
+};
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -59,6 +67,7 @@ const navSections: NavSection[] = [
     items: [
       { path: '/admin/ai-chat', label: 'AI Chat', icon: <MessageSquare size={18} /> },
       { path: '/admin/game', label: 'Trò chơi ôn tập', icon: <Gamepad2 size={18} /> },
+      { path: '/admin/topic-levels', label: 'Chủ đề theo cấp độ', icon: <SlidersHorizontal size={18} /> },
       { path: '/admin/logs', label: 'Nhật ký hệ thống', icon: <ClipboardList size={18} /> },
       { path: '/admin/settings', label: 'Cài đặt', icon: <SettingsIcon size={18} /> },
     ]
@@ -68,21 +77,49 @@ const navSections: NavSection[] = [
 const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { confirmModal } = useToast();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [adminUser, setAdminUser] = useState<{
+    id?: number | string;
+    username?: string;
+    name?: string;
+    fullName?: string;
+    email?: string;
+    role?: string;
+    avatarUrl?: string;
+  } | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
     if (!token) {
       navigate('/admin/login', { replace: true });
+      return;
+    }
+    try {
+      const stored = localStorage.getItem('adminInfo');
+      if (stored) {
+        setAdminUser(JSON.parse(stored));
+      }
+    } catch (e) {
+      console.error('Lỗi parse adminInfo:', e);
     }
   }, [navigate]);
 
   const handleLogout = () => {
-    localStorage.removeItem('adminToken');
-    localStorage.removeItem('adminRefreshToken');
-    localStorage.removeItem('adminInfo');
-    navigate('/admin/login');
+    confirmModal({
+      title: 'Đăng xuất',
+      message: 'Bạn có chắc chắn muốn đăng xuất khỏi trang quản trị?',
+      confirmText: 'Đăng xuất',
+      isDestructive: true,
+      onConfirm: () => {
+        localStorage.removeItem('adminToken');
+        localStorage.removeItem('adminRefreshToken');
+        localStorage.removeItem('adminInfo');
+        navigate('/admin/login');
+      }
+    });
   };
+
 
   const isActive = (path: string) => {
     if (path === '/admin/dashboard') return location.pathname === '/admin/dashboard';
@@ -147,13 +184,21 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
         <div className="sidebar-footer">
           <div className="admin-mini-profile">
             <img 
-              src="https://ui-avatars.com/api/?name=Admin&background=3b82f6&color=fff" 
+              src={getAvatarUrl(adminUser?.avatarUrl) || `https://ui-avatars.com/api/?name=${encodeURIComponent(adminUser?.fullName || adminUser?.name || adminUser?.username || 'Admin')}&background=3b82f6&color=fff`} 
               alt="Admin" 
               className="mini-avatar" 
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(adminUser?.fullName || adminUser?.name || adminUser?.username || 'Admin')}&background=3b82f6&color=fff`;
+              }}
             />
             <div className="mini-user-info">
-              <span className="mini-name">Admin</span>
-              <span className="mini-role">Quản trị viên</span>
+              <span className="mini-name" title={adminUser?.fullName || adminUser?.name || adminUser?.username || 'Admin'}>
+                {adminUser?.fullName || adminUser?.name || adminUser?.username || 'Admin'}
+              </span>
+              <span className="mini-role">
+                {adminUser?.role === 'admin' ? 'Quản trị viên' : (adminUser?.role || 'Quản trị viên')}
+              </span>
             </div>
             <button className="mini-logout-btn" onClick={handleLogout} title="Đăng xuất">
               <LogOut size={16} />
