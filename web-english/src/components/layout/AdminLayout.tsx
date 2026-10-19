@@ -23,6 +23,13 @@ import { AdminNotificationDropdown } from '../common/AdminNotificationDropdown';
 import { useToast } from '../../context/ToastContext';
 import './AdminLayout.css';
 
+const getAvatarUrl = (url?: string | null) => {
+  if (!url) return '';
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  const baseUrl = (import.meta as any).env?.VITE_API_URL?.replace(/\/api\/?$/, '') || 'http://localhost:3000';
+  return `${baseUrl}${url.startsWith('/') ? '' : '/'}${url}`;
+};
+
 interface AdminLayoutProps {
   children: React.ReactNode;
 }
@@ -177,7 +184,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
         <div className="sidebar-footer">
           <div className="admin-mini-profile">
             <img 
-              src={adminUser?.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(adminUser?.fullName || adminUser?.name || adminUser?.username || 'Admin')}&background=3b82f6&color=fff`} 
+              src={getAvatarUrl(adminUser?.avatarUrl) || `https://ui-avatars.com/api/?name=${encodeURIComponent(adminUser?.fullName || adminUser?.name || adminUser?.username || 'Admin')}&background=3b82f6&color=fff`} 
               alt="Admin" 
               className="mini-avatar" 
               onError={(e) => {

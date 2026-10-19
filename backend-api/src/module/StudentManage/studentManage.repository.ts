@@ -33,6 +33,7 @@ export class StudentManageRepository {
           id: true,
           username: true,
           email: true,
+          avatarUrl: true,
           xpPoints: true,
           isLocked: true,
           lastLoginDate: true,
@@ -83,6 +84,7 @@ export class StudentManageRepository {
         username: true,
         email: true,
         role: true,
+        avatarUrl: true,
         xpPoints: true,
         isLocked: true,
         cefrLevel: true,
@@ -168,6 +170,7 @@ export class StudentManageRepository {
         id: true,
         email: true,
         username: true,
+        avatarUrl: true,
         xpPoints: true,
       }
     });

@@ -255,11 +255,24 @@ const CourseList: React.FC = () => {
                       <td>
                         <div className="action-buttons">
                           <button 
-                            className="btn-edit" 
-                            title="Xem chi tiết & Quản lý"
+                            className="btn-view-detail" 
+                            style={{
+                              backgroundColor: '#eff6ff',
+                              color: '#2563eb',
+                              border: '1px solid #bfdbfe',
+                              borderRadius: '6px',
+                              padding: '6px 12px',
+                              fontSize: '0.85rem',
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              whiteSpace: 'nowrap'
+                            }}
                             onClick={() => navigate(`/admin/courses/${course.id}`)}
                           >
-                            <BookOpen size={18} />
+                            <BookOpen size={15} /> Xem chi tiết & quản lý
                           </button>
                           <button className="btn-edit" onClick={() => handleOpenModal(course)}>
                             <Edit size={18} />

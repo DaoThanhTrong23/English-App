@@ -62,8 +62,8 @@ const TestResults: React.FC = () => {
                 ) : (
                   results.map((r, idx) => (
                     <tr key={idx} style={{ borderBottom: '1px solid #e2e8f0' }}>
-                      <td style={{ padding: '12px 16px' }}><strong>{r.user.username}</strong></td>
-                      <td style={{ padding: '12px 16px', color: '#64748b' }}>{r.user.email}</td>
+                      <td style={{ padding: '12px 16px' }}><strong>{r.user?.username || 'Học viên'}</strong></td>
+                      <td style={{ padding: '12px 16px', color: '#64748b' }}>{r.user?.email || '-'}</td>
                       <td style={{ padding: '12px 16px', textAlign: 'right', fontWeight: 'bold', color: '#10b981' }}>{r.totalScore}</td>
                       <td style={{ padding: '12px 16px', textAlign: 'right' }}>{new Date(r.completedAt).toLocaleString('vi-VN')}</td>
                     </tr>

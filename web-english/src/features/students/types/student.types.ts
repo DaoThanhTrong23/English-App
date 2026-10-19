@@ -18,6 +18,7 @@ export interface Student {
   id: number;
   username: string;
   email: string;
+  avatarUrl?: string | null;
   xpPoints: number;
   isLocked?: boolean;
   lastLoginDate: string | null;
@@ -51,6 +52,7 @@ export interface StudentDetailResponse {
       id: number;
       username: string;
       email: string;
+      avatarUrl?: string | null;
       xpPoints: number;
       isLocked?: boolean;
       cefrLevel?: string | null;

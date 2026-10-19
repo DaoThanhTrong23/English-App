@@ -6,8 +6,16 @@ import './StudentList.css';
 import '../../words/pages/WordList.css'; // For Dashboard Layout styles
 
 import AdminLayout from '../../../components/layout/AdminLayout';
-import { Lock, Unlock, CheckCircle2, Eye, X } from 'lucide-react';
+import { Lock, Unlock, CheckCircle2, Eye, X, Trophy } from 'lucide-react';
 import { useToast } from '../../../context/ToastContext';
+import { fetchTopics } from '../../topics/api/topic.api';
+
+const getAvatarUrl = (url?: string | null) => {
+  if (!url) return '';
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  const baseUrl = (import.meta as any).env?.VITE_API_URL?.replace(/\/api\/?$/, '') || 'http://localhost:3000';
+  return `${baseUrl}${url.startsWith('/') ? '' : '/'}${url}`;
+};
 
 const StudentList: React.FC = () => {
   const { toast, confirmModal } = useToast();
@@ -26,6 +34,19 @@ const StudentList: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'tests' | 'progress' | 'chat'>('tests');
   const [studentProgress, setStudentProgress] = useState<any[]>([]);
   const [studentChat, setStudentChat] = useState<any[]>([]);
+  const [topicsMap, setTopicsMap] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    fetchTopics().then(res => {
+      if (res?.data && Array.isArray(res.data)) {
+        const map: Record<string, string> = {};
+        res.data.forEach((t: any) => {
+          map[String(t.id)] = t.title;
+        });
+        setTopicsMap(map);
+      }
+    }).catch(() => {});
+  }, []);
 
   const handleToggleLock = (studentId: number, currentLocked: boolean, username: string) => {
     confirmModal({
@@ -143,7 +164,24 @@ const StudentList: React.FC = () => {
                     <tr key={st.id}>
                       <td>
                         <div className="student-info-cell">
-                          <div className="student-avatar">{st.username.charAt(0).toUpperCase()}</div>
+                          {st.avatarUrl ? (
+                            <img
+                              src={getAvatarUrl(st.avatarUrl)}
+                              alt={st.username}
+                              className="student-avatar"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                                const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                                if (fallback) fallback.style.display = 'flex';
+                              }}
+                            />
+                          ) : null}
+                          <div 
+                            className="student-avatar" 
+                            style={{ display: st.avatarUrl ? 'none' : 'flex' }}
+                          >
+                            {st.username ? st.username.charAt(0).toUpperCase() : '?'}
+                          </div>
                           <div>
                             <div className="student-name">{st.username}</div>
                             <div className="student-email">{st.email}</div>
@@ -286,7 +324,39 @@ const StudentList: React.FC = () => {
           <div className="student-modal-overlay" onClick={() => setSelectedStudent(null)}>
             <div className="student-modal-content" onClick={e => e.stopPropagation()}>
               <div className="student-modal-header" style={{ display: 'flex', alignItems: 'center' }}>
-                <h3>Chi tiết học viên: {selectedStudent.profile.username}</h3>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                  {selectedStudent.profile.avatarUrl ? (
+                    <img
+                      src={getAvatarUrl(selectedStudent.profile.avatarUrl)}
+                      alt={selectedStudent.profile.username}
+                      className="student-avatar"
+                      style={{ width: '48px', height: '48px', marginRight: 0 }}
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                        const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                        if (fallback) fallback.style.display = 'flex';
+                      }}
+                    />
+                  ) : null}
+                  <div
+                    className="student-avatar"
+                    style={{
+                      width: '48px',
+                      height: '48px',
+                      fontSize: '1.25rem',
+                      marginRight: 0,
+                      display: selectedStudent.profile.avatarUrl ? 'none' : 'flex'
+                    }}
+                  >
+                    {selectedStudent.profile.username ? selectedStudent.profile.username.charAt(0).toUpperCase() : '?'}
+                  </div>
+                  <div>
+                    <h3 style={{ margin: 0 }}>Chi tiết học viên: {selectedStudent.profile.username}</h3>
+                    <div style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '2px' }}>
+                      {selectedStudent.profile.email}
+                    </div>
+                  </div>
+                </div>
                 <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '10px', marginRight: '16px' }}>
                   {selectedStudent.profile.isLocked ? (
                     <button
@@ -392,7 +462,7 @@ const StudentList: React.FC = () => {
 
                 <div className="detail-card" style={{ gridColumn: '1 / -1' }}>
                   <h4>Đánh giá năng lực FAME-KT & Trình độ</h4>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '12px' }}>
                     <div style={{ background: '#ffffff', padding: '10px 14px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                       <div style={{ fontSize: '0.8rem', color: '#64748b' }}>Trình độ CEFR</div>
                       <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#3b82f6' }}>{selectedStudent.profile.cefrLevel || 'Chưa đánh giá'}</div>
@@ -415,9 +485,26 @@ const StudentList: React.FC = () => {
                     </div>
                   </div>
                   {selectedStudent.profile.preferredTopics && (
-                    <div className="detail-row" style={{ marginTop: '12px' }}>
-                      <span className="detail-label">Chủ đề quan tâm:</span>
-                      <span className="detail-value">{selectedStudent.profile.preferredTopics}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '14px', flexWrap: 'wrap' }}>
+                      <span className="detail-label" style={{ fontWeight: 500, color: '#64748b', fontSize: '0.9rem' }}>Chủ đề quan tâm:</span>
+                      {selectedStudent.profile.preferredTopics.split(',').map((topicId, i) => {
+                        const id = topicId.trim();
+                        if (!id) return null;
+                        const topicName = topicsMap[id] || `Chủ đề #${id}`;
+                        return (
+                          <span key={i} style={{
+                            backgroundColor: '#eff6ff',
+                            color: '#2563eb',
+                            border: '1px solid #dbeafe',
+                            padding: '3px 10px',
+                            borderRadius: '16px',
+                            fontSize: '0.8rem',
+                            fontWeight: 600
+                          }}>
+                            {topicName}
+                          </span>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
@@ -426,12 +513,52 @@ const StudentList: React.FC = () => {
               {selectedStudent.achievements.length > 0 && (
                 <div className="detail-card" style={{ marginTop: '24px' }}>
                   <h4>Thành tựu đã đạt ({selectedStudent.progressSummary.achievementsUnlocked})</h4>
-                  <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))', gap: '12px' }}>
                     {selectedStudent.achievements.map((ach, idx) => (
-                      <div key={idx} style={{ textAlign: 'center', width: '100px' }}>
-                        {ach.iconUrl && <img src={ach.iconUrl} alt={ach.title} style={{ width: '40px', height: '40px' }} />}
-                        <div style={{ fontSize: '0.85rem', fontWeight: 600, marginTop: '8px', color: '#1e293b' }}>{ach.title}</div>
-                        <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{ach.description}</div>
+                      <div key={idx} style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: '12px', 
+                        background: '#ffffff', 
+                        padding: '12px', 
+                        borderRadius: '10px', 
+                        border: '1px solid #e2e8f0',
+                        boxShadow: '0 1px 2px rgba(0,0,0,0.03)'
+                      }}>
+                        <div style={{
+                          width: '44px',
+                          height: '44px',
+                          borderRadius: '10px',
+                          backgroundColor: '#fef3c7',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0
+                        }}>
+                          {ach.iconUrl ? (
+                            <img
+                              src={getAvatarUrl(ach.iconUrl)}
+                              alt=""
+                              style={{ width: '32px', height: '32px', objectFit: 'contain' }}
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                                const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                                if (fallback) fallback.style.display = 'flex';
+                              }}
+                            />
+                          ) : null}
+                          <div style={{ display: ach.iconUrl ? 'none' : 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <Trophy size={22} color="#f59e0b" />
+                          </div>
+                        </div>
+                        <div style={{ minWidth: 0, flex: 1 }}>
+                          <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1e293b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={ach.title}>
+                            {ach.title}
+                          </div>
+                          <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '2px', lineHeight: 1.3 }} title={ach.description}>
+                            {ach.description}
+                          </div>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -453,51 +580,79 @@ const StudentList: React.FC = () => {
                 >Lịch sử Chat AI</button>
               </div>
 
-              {activeTab === 'tests' && selectedStudent.recentTests.length > 0 && (
+              {activeTab === 'tests' && (
                 <div className="detail-card" style={{ marginTop: '16px' }}>
                   <h4>Lịch sử kiểm tra gần đây</h4>
-                  <table style={{ width: '100%', fontSize: '0.9rem', borderCollapse: 'collapse' }}>
-                    <thead>
-                      <tr style={{ borderBottom: '1px solid #e2e8f0', textAlign: 'left' }}>
-                        <th style={{ padding: '8px' }}>Bài thi (ID)</th>
-                        <th style={{ padding: '8px' }}>Điểm số</th>
-                        <th style={{ padding: '8px' }}>Thời gian hoàn thành</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {selectedStudent.recentTests.map((rt, idx) => (
-                        <tr key={idx} style={{ borderBottom: '1px solid #e2e8f0' }}>
-                          <td style={{ padding: '8px' }}>{rt.testId}</td>
-                          <td style={{ padding: '8px', fontWeight: 600, color: rt.totalScore >= 50 ? '#16a34a' : '#dc2626' }}>
-                            {rt.totalScore}
-                          </td>
-                          <td style={{ padding: '8px', color: '#64748b' }}>{new Date(rt.completedAt).toLocaleString('vi-VN')}</td>
+                  {selectedStudent.recentTests.length === 0 ? (
+                    <p style={{ color: '#64748b', fontSize: '0.9rem', margin: '8px 0' }}>Học viên chưa làm bài kiểm tra nào.</p>
+                  ) : (
+                    <table style={{ width: '100%', fontSize: '0.9rem', borderCollapse: 'collapse' }}>
+                      <thead>
+                        <tr style={{ borderBottom: '1px solid #e2e8f0', textAlign: 'left' }}>
+                          <th style={{ padding: '8px' }}>Bài thi</th>
+                          <th style={{ padding: '8px' }}>Điểm số</th>
+                          <th style={{ padding: '8px' }}>Thời gian hoàn thành</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {selectedStudent.recentTests.map((rt, idx) => (
+                          <tr key={idx} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                            <td style={{ padding: '8px' }}>
+                              <strong>{rt.test?.title || `Bài thi #${rt.testId}`}</strong>
+                              {rt.test?.ceftLevel && (
+                                <span style={{ marginLeft: '8px', fontSize: '0.75rem', padding: '2px 6px', background: '#e0f2fe', color: '#0369a1', borderRadius: '4px', fontWeight: 600 }}>
+                                  {rt.test.ceftLevel}
+                                </span>
+                              )}
+                            </td>
+                            <td style={{ padding: '8px', fontWeight: 600, color: rt.totalScore >= 50 ? '#16a34a' : '#dc2626' }}>
+                              {rt.totalScore} / 100
+                            </td>
+                            <td style={{ padding: '8px', color: '#64748b' }}>{new Date(rt.completedAt).toLocaleString('vi-VN')}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
                 </div>
               )}
 
               {activeTab === 'progress' && (
                 <div className="detail-card" style={{ marginTop: '16px' }}>
                   <h4>Tiến độ học từ vựng</h4>
-                  {studentProgress.length === 0 ? <p>Chưa có dữ liệu</p> : (
+                  {studentProgress.length === 0 ? (
+                    <p style={{ color: '#64748b', fontSize: '0.9rem', margin: '8px 0' }}>Chưa có dữ liệu học từ vựng.</p>
+                  ) : (
                     <table style={{ width: '100%', fontSize: '0.9rem', borderCollapse: 'collapse' }}>
                       <thead>
                         <tr style={{ borderBottom: '1px solid #e2e8f0', textAlign: 'left' }}>
                           <th style={{ padding: '8px' }}>Từ vựng</th>
+                          <th style={{ padding: '8px' }}>Nghĩa</th>
                           <th style={{ padding: '8px' }}>Trạng thái</th>
-                          <th style={{ padding: '8px' }}>Mức độ nhớ</th>
+                          <th style={{ padding: '8px' }}>Cấp độ nhớ</th>
                           <th style={{ padding: '8px' }}>Lần ôn tới</th>
                         </tr>
                       </thead>
                       <tbody>
                         {studentProgress.map((p, idx) => (
                           <tr key={idx} style={{ borderBottom: '1px solid #e2e8f0' }}>
-                            <td style={{ padding: '8px', fontWeight: 'bold' }}>{p.word?.word}</td>
-                            <td style={{ padding: '8px' }}>{p.status}</td>
-                            <td style={{ padding: '8px' }}>Level {p.memoryLevel}</td>
+                            <td style={{ padding: '8px', fontWeight: 'bold', color: '#0f172a' }}>
+                              {p.word?.headword || p.word?.word || 'Chưa rõ'}
+                            </td>
+                            <td style={{ padding: '8px', color: '#64748b' }}>{p.word?.meaning || '-'}</td>
+                            <td style={{ padding: '8px' }}>
+                              <span style={{
+                                padding: '3px 8px',
+                                borderRadius: '12px',
+                                fontSize: '0.75rem',
+                                fontWeight: 600,
+                                backgroundColor: p.status === 'mastered' ? '#dcfce7' : '#dbeafe',
+                                color: p.status === 'mastered' ? '#166534' : '#1e40af'
+                              }}>
+                                {p.status === 'mastered' ? 'Đã thuộc' : 'Đang học'}
+                              </span>
+                            </td>
+                            <td style={{ padding: '8px' }}>Level {p.memoryLevel ?? 0}</td>
                             <td style={{ padding: '8px', color: '#64748b' }}>{p.nextReviewDate ? new Date(p.nextReviewDate).toLocaleDateString('vi-VN') : '-'}</td>
                           </tr>
                         ))}

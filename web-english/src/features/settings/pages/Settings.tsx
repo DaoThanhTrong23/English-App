@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import { changePassword } from '../api/settings.api';
-import { Lock, User, Info } from 'lucide-react';
+import { Lock, User, Info, Eye, EyeOff } from 'lucide-react';
 import '../../courses/pages/CourseList.css'; // Reuse container styles
 
 const Settings: React.FC = () => {
@@ -14,6 +14,9 @@ const Settings: React.FC = () => {
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showOldPassword, setShowOldPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
 
@@ -86,39 +89,66 @@ const Settings: React.FC = () => {
                   </div>
                 )}
 
-                <form onSubmit={handleChangePassword} style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
+                <form onSubmit={handleChangePassword} style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%', boxSizing: 'border-box' }}>
                   <div>
                     <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#475569' }}>Mật khẩu hiện tại</label>
-                    <input 
-                      type="password" 
-                      style={{ width: '95%', padding: '10px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }} 
-                      value={oldPassword}
-                      onChange={(e) => setOldPassword(e.target.value)}
-                      required
-                    />
+                    <div style={{ position: 'relative', width: '100%' }}>
+                      <input 
+                        type={showOldPassword ? 'text' : 'password'} 
+                        style={{ width: '100%', boxSizing: 'border-box', padding: '10px 42px 10px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }} 
+                        value={oldPassword}
+                        onChange={(e) => setOldPassword(e.target.value)}
+                        required
+                      />
+                      <button 
+                        type="button" 
+                        onClick={() => setShowOldPassword(!showOldPassword)}
+                        style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', display: 'flex', alignItems: 'center' }}
+                      >
+                        {showOldPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
                   </div>
                   <div>
                     <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#475569' }}>Mật khẩu mới</label>
-                    <input 
-                      type="password" 
-                      style={{ width: '95%', padding: '10px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }} 
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      required
-                    />
+                    <div style={{ position: 'relative', width: '100%' }}>
+                      <input 
+                        type={showNewPassword ? 'text' : 'password'} 
+                        style={{ width: '100%', boxSizing: 'border-box', padding: '10px 42px 10px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }} 
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        required
+                      />
+                      <button 
+                        type="button" 
+                        onClick={() => setShowNewPassword(!showNewPassword)}
+                        style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', display: 'flex', alignItems: 'center' }}
+                      >
+                        {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
                     <small style={{ display: 'block', marginTop: '6px', color: '#64748b', fontSize: '0.8rem' }}>
                       Tối thiểu 8 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt.
                     </small>
                   </div>
                   <div>
                     <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#475569' }}>Xác nhận mật khẩu mới</label>
-                    <input 
-                      type="password" 
-                      style={{ width: '95%', padding: '10px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }} 
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      required
-                    />
+                    <div style={{ position: 'relative', width: '100%' }}>
+                      <input 
+                        type={showConfirmPassword ? 'text' : 'password'} 
+                        style={{ width: '100%', boxSizing: 'border-box', padding: '10px 42px 10px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }} 
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        required
+                      />
+                      <button 
+                        type="button" 
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', display: 'flex', alignItems: 'center' }}
+                      >
+                        {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
                   </div>
                   
                   <button 
@@ -155,7 +185,7 @@ const Settings: React.FC = () => {
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', padding: '16px', background: 'white', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
                     <span style={{ fontWeight: '600', color: '#475569' }}>Bản quyền</span>
-                    <span style={{ color: '#1e293b' }}>© 2026 Mấy con gà :).</span>
+                    <span style={{ color: '#1e293b' }}>© 2026 EnglishApp. All rights reserved.</span>
                   </div>
                 </div>
               </div>

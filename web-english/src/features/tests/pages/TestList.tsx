@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminLayout from '../../../components/layout/AdminLayout';
-import { Plus, Edit, Trash2, BookOpen } from 'lucide-react';
+import { Plus, Edit, Trash2, BookOpen, Eye, BarChart2 } from 'lucide-react';
 import { fetchTests, createTest, updateTest, deleteTest } from '../api/test.api';
 import { useToast } from '../../../context/ToastContext';
 import './TestList.css';
@@ -171,12 +171,30 @@ const TestList: React.FC = () => {
                     <span>Số câu hỏi: <strong>{test._count?.questions || 0}</strong></span>
                   </div>
 
-                  <button 
-                    className="test-manage-questions-btn"
-                    onClick={() => navigate(`/admin/tests/${test.id}`)}
-                  >
-                    <BookOpen size={16} /> Quản lý câu hỏi
-                  </button>
+                  <div style={{ display: 'flex', gap: '8px', marginTop: '14px' }}>
+                    <button 
+                      className="test-manage-questions-btn"
+                      style={{ flex: 1, margin: 0 }}
+                      onClick={() => navigate(`/admin/tests/${test.id}`)}
+                      title="Xem chi tiết & Quản lý câu hỏi"
+                    >
+                      <Eye size={15} /> Xem chi tiết
+                    </button>
+                    <button 
+                      className="test-manage-questions-btn"
+                      style={{
+                        flex: 1,
+                        margin: 0,
+                        backgroundColor: '#ecfdf5',
+                        color: '#059669',
+                        border: '1px solid #a7f3d0'
+                      }}
+                      onClick={() => navigate(`/admin/tests/${test.id}/results`)}
+                      title="Xem kết quả thi của học viên"
+                    >
+                      <BarChart2 size={15} /> Kết quả thi
+                    </button>
+                  </div>
                 </div>
               ))
             )}

@@ -43,8 +43,11 @@ const SystemLogs: React.FC = () => {
   };
 
   useEffect(() => {
-    loadData(page);
-  }, [activeTab, page]);
+    const timer = setTimeout(() => {
+      loadData(page);
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [activeTab, page, actionType, search]);
 
   const handleSearch = () => {
     setPage(1);
@@ -152,7 +155,7 @@ const SystemLogs: React.FC = () => {
                 placeholder={activeTab === 'activities' ? 'Tìm theo email, username, chi tiết...' : 'Tìm theo email, username, IP...'} 
                 style={{ border: 'none', background: 'transparent', outline: 'none', width: '100%', color: '#1e293b' }}
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => { setSearch(e.target.value); setPage(1); }}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
               />
             </div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminLayout from '../../../components/layout/AdminLayout';
-import { Plus, Edit, Trash2, BookOpen, ArrowUp, ArrowDown, Upload, Image as ImageIcon, X } from 'lucide-react';
+import { Plus, Edit, Trash2, BookOpen, ArrowUp, ArrowDown, Upload, Image as ImageIcon, X, Eye } from 'lucide-react';
 import { fetchTopics, createTopic, updateTopic, deleteTopic } from '../api/topic.api';
 import { uploadMedia } from '../../tests/api/test.api';
 import { useToast } from '../../../context/ToastContext';
@@ -228,8 +228,28 @@ const TopicList: React.FC = () => {
                       <td>{new Date(topic.createdAt).toLocaleDateString('vi-VN')}</td>
                       <td>
                         <div className="action-buttons">
-                          <button className="btn-edit" title="Xem bài học" onClick={() => navigate('/admin/courses?topicId=' + topic.id)}>
-                            <BookOpen size={18} />
+                          <button
+                            className="btn-view-detail"
+                            style={{
+                              backgroundColor: '#eff6ff',
+                              color: '#2563eb',
+                              border: '1px solid #bfdbfe',
+                              borderRadius: '6px',
+                              padding: '6px 12px',
+                              fontSize: '0.85rem',
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              whiteSpace: 'nowrap'
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate('/admin/courses?topicId=' + topic.id);
+                            }}
+                          >
+                            <Eye size={15} /> Xem chi tiết
                           </button>
                           <button className="btn-edit" onClick={() => handleOpenModal(topic)}>
                             <Edit size={18} />

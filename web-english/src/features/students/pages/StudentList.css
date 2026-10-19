@@ -87,6 +87,9 @@
   font-weight: bold;
   color: #64748b;
   margin-right: 12px;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid #e2e8f0;
 }
 
 .student-info-cell {
@@ -190,7 +193,7 @@
 .student-modal-content {
   background-color: white;
   border-radius: 12px;
-  width: 800px;
+  width: 860px;
   max-width: 95vw;
   max-height: 90vh;
   overflow-y: auto;

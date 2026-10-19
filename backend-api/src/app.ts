@@ -52,7 +52,9 @@ export function createapp() {
         customSuccessMessage: (req, res) => `${req.method} ${req.url} ${res.statusCode}`,
         customErrorMessage: (req, res, err) => `${req.method} ${req.url} ${res.statusCode} - ${err.message}`,
     }));
-    app.use(helmet());
+    app.use(helmet({
+        crossOriginResourcePolicy: { policy: "cross-origin" }
+    }));
     app.use(cors({ origin: env.CORS_ORIGIN, credentials: false }));
 
     // Giới hạn 100kb/request json
