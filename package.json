@@ -1,0 +1,11 @@
+{
+  "name": "english-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "English Learning Application Monorepo Root",
+  "scripts": {
+    "test": "npm run test --prefix backend-api",
+    "test:watch": "npm run test:watch --prefix backend-api",
+    "test:backend": "npm run test --prefix backend-api"
+  }
+}
