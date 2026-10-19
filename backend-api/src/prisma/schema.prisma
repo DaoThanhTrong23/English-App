@@ -397,6 +397,7 @@ model CommunityPost {
   content   String   @db.Text
   imageUrl  String?  @map("image_url") @db.Text
   likes     Int      @default(0)
+  isPublic  Boolean  @default(true) @map("is_public")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
 

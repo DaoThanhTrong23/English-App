@@ -36,7 +36,8 @@ communityRouter.get(
   asyncHandler(async (req: any, res) => {
     const userId = Number(req.user?.userId);
     const limit = Number(req.query.limit) || 20;
-    const result = await communityService.getPosts(userId, limit);
+    const filter = req.query?.filter as string | undefined;
+    const result = await communityService.getPosts(userId, limit, filter);
     res.status(200).json({ success: true, data: result });
   })
 );
@@ -47,6 +48,7 @@ communityRouter.post(
   asyncHandler(async (req: any, res) => {
     const userId = Number(req.user?.userId);
     const content = req.body?.content || "";
+    const isPublic = req.body?.isPublic === undefined || req.body?.isPublic === "true" || req.body?.isPublic === true;
     
     let imageUrl: string | undefined = undefined;
     if (req.file) {
@@ -57,7 +59,7 @@ communityRouter.post(
       return res.status(400).json({ success: false, message: "Bài viết phải có nội dung văn bản hoặc hình ảnh" });
     }
 
-    const result = await communityService.createPost(userId, content.trim(), imageUrl);
+    const result = await communityService.createPost(userId, content.trim(), imageUrl, isPublic);
     res.status(201).json({ success: true, data: result });
   })
 );
@@ -90,5 +92,55 @@ communityRouter.post(
     if (!content) return res.status(400).json({ success: false, message: "Nội dung trống" });
     const result = await communityService.createComment(userId, postId, content);
     res.status(201).json({ success: true, data: result });
+  })
+);
+
+communityRouter.put(
+  "/posts/:id",
+  upload.single("image"),
+  asyncHandler(async (req: any, res) => {
+    const userId = Number(req.user?.userId);
+    const postId = Number(req.params.id);
+    const content = req.body?.content;
+    
+    let isPublic: boolean | undefined = undefined;
+    if (req.body?.isPublic !== undefined) {
+      isPublic = req.body.isPublic === "true" || req.body.isPublic === true;
+    }
+
+    let imageUrl: string | null | undefined = undefined;
+    if (req.file) {
+      imageUrl = `/uploads/posts/${req.file.filename}`;
+    } else if (req.body?.removeImage === "true") {
+      imageUrl = null;
+    }
+
+    const result = await communityService.updatePost(userId, postId, {
+      content: content ? content.trim() : undefined,
+      isPublic,
+      imageUrl
+    });
+    res.status(200).json({ success: true, data: result });
+  })
+);
+
+communityRouter.patch(
+  "/posts/:id/privacy",
+  asyncHandler(async (req: any, res) => {
+    const userId = Number(req.user?.userId);
+    const postId = Number(req.params.id);
+    const isPublic = req.body?.isPublic === "true" || req.body?.isPublic === true;
+    const result = await communityService.updatePostPrivacy(userId, postId, isPublic);
+    res.status(200).json({ success: true, data: result });
+  })
+);
+
+communityRouter.delete(
+  "/posts/:id",
+  asyncHandler(async (req: any, res) => {
+    const userId = Number(req.user?.userId);
+    const postId = Number(req.params.id);
+    const result = await communityService.deletePost(userId, postId);
+    res.status(200).json({ success: true, data: result });
   })
 );

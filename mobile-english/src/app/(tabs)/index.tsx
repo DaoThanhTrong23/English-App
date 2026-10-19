@@ -102,6 +102,21 @@ export default function HomeScreen() {
       const levelGroup = await SecureStore.getItemAsync('targetLevelGroup');
       if (levelGroup) setTargetLevel(levelGroup);
 
+      // Đồng bộ thông tin người dùng mới nhất từ server
+      try {
+        const meRes = await axiosClient.get('/profile/me');
+        if (meRes.data?.success && meRes.data.data) {
+          const freshUser = meRes.data.data;
+          setUserInfo(freshUser);
+          await SecureStore.setItemAsync('userInfo', JSON.stringify(freshUser));
+          if (freshUser.cefrLevel) {
+            setTargetLevel(freshUser.cefrLevel);
+          }
+        }
+      } catch (e) {
+        // use local cache if offline
+      }
+
       const res = await axiosClient.get('/student/courses', {
         params: { targetLevelGroup: levelGroup }
       });
@@ -112,11 +127,6 @@ export default function HomeScreen() {
 
         if (res.data.data.streak !== undefined) {
           setStreak(res.data.data.streak);
-        }
-
-        if (fetchedCourses.length > 0) {
-          const firstCourse = fetchedCourses[0];
-          
         }
       }
     } catch (error) {
@@ -133,6 +143,20 @@ export default function HomeScreen() {
       </View>
     );
   }
+
+  const getDisplayLevel = (level: string) => {
+    if (!level || level === 'Đang cập nhật...') return 'Khởi động (A1)';
+    if (level === 'A1-A2') return 'A1 - A2 (Cơ bản)';
+    if (level === 'B1-B2') return 'B1 - B2 (Trung cấp)';
+    if (level === 'C1-C2') return 'C1 - C2 (Nâng cao)';
+    if (level === 'A1') return 'Cơ bản (A1)';
+    if (level === 'A2') return 'Sơ cấp (A2)';
+    if (level === 'B1') return 'Trung cấp (B1)';
+    if (level === 'B2') return 'Trung cấp cao (B2)';
+    if (level === 'C1') return 'Cao cấp (C1)';
+    if (level === 'C2') return 'Thành thạo (C2)';
+    return level;
+  };
 
   const username = userInfo?.username || "Học viên";
   const overallProgress = courses.length > 0 
@@ -175,7 +199,7 @@ export default function HomeScreen() {
         {/* CẤP ĐỘ HIỆN TẠI (LEVEL CARD) */}
         <View style={styles.levelCard}>
           <Text style={styles.levelLabel}>CẤP ĐỘ HIỆN TẠI</Text>
-          <Text style={styles.levelTitle}>{targetLevel}</Text>
+          <Text style={styles.levelTitle}>{getDisplayLevel(targetLevel)}</Text>
           <View style={styles.progressContainer}>
             <Text style={styles.progressText}>Tiến trình chung</Text>
             <Text style={styles.progressPercent}>{overallProgress}%</Text>

@@ -1,11 +1,8 @@
-export const CEFR_THRESHOLDS = {
-  A1: 1000,
-  A2: 1200,
-  B1: 1400,
-  B2: 1600,
-  C1: 1800,
-  C2: 2000,
-};
+import { FAME_KT_CONFIG } from '../../config/fame-kt.config.js';
+
+export { FAME_KT_CONFIG };
+
+export const CEFR_THRESHOLDS = FAME_KT_CONFIG.CEFR_THRESHOLDS;
 
 // =========================================================================
 // THUẬT TOÁN HOÀN THIỆN (FAME-KT - Fuzzy Adaptive Multi-dimensional Elo)
@@ -18,26 +15,43 @@ export const CEFR_THRESHOLDS = {
  * Thực tế trắc nghiệm 4 đáp án (A,B,C,D) thì xác suất đoán lụi luôn là 25% (0.25).
  * Công thức này đưa tham số c (Guessing = 0.25) của IRT vào Elo.
  */
-export function getExpectedScoreIRT(userElo: number, questionElo: number, c_guessing: number = 0.25): number {
+export function getExpectedScoreIRT(
+  userElo: number, 
+  questionElo: number, 
+  c_guessing: number = FAME_KT_CONFIG.IRT.DEFAULT_GUESSING_PROBABILITY
+): number {
   const probKnowledge = 1 / (1 + Math.pow(10, (questionElo - userElo) / 400));
   return c_guessing + (1 - c_guessing) * probKnowledge;
 }
 
 /**
  * CẢI TIẾN 2: Penalty Anti-Bot & Phân tích tâm lý học thời gian (Psychometrics)
- * - Trả lời siêu nhanh (< 2s): Chắc chắn là bấm bừa/bot -> Không tính điểm hoặc trừ điểm nhẹ.
- * - Trả lời trong Vùng tối ưu (Optimal: 5s - 15s): Thưởng hệ số cao (Nắm vững kiến thức).
- * - Trả lời chậm (> 30s): Bị phân tâm hoặc tra từ điển -> Hệ số cực thấp.
+ * - Trả lời siêu nhanh (< 2s): Chắc chắn là bấm bừa/bot -> Hệ số phạt (0.2).
+ * - Trả lời trong Vùng tối ưu (2s - 15s): Thưởng hệ số cao (Nắm vững kiến thức, 1.5).
+ * - Trả lời bình thường (15s - 20s): Hệ số chuẩn (1.0).
+ * - Trả lời chậm (> 20s): Tra từ điển hoặc phân vân quá lâu -> Hệ số suy giảm (tối thiểu 0.3).
  */
-export function calculateTimeFactor(timeTakenMs: number, expectedTimeMs: number = 20000): number {
+export function calculateTimeFactor(
+  timeTakenMs: number, 
+  expectedTimeMs: number = FAME_KT_CONFIG.TIME_FACTOR.EXPECTED_TIME_MS
+): number {
   const timeTakenSec = timeTakenMs / 1000;
+  const { 
+    ANTI_BOT_THRESHOLD_SEC, 
+    ANTI_BOT_FACTOR, 
+    OPTIMAL_TIME_MIN_SEC, 
+    OPTIMAL_TIME_MAX_SEC, 
+    OPTIMAL_FACTOR, 
+    NORMAL_FACTOR, 
+    SLOW_MIN_FACTOR 
+  } = FAME_KT_CONFIG.TIME_FACTOR;
   
-  if (timeTakenSec < 2) return 0.2; // Bấm lụi mù quáng (Anti-bot)
-  if (timeTakenSec >= 2 && timeTakenSec <= 15) return 1.5; // Optimal Flow (Phản xạ tốt)
-  if (timeTakenSec > 15 && timeTakenSec <= expectedTimeMs/1000) return 1.0; // Bình thường
+  if (timeTakenSec < ANTI_BOT_THRESHOLD_SEC) return ANTI_BOT_FACTOR; // Bấm lụi mù quáng (Anti-bot)
+  if (timeTakenSec >= OPTIMAL_TIME_MIN_SEC && timeTakenSec <= OPTIMAL_TIME_MAX_SEC) return OPTIMAL_FACTOR; // Vùng phản xạ tối ưu
+  if (timeTakenSec > OPTIMAL_TIME_MAX_SEC && timeTakenSec <= expectedTimeMs / 1000) return NORMAL_FACTOR; // Bình thường
   
-  // Trả lời quá chậm (Tra google hoặc phân vân quá lâu)
-  return Math.max(0.3, expectedTimeMs / timeTakenMs); 
+  // Trả lời quá chậm (Tra từ điển hoặc phân vân quá lâu)
+  return Math.max(SLOW_MIN_FACTOR, expectedTimeMs / timeTakenMs); 
 }
 
 /**
@@ -48,13 +62,13 @@ export function updateAdvancedElo(
   questionElo: number, 
   isCorrect: boolean, 
   timeTakenMs: number,
-  c_guessing: number = 0.25
+  c_guessing: number = FAME_KT_CONFIG.IRT.DEFAULT_GUESSING_PROBABILITY
 ) {
   const actualScore = isCorrect ? 1 : 0;
   const expectedScore = getExpectedScoreIRT(userElo, questionElo, c_guessing);
   const timeFactor = calculateTimeFactor(timeTakenMs);
   
-  const K_BASE = 32;
+  const K_BASE = FAME_KT_CONFIG.ELO.K_BASE;
   const kDynamic = K_BASE * timeFactor;
   
   // Cập nhật cả 2: Năng lực User và Độ khó Câu hỏi
@@ -77,7 +91,8 @@ export type UserProficiency = {
 
 // Khởi tạo năng lực mặc định
 export function createNewUserProficiency(): UserProficiency {
-  return { Grammar: 1200, Vocabulary: 1200, Listening: 1200, Reading: 1200 };
+  const initElo = FAME_KT_CONFIG.ELO.INITIAL_USER_ELO;
+  return { Grammar: initElo, Vocabulary: initElo, Listening: initElo, Reading: initElo };
 }
 
 // Map sang CEFR chuẩn hóa cho toàn bộ hệ thống
@@ -121,6 +136,13 @@ export function recommendPersonalizedPath(
 
   const weakestCefr = getCEFRLevel(minElo);
   const normalizedUserTopics = userTopics.map(t => t.trim().toLowerCase());
+  const { 
+    WEAKEST_SKILL_BONUS, 
+    CEFR_MATCH_BONUS, 
+    TOPIC_INTEREST_BONUS, 
+    SYNONYM_MATCH_BONUS, 
+    MIN_SCORE_THRESHOLD 
+  } = FAME_KT_CONFIG.RECOMMENDER;
 
   // Chấm điểm từng bài học / chủ đề trong DB
   const scoredLessons = allLessons.map(lesson => {
@@ -128,26 +150,26 @@ export function recommendPersonalizedPath(
     const lTitle = (lesson.title || '').toLowerCase();
     const lDesc = (lesson.topic || '').toLowerCase();
     
-    // 1. Ưu tiên vá lỗ hổng (Weakest Skill) (+20 điểm)
+    // 1. Ưu tiên vá lỗ hổng (Weakest Skill)
     if (lesson.skillCategory && lesson.skillCategory === weakestSkill) {
-      score += 20;
+      score += WEAKEST_SKILL_BONUS;
     }
     
-    // 2. Phù hợp Trình độ CEFR (+15 điểm)
+    // 2. Phù hợp Trình độ CEFR
     if (lesson.cefr === weakestCefr) {
-      score += 15;
+      score += CEFR_MATCH_BONUS;
     }
     
-    // 3. Phù hợp Sở thích trực tiếp (User Topics) (+10 điểm)
+    // 3. Phù hợp Sở thích trực tiếp (User Topics)
     if (normalizedUserTopics.some(ut => lTitle.includes(ut) || lDesc.includes(ut))) {
-      score += 10;
+      score += TOPIC_INTEREST_BONUS;
     }
 
-    // 4. Mở rộng từ khóa đồng nghĩa (Synonym Expansion) (+5 điểm)
+    // 4. Mở rộng từ khóa đồng nghĩa (Synonym Expansion)
     if (expandedKeywords && expandedKeywords.size > 0) {
       for (const kw of expandedKeywords) {
         if (lTitle.includes(kw) || lDesc.includes(kw)) {
-          score += 5;
+          score += SYNONYM_MATCH_BONUS;
           break;
         }
       }
@@ -156,7 +178,7 @@ export function recommendPersonalizedPath(
     return { ...lesson, score };
   });
 
-  return scoredLessons.filter(l => l.score >= 10).sort((a, b) => b.score - a.score);
+  return scoredLessons.filter(l => l.score >= MIN_SCORE_THRESHOLD).sort((a, b) => b.score - a.score);
 }
 
 /**
@@ -164,15 +186,18 @@ export function recommendPersonalizedPath(
  * Dừng bài test sớm nếu điểm năng lực (Elo) của user đã ổn định (Hội tụ)
  * Giúp tiết kiệm thời gian, không cần làm hết toàn bộ số câu.
  */
-export function checkEarlyStop(eloHistory: number[], minQuestions: number = 5): boolean {
+export function checkEarlyStop(
+  eloHistory: number[], 
+  minQuestions: number = FAME_KT_CONFIG.EARLY_STOP.MIN_QUESTIONS
+): boolean {
   if (eloHistory.length < minQuestions) return false;
   
-  // Lấy 3 lần thay đổi Elo gần nhất
-  const recentElos = eloHistory.slice(-3);
+  // Lấy các lần thay đổi Elo gần nhất theo cấu hình
+  const recentElos = eloHistory.slice(-FAME_KT_CONFIG.EARLY_STOP.RECENT_QUESTIONS_COUNT);
   const variance = Math.max(...recentElos) - Math.min(...recentElos);
   
-  // Nếu biên độ dao động Elo trong 3 câu gần nhất < 15 điểm -> Đã hội tụ
-  if (variance < 15) return true;
+  // Nếu biên độ dao động Elo trong các câu gần nhất < ngưỡng hội tụ -> Đã hội tụ
+  if (variance < FAME_KT_CONFIG.EARLY_STOP.VARIANCE_THRESHOLD) return true;
   
   return false;
 }

@@ -11,7 +11,7 @@ const getBaseApiUrl = (): string => {
   }
   
   // IP mạng LAN hiện tại của máy chủ backend
-  return 'http://192.168.0.102:3000/api';
+  return 'http://192.168.0.100:3000/api';
 };
 
 export const API_URL = getBaseApiUrl();

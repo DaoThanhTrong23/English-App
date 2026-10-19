@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { prisma } from '../../config/prisma.js';
-import { updateAdvancedElo, getCEFRLevel, createNewUserProficiency, recommendPersonalizedPath, UserProficiency, checkEarlyStop } from './fame-kt.js';
+import { updateAdvancedElo, getCEFRLevel, createNewUserProficiency, recommendPersonalizedPath, UserProficiency, checkEarlyStop, FAME_KT_CONFIG } from './fame-kt.js';
 import { keywordSettingService } from '../keyword-setting/keyword-setting.service.js';
 import { notificationService } from '../notification/notification.service.js';
 
@@ -32,9 +32,10 @@ export class OnboardingService {
       this.loadQuestionBank();
     }
     
-    // Lấy ngẫu nhiên 10 câu để làm test
+    // Lấy ngẫu nhiên số câu theo cấu hình để làm test
+    const count = FAME_KT_CONFIG.TEST_SETTINGS.PLACEMENT_QUESTIONS_COUNT;
     const shuffled = [...this.questionBank].sort(() => 0.5 - Math.random());
-    return shuffled.slice(0, 15).map(q => ({
+    return shuffled.slice(0, count).map(q => ({
       id: q.id,
       question: q.question,
       options: q.options,
@@ -53,15 +54,20 @@ export class OnboardingService {
       const q = this.questionBank.find((x) => x.id === ans.id);
       if (q) {
         const isCorrect = q.correct === ans.answer;
-        const timeTakenMs = ans.timeTakenMs || 8000;
+        const timeTakenMs = ans.timeTakenMs || FAME_KT_CONFIG.TEST_SETTINGS.DEFAULT_SIMULATED_TIME_MS;
         const skill = q.skillCategory as keyof UserProficiency || 'Grammar';
-        const { newUserElo } = updateAdvancedElo(userProficiency[skill], q.difficultyElo || 1200, isCorrect, timeTakenMs);
+        const { newUserElo } = updateAdvancedElo(
+          userProficiency[skill], 
+          q.difficultyElo || FAME_KT_CONFIG.ELO.DEFAULT_QUESTION_ELO, 
+          isCorrect, 
+          timeTakenMs
+        );
         userProficiency[skill] = newUserElo;
 
         const currentAvgElo = Object.values(userProficiency).reduce((a, b) => a + b, 0) / 4;
         avgEloHistory.push(currentAvgElo);
 
-        if (checkEarlyStop(avgEloHistory, 6)) {
+        if (checkEarlyStop(avgEloHistory, FAME_KT_CONFIG.EARLY_STOP.MIN_QUESTIONS)) {
           stoppedEarly = true;
           break;
         }
@@ -87,11 +93,11 @@ export class OnboardingService {
         const isCorrect = q.correct === ans.answer;
         if (isCorrect) totalScore++;
 
-        const timeTakenMs = ans.timeTakenMs || (Math.random() * 10000 + 5000);
+        const timeTakenMs = ans.timeTakenMs || FAME_KT_CONFIG.TEST_SETTINGS.DEFAULT_SIMULATED_TIME_MS;
 
         const skill = q.skillCategory as keyof UserProficiency || 'Grammar';
         const userEloForSkill = userProficiency[skill];
-        const questionElo = q.difficultyElo || 1200;
+        const questionElo = q.difficultyElo || FAME_KT_CONFIG.ELO.DEFAULT_QUESTION_ELO;
 
         const { newUserElo } = updateAdvancedElo(userEloForSkill, questionElo, isCorrect, timeTakenMs);
         
@@ -103,7 +109,7 @@ export class OnboardingService {
         avgEloHistory.push(currentAvgElo);
 
         // Kích hoạt Cải tiến 4: Tự động dừng
-        if (checkEarlyStop(avgEloHistory, 6)) {
+        if (checkEarlyStop(avgEloHistory, FAME_KT_CONFIG.EARLY_STOP.MIN_QUESTIONS)) {
           stoppedEarly = true;
           break; // Dừng việc chấm điểm các câu còn lại do năng lực đã hội tụ
         }
@@ -164,11 +170,11 @@ export class OnboardingService {
 
     const recommended = recommendPersonalizedPath(userProficiency, userTopics, algoCourses, expandedKeywords);
     
-    const recommendedCourses = recommended.slice(0, 3).map(r => (r as any).dbModel);
+    const recommendedCourses = recommended.slice(0, FAME_KT_CONFIG.RECOMMENDER.RECOMMENDED_COURSES_LIMIT).map(r => (r as any).dbModel);
 
     let finalCourses = recommendedCourses;
     if (finalCourses.length === 0) {
-      finalCourses = await prisma.topic.findMany({ take: 3 });
+      finalCourses = await prisma.topic.findMany({ take: FAME_KT_CONFIG.RECOMMENDER.RECOMMENDED_COURSES_LIMIT });
     }
 
     const preferredTopics = finalCourses.map((c: any) => c.id).join(',');

@@ -27,6 +27,11 @@ export default function CourseDetailScreen() {
         const user = JSON.parse(userInfoStr);
         setXpPoints(user.xpPoints || 0);
       }
+      const res = await axiosClient.get('/profile/me');
+      if (res.data?.success && res.data.data) {
+        setXpPoints(res.data.data.xpPoints || 0);
+        await SecureStore.setItemAsync('userInfo', JSON.stringify(res.data.data));
+      }
     } catch (e) {
       // ignore
     }
@@ -91,7 +96,7 @@ export default function CourseDetailScreen() {
               </Text>
             </View>
             <View style={styles.heroRight}>
-              {/* Fake Circular Progress */}
+              {/* Tiến độ phần trăm chủ đề */}
               <View style={styles.circleProgress}>
                 <Text style={styles.circleText}>{courseData.progressPercentage}%</Text>
                 <Text style={styles.circleSub}>XONG</Text>

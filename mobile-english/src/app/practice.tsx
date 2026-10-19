@@ -7,6 +7,7 @@ import { axiosClient } from '../api/axiosClient';
 
 import { useAudioRecorder, useAudioPlayer, AudioModule, RecordingPresets, setAudioModeAsync, requestRecordingPermissionsAsync } from 'expo-audio';
 import * as FileSystem from 'expo-file-system/legacy';
+import * as Speech from 'expo-speech';
 import { API_URL } from '../constants/api';
 import * as SecureStore from 'expo-secure-store';
 import { useAppTheme } from '../context/ThemeContext';
@@ -201,29 +202,20 @@ export default function PracticeScreen() {
     }
   };
 
-  const playDummyAudio = async () => {
-    // console.log removed
-    if (audioSource) {
-      if (!player) {
-        Alert.alert('Lỗi', 'Player chưa sẵn sàng');
+  const handlePlayAudio = async () => {
+    if (audioSource && player) {
+      try {
+        player.play();
         return;
-      }
-      try {
-        player.play();
       } catch(e: any) {
-        Alert.alert('Lỗi phát âm thanh', e.message || 'Không thể phát file này: ' + audioSource);
+        console.log('Error playing audioSource:', e);
       }
-    } else {
-      Alert.alert('Thông báo', 'Không tìm thấy file audio!');
     }
-    if (audioSource) {
-      try {
-        player.play();
-      } catch(e: any) {
-        Alert.alert('Lỗi phát âm thanh', e.message || 'Không thể phát file này: ' + audioSource);
-      }
+    // Fallback: Nếu không có file audio hoặc player gặp lỗi, phát âm thanh bằng Text-to-Speech
+    if (currentItem?.quesionText) {
+      Speech.speak(currentItem.quesionText, { language: 'en-US', rate: 0.85 });
     } else {
-      Alert.alert('Thông báo', 'Không tìm thấy file audio!');
+      Alert.alert('Thông báo', 'Không tìm thấy file âm thanh cho câu hỏi này!');
     }
   };
 
@@ -282,7 +274,7 @@ export default function PracticeScreen() {
         <View style={styles.contentContainer}>
           <View style={[styles.questionCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
             {(type === 'listening' || q.audioUrl || q.questionType === 'listening') && (
-               <TouchableOpacity onPress={playDummyAudio} style={{width: 60, height: 60, borderRadius: 30, backgroundColor: theme.primary, justifyContent: 'center', alignItems: 'center', marginBottom: 15}}>
+               <TouchableOpacity onPress={handlePlayAudio} style={{width: 60, height: 60, borderRadius: 30, backgroundColor: theme.primary, justifyContent: 'center', alignItems: 'center', marginBottom: 15}}>
                  <Ionicons name="volume-medium" size={30} color="#fff" />
                </TouchableOpacity>
             )}

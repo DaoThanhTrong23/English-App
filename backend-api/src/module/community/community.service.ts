@@ -2,8 +2,24 @@ import { prisma } from '../../config/prisma.js';
 import { ApiError } from '../../shared/http/api-error.js';
 
 export class CommunityService {
-  async getPosts(userId: number, limit: number = 20) {
+  async getPosts(userId: number, limit: number = 20, filter?: string) {
+    let whereCondition: any = {
+      OR: [
+        { isPublic: true },
+        { userId: userId }
+      ]
+    };
+
+    if (filter === 'my') {
+      whereCondition = { userId: userId };
+    } else if (filter === 'private') {
+      whereCondition = { userId: userId, isPublic: false };
+    } else if (filter === 'public') {
+      whereCondition = { isPublic: true };
+    }
+
     const posts = await prisma.communityPost.findMany({
+      where: whereCondition,
       orderBy: { createdAt: 'desc' },
       take: limit,
       include: {
@@ -33,12 +49,13 @@ export class CommunityService {
     }));
   }
 
-  async createPost(userId: number, content: string, imageUrl?: string) {
+  async createPost(userId: number, content: string, imageUrl?: string, isPublic: boolean = true) {
     const post = await prisma.communityPost.create({
       data: {
         userId,
         content,
         imageUrl,
+        isPublic,
         images: imageUrl ? {
           create: [{ imageUrl }]
         } : undefined
@@ -86,6 +103,67 @@ export class CommunityService {
       }
     });
   }
+
+  async updatePost(
+    userId: number,
+    postId: number,
+    data: { content?: string; isPublic?: boolean; imageUrl?: string | null }
+  ) {
+    const post = await prisma.communityPost.findUnique({
+      where: { id: postId },
+      include: { images: true }
+    });
+    if (!post) throw new ApiError(404, "not_found", "Không tìm thấy bài viết");
+    if (post.userId !== userId) throw new ApiError(403, "forbidden", "Bạn không có quyền chỉnh sửa bài viết này");
+
+    const updateFields: any = {};
+    if (data.content !== undefined) updateFields.content = data.content;
+    if (data.isPublic !== undefined) updateFields.isPublic = data.isPublic;
+    if (data.imageUrl !== undefined) {
+      updateFields.imageUrl = data.imageUrl;
+      // Cập nhật quan hệ images
+      await prisma.postImage.deleteMany({ where: { postId } });
+      if (data.imageUrl) {
+        await prisma.postImage.create({
+          data: { postId, imageUrl: data.imageUrl }
+        });
+      }
+    }
+
+    const updated = await prisma.communityPost.update({
+      where: { id: postId },
+      data: updateFields,
+      include: {
+        user: { select: { id: true, username: true, avatarUrl: true } },
+        images: { select: { id: true, imageUrl: true } },
+        _count: { select: { comments: true, postLikes: true } },
+        postLikes: { where: { userId }, select: { id: true } }
+      }
+    });
+
+    return {
+      ...updated,
+      hasLiked: updated.postLikes.length > 0,
+      likesCount: updated._count.postLikes,
+      commentsCount: updated._count.comments,
+      postLikes: undefined,
+      _count: undefined
+    };
+  }
+
+  async updatePostPrivacy(userId: number, postId: number, isPublic: boolean) {
+    return this.updatePost(userId, postId, { isPublic });
+  }
+
+  async deletePost(userId: number, postId: number) {
+    const post = await prisma.communityPost.findUnique({ where: { id: postId } });
+    if (!post) throw new ApiError(404, "not_found", "Không tìm thấy bài viết");
+    if (post.userId !== userId) throw new ApiError(403, "forbidden", "Bạn không có quyền xóa bài viết này");
+
+    await prisma.communityPost.delete({ where: { id: postId } });
+    return { success: true, message: "Đã xóa bài viết thành công" };
+  }
 }
 
 export const communityService = new CommunityService();
+
