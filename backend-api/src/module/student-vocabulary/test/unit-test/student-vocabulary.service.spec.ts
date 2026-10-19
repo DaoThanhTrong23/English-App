@@ -61,7 +61,7 @@ describe('StudentVocabularyService - Unit Tests (QC 10-Year Standard)', () => {
       mockRepo.findByWordAndUser.mockResolvedValue(null);
       mockRepo.createProgress.mockResolvedValue(mockUserProgress);
 
-      const res = await service.addVocabulary(1, { wordId: 10 });
+      const res = await service.addVocabulary(1, { wordId: 10, status: 'new' });
 
       expect(res.wordId).toBe(10);
       expect(mockRepo.createProgress).toHaveBeenCalled();
@@ -103,7 +103,7 @@ describe('StudentVocabularyService - Unit Tests (QC 10-Year Standard)', () => {
     it('[STV-02b] Thêm từ vựng với wordId không tồn tại ném lỗi 404', async () => {
       mockRepo.findWordById.mockResolvedValue(null);
 
-      await expect(service.addVocabulary(1, { wordId: 999 })).rejects.toThrowError(
+      await expect(service.addVocabulary(1, { wordId: 999, status: 'new' })).rejects.toThrowError(
         expect.objectContaining({ statuscode: 404 })
       );
     });
@@ -126,7 +126,7 @@ describe('StudentVocabularyService - Unit Tests (QC 10-Year Standard)', () => {
       mockRepo.findWordById.mockResolvedValue(mockWord);
       mockRepo.findByWordAndUser.mockResolvedValue(mockUserProgress);
 
-      await expect(service.addVocabulary(1, { wordId: 10 })).rejects.toThrowError(
+      await expect(service.addVocabulary(1, { wordId: 10, status: 'new' })).rejects.toThrowError(
         expect.objectContaining({ statuscode: 409, code: 'word_already_added' })
       );
     });

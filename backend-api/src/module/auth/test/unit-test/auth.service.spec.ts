@@ -211,4 +211,97 @@ describe('AuthService - Unit Tests (QC 10-Year Standard)', () => {
       await expect(authService.login(mockLoginInput)).rejects.toThrow('Connection terminated');
     });
   });
+
+  describe('6. Bảo Mật Thu Hồi Session & Chống Tái Sử Dụng Token (Session Revocation & Anti-Replay)', () => {
+    it('[AUTH-SEC-01] Thu hồi Session an toàn: Logout đưa Access Token vào danh sách đen (revoked_token) và đánh dấu Refresh Token isRevoked = true', async () => {
+      mockAuthRepo.findRefreshTokenByHash.mockResolvedValue({
+        userId: 1,
+        user: { id: 1, username: 'testuser' },
+      });
+
+      const res = await authService.logout('refresh_to_revoke', 'access_to_blacklist', 1);
+
+      expect(res.message).toBe('Đăng xuất thành công');
+      expect(mockAuthRepo.revokeRefreshToken).toHaveBeenCalledWith('hash_refresh_to_revoke');
+      expect(mockAuthRepo.createRevokedToken).toHaveBeenCalledWith({
+        accesstokenHash: 'hash_access_to_blacklist',
+        userId: 1,
+        description: 'Người dùng chủ động đăng xuất khỏi hệ thống',
+      });
+    });
+
+    it('[AUTH-SEC-02] Chống Replay Refresh Token: Kẻ tấn công dùng Refresh Token đã bị revoke để lấy token mới -> Bị từ chối 401 và toàn bộ Session bị triệt hạ', async () => {
+      mockAuthRepo.findRefreshTokenByHash.mockResolvedValue({
+        id: 1,
+        userId: 1,
+        sessionId: 'hacked_session',
+        isRevoked: true,
+        expiresAt: new Date(Date.now() + 100000),
+        user: { isLocked: false },
+      });
+
+      await expect(authService.refreshToken('stolen_token')).rejects.toThrowError(
+        expect.objectContaining({ statuscode: 401, code: 'token_revoked' })
+      );
+
+      // Cả session bị thu hồi sạch sẽ để ngăn kẻ tấn công
+      expect(mockAuthRepo.revokeAllSessionToken).toHaveBeenCalledWith('hacked_session');
+    });
+
+    it('[AUTH-SEC-03] Chống dùng lại Access Token cũ sau khi Refresh (Token Rotation): Access Token cũ trước đó bị đưa vào blacklist ngay lập tức', async () => {
+      mockAuthRepo.findRefreshTokenByHash.mockResolvedValue({
+        id: 1,
+        userId: 1,
+        sessionId: 'session_rotation',
+        isRevoked: false,
+        expiresAt: new Date(Date.now() + 100000),
+        user: { isLocked: false, role: 'user' },
+      });
+
+      await authService.refreshToken('valid_refresh', 'old_access_token');
+
+      // Access token cũ bị đưa vào bảng revoked_token để chặn kẻ tấn công tái sử dụng
+      expect(mockAuthRepo.createRevokedToken).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: 1,
+          description: expect.stringContaining('thu hồi Access Token cũ'),
+        })
+      );
+    });
+
+    it('[AUTH-SEC-04] Phát hiện tấn công Brute-force/Spam Refresh: Hủy tức thì toàn bộ Session và đưa cả Access Token lẫn Refresh Token vào blacklist khi tần suất >= 3 lần/phút', async () => {
+      mockAuthRepo.findRefreshTokenByHash.mockResolvedValue({
+        id: 1,
+        userId: 1,
+        sessionId: 'spam_session',
+        isRevoked: false,
+        expiresAt: new Date(Date.now() + 100000),
+        user: { isLocked: false, role: 'user' },
+      });
+      mockAuthRepo.countTokensInSessionSince.mockResolvedValue(3);
+
+      await expect(authService.refreshToken('spam_token', 'old_access')).rejects.toThrowError(
+        expect.objectContaining({ statuscode: 429, code: 'too_many_refresh_requests' })
+      );
+
+      expect(mockAuthRepo.revokeAllSessionToken).toHaveBeenCalledWith('spam_session');
+      expect(mockAuthRepo.revokeRefreshToken).toHaveBeenCalled();
+      expect(mockAuthRepo.createRevokedToken).toHaveBeenCalled();
+    });
+
+    it('[AUTH-SEC-05] Ngăn chặn phiên làm việc của tài khoản bị khóa: Refresh token của user có isLocked = true bị từ chối 403 account_locked', async () => {
+      mockAuthRepo.findRefreshTokenByHash.mockResolvedValue({
+        id: 1,
+        userId: 2,
+        sessionId: 'sess_locked',
+        isRevoked: false,
+        expiresAt: new Date(Date.now() + 100000),
+        user: { isLocked: true },
+      });
+
+      await expect(authService.refreshToken('any_token')).rejects.toThrowError(
+        expect.objectContaining({ statuscode: 403, code: 'account_locked' })
+      );
+    });
+  });
 });

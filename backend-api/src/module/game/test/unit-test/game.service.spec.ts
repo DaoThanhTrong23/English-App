@@ -42,16 +42,15 @@ describe('GameService - Unit Tests (QC 10-Year Standard)', () => {
 
     it('[GAME-01b] Cập nhật settings cho game', async () => {
       (prisma.game.findUnique as any).mockResolvedValue(mockGameItem);
-      mockRepo.updateSettings.mockResolvedValue({
-        ...mockGameItem,
-        settings: [{ difficulty: 'EASY', itemCount: 8, pointsPerItem: 15 }],
-      });
+      mockRepo.updateSettings.mockResolvedValue([
+        { id: 1, gameId: 1, difficulty: 'EASY', itemCount: 8, pointsPerItem: 15, timeLimit: null, createdAt: new Date(), updatedAt: new Date() }
+      ] as any);
 
       const res = await service.updateSettings(1, {
         settings: [{ difficulty: 'EASY', itemCount: 8, pointsPerItem: 15 }] as any,
       });
 
-      expect(res.settings[0].itemCount).toBe(8);
+      expect(res[0].itemCount).toBe(8);
       expect(mockRepo.updateSettings).toHaveBeenCalled();
     });
 

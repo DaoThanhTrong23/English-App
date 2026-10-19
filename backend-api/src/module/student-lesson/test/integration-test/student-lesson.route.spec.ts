@@ -28,8 +28,8 @@ describe('Student Lesson & Course Routes - Integration Tests (QC 10-Year Standar
     it('[STL-IT-01] GET /api/student/courses trả về 200 kèm danh sách khóa học', async () => {
       vi.spyOn(studentLessonService, 'getCoursesList').mockResolvedValue({
         courses: [{ id: 1, title: 'English for IT' } as any],
-        pagination: { total: 1, page: 1, limit: 10, totalPages: 1 },
-      });
+        pagination: { currentPage: 1, limit: 10, totalItems: 1, totalPages: 1, hasNextPage: false, hasPrevPage: false },
+      } as any);
 
       const res = await request(app).get('/api/student/courses');
 

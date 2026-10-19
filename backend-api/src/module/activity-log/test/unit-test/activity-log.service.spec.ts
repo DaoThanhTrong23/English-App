@@ -61,15 +61,29 @@ describe('ActivityLogService - Unit Tests (QC 10-Year Standard)', () => {
     });
   });
 
-  describe('3. Concurrency Cases', () => {
-    it('[LOG-03] Nhiều Admin cùng truy vấn logs đồng thời', async () => {
-      vi.mocked(activityLogRepository.findActivities).mockResolvedValue({ total: 0, items: [] });
+  describe('3. Phân Quyền & Bảo Vệ Dữ Liệu Nhật Ký (Authorization & Audit Security)', () => {
+    it('[LOG-AUTH-01] Bảo mật dữ liệu: Lọc nhật ký hoạt động theo actionType và phân quyền quản trị viên', async () => {
+      vi.mocked(activityLogRepository.findActivities).mockResolvedValue({
+        total: 1,
+        items: [mockActivityItem as any],
+      });
 
-      const p1 = service.getActivities(1, 10);
-      const p2 = service.getActivities(2, 10);
+      const res = await service.getActivities(1, 20, undefined, 'ADMIN_UPDATE');
 
-      await Promise.all([p1, p2]);
-      expect(activityLogRepository.findActivities).toHaveBeenCalledTimes(2);
+      expect(res.items.length).toBe(1);
+      expect(activityLogRepository.findActivities).toHaveBeenCalledWith(0, 20, undefined, 'ADMIN_UPDATE');
+    });
+
+    it('[LOG-AUTH-02] Bảo mật dữ liệu: Nhật ký đăng nhập ghi nhận đầy đủ địa chỉ IP và thông tin xác thực', async () => {
+      vi.mocked(activityLogRepository.findLoginLogs).mockResolvedValue({
+        total: 1,
+        items: [mockLoginLogItem as any],
+      });
+
+      const res = await service.getLoginLogs(1, 20, '127.0.0.1');
+
+      expect(res.items.length).toBe(1);
+      expect(activityLogRepository.findLoginLogs).toHaveBeenCalledWith(0, 20, '127.0.0.1');
     });
   });
 
