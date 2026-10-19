@@ -2,9 +2,11 @@ import React, { useEffect, useState } from 'react';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import { Gamepad2Icon, Save } from 'lucide-react';
 import { fetchGames, updateGameSettings } from '../api/game.api';
+import { useToast } from '../../../context/ToastContext';
 import '../../courses/pages/CourseList.css'; 
 
 const GameList: React.FC = () => {
+  const { toast } = useToast();
   const [games, setGames] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [activeGameId, setActiveGameId] = useState<number | null>(null);
@@ -35,6 +37,7 @@ const GameList: React.FC = () => {
       }
     } catch (e) {
       console.error(e);
+      toast.error('Lỗi khi tải danh sách trò chơi');
     } finally {
       setLoading(false);
     }
@@ -43,13 +46,22 @@ const GameList: React.FC = () => {
   const handleTabChange = (game: any, gameId: number) => {
     setActiveGameId(gameId);
     if (game.settings && game.settings.length > 0) {
-      const newSettings = ['EASY', 'NORMAL', 'HARD'].map(diff => {
-        const existing = game.settings.find((s: any) => s.difficulty === diff);
-        return existing ? { ...existing } : settingsForm.find((s: any) => s.difficulty === diff);
+      const mapped = ['EASY', 'NORMAL', 'HARD'].map(diff => {
+        const found = game.settings.find((s: any) => s.difficulty === diff);
+        return found ? {
+          difficulty: diff,
+          itemCount: found.itemCount,
+          pointsPerItem: found.pointsPerItem,
+          timeLimit: found.timeLimit
+        } : {
+          difficulty: diff,
+          itemCount: diff === 'EASY' ? 6 : diff === 'NORMAL' ? 10 : 15,
+          pointsPerItem: diff === 'EASY' ? 10 : diff === 'NORMAL' ? 15 : 20,
+          timeLimit: diff === 'EASY' ? 60 : diff === 'NORMAL' ? 45 : 30
+        };
       });
-      setSettingsForm(newSettings as any);
+      setSettingsForm(mapped);
     } else {
-      // Default reset if no settings
       setSettingsForm([
         { difficulty: 'EASY', itemCount: 6, pointsPerItem: 10, timeLimit: 60 },
         { difficulty: 'NORMAL', itemCount: 10, pointsPerItem: 15, timeLimit: 45 },
@@ -58,10 +70,10 @@ const GameList: React.FC = () => {
     }
   };
 
-  const handleSettingChange = (difficulty: string, field: string, value: number) => {
+  const handleSettingChange = (difficulty: string, field: string, val: number) => {
     setSettingsForm(prev => prev.map(s => {
       if (s.difficulty === difficulty) {
-        return { ...s, [field]: value };
+        return { ...s, [field]: val };
       }
       return s;
     }));
@@ -72,11 +84,11 @@ const GameList: React.FC = () => {
     setSaving(true);
     try {
       await updateGameSettings(activeGameId, settingsForm);
-      alert('Cập nhật cấu hình Game thành công!');
+      toast.success('Cập nhật cấu hình Game thành công!');
       loadGames();
     } catch (e) {
       console.error(e);
-      alert('Có lỗi xảy ra khi lưu cấu hình.');
+      toast.error('Có lỗi xảy ra khi lưu cấu hình.');
     } finally {
       setSaving(false);
     }

@@ -3,9 +3,11 @@ import AdminLayout from '../../../components/layout/AdminLayout';
 import { Plus, Edit, Trash2, Trophy, Upload } from 'lucide-react';
 import { fetchAchievements, createAchievement, updateAchievement, deleteAchievement } from '../api/achievement.api';
 import { uploadMedia } from '../../tests/api/test.api';
+import { useToast } from '../../../context/ToastContext';
 import '../../courses/pages/CourseList.css';
 
 const AchievementList: React.FC = () => {
+  const { toast, confirmModal } = useToast();
   const [achievements, setAchievements] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -64,28 +66,34 @@ const AchievementList: React.FC = () => {
     try {
       if (editingItem) {
         await updateAchievement(editingItem.id, formData);
-        alert('Cập nhật danh hiệu thành công!');
+        toast.success('Cập nhật danh hiệu thành công!');
       } else {
         await createAchievement(formData);
-        alert('Tạo danh hiệu thành công!');
+        toast.success('Tạo danh hiệu thành công!');
       }
       handleCloseModal();
       loadData();
     } catch (error) {
-      alert('Có lỗi xảy ra');
+      toast.error('Có lỗi xảy ra khi lưu danh hiệu');
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa danh hiệu này?')) {
-      try {
-        await deleteAchievement(id);
-        alert('Đã xóa danh hiệu');
-        loadData();
-      } catch (error) {
-        alert('Có lỗi xảy ra khi xóa');
+  const handleDelete = (id: number) => {
+    confirmModal({
+      title: 'Xóa danh hiệu',
+      message: 'Bạn có chắc chắn muốn xóa danh hiệu này?',
+      confirmText: 'Xóa',
+      isDestructive: true,
+      onConfirm: async () => {
+        try {
+          await deleteAchievement(id);
+          toast.success('Đã xóa danh hiệu thành công!');
+          loadData();
+        } catch (error) {
+          toast.error('Có lỗi xảy ra khi xóa');
+        }
       }
-    }
+    });
   };
 
   const handleUploadIcon = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -96,11 +104,13 @@ const AchievementList: React.FC = () => {
       const res = await uploadMedia(file);
       if (res.data?.url) {
         setFormData(prev => ({ ...prev, iconUrl: res.data.url }));
+        toast.success('Tải ảnh biểu tượng thành công!');
       }
     } catch (err) {
-      alert('Không thể tải ảnh lên');
+      toast.error('Không thể tải ảnh lên');
     } finally {
       setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
@@ -136,7 +146,15 @@ const AchievementList: React.FC = () => {
                       <td>{item.id}</td>
                       <td>
                         {item.iconUrl ? (
-                          <img src={item.iconUrl} alt="icon" style={{ width: '40px', height: '40px', objectFit: 'contain' }} />
+                          <img 
+                            src={item.iconUrl} 
+                            alt="icon" 
+                            style={{ width: '40px', height: '40px', objectFit: 'contain' }} 
+                            onError={(e) => {
+                              e.currentTarget.onerror = null;
+                              e.currentTarget.src = 'https://placehold.co/40x40?text=🏆';
+                            }}
+                          />
                         ) : (
                           <Trophy size={30} color="#cbd5e1" />
                         )}

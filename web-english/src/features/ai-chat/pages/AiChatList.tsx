@@ -28,9 +28,11 @@ import {
   CheckCircle2,
   X
 } from 'lucide-react';
+import { useToast } from '../../../context/ToastContext';
 import './AiChatList.css';
 
 const AiChatList: React.FC = () => {
+  const { toast, confirmModal } = useToast();
   // State data
   const [sessions, setSessions] = useState<AiSession[]>([]);
   const [stats, setStats] = useState<AiChatStats | null>(null);
@@ -100,31 +102,36 @@ const AiChatList: React.FC = () => {
     }
   };
 
-  const handleDeleteSession = async (e: React.MouseEvent, sessionId: number) => {
+  const handleDeleteSession = (e: React.MouseEvent, sessionId: number) => {
     e.stopPropagation();
-    if (!window.confirm('Bạn có chắc chắn muốn xóa phiên hội thoại này không? Toàn bộ tin nhắn liên quan sẽ bị xóa.')) {
-      return;
-    }
-
-    try {
-      const res = await deleteAiSession(sessionId);
-      if (res.success) {
-        setSessions(prev => prev.filter(s => s.id !== sessionId));
-        if (selectedSession?.id === sessionId) {
-          const remaining = sessions.filter(s => s.id !== sessionId);
-          if (remaining.length > 0) {
-            openSession(remaining[0]);
-          } else {
-            setSelectedSession(null);
-            setMessages([]);
+    confirmModal({
+      title: 'Xóa phiên hội thoại',
+      message: 'Bạn có chắc chắn muốn xóa phiên hội thoại này không? Toàn bộ tin nhắn liên quan sẽ bị xóa.',
+      confirmText: 'Xóa hội thoại',
+      isDestructive: true,
+      onConfirm: async () => {
+        try {
+          const res = await deleteAiSession(sessionId);
+          if (res.success) {
+            toast.success('Đã xóa phiên hội thoại thành công');
+            setSessions(prev => prev.filter(s => s.id !== sessionId));
+            if (selectedSession?.id === sessionId) {
+              const remaining = sessions.filter(s => s.id !== sessionId);
+              if (remaining.length > 0) {
+                openSession(remaining[0]);
+              } else {
+                setSelectedSession(null);
+                setMessages([]);
+              }
+            }
+            // Cập nhật lại stats
+            getAiChatStats().then(s => s.success && setStats(s.data)).catch(() => {});
           }
+        } catch (error: any) {
+          toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi xóa hội thoại');
         }
-        // Cập nhật lại stats
-        getAiChatStats().then(s => s.success && setStats(s.data)).catch(() => {});
       }
-    } catch (error: any) {
-      alert(error.response?.data?.message || 'Có lỗi xảy ra khi xóa hội thoại');
-    }
+    });
   };
 
   const handleCopyMessage = (id: number, text: string) => {

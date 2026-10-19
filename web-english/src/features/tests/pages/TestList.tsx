@@ -3,10 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import { Plus, Edit, Trash2, BookOpen } from 'lucide-react';
 import { fetchTests, createTest, updateTest, deleteTest } from '../api/test.api';
+import { useToast } from '../../../context/ToastContext';
 import './TestList.css';
 
 const TestList: React.FC = () => {
   const navigate = useNavigate();
+  const { toast, confirmModal } = useToast();
   const [tests, setTests] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   
@@ -73,30 +75,36 @@ const TestList: React.FC = () => {
     try {
       if (editingTest) {
         await updateTest(editingTest.id, formData);
-        alert('Cập nhật bài thi thành công!');
+        toast.success('Cập nhật bài thi thành công!');
       } else {
         await createTest(formData);
-        alert('Tạo bài thi thành công!');
+        toast.success('Tạo bài thi thành công!');
       }
       handleCloseModal();
       loadTests();
     } catch (error) {
       console.error("Lỗi khi lưu bài thi", error);
-      alert('Có lỗi xảy ra khi lưu bài thi.');
+      toast.error('Có lỗi xảy ra khi lưu bài thi.');
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa bài thi này không?')) {
-      try {
-        await deleteTest(id);
-        alert('Xóa bài thi thành công!');
-        loadTests();
-      } catch (error) {
-        console.error("Lỗi xóa bài thi", error);
-        alert('Có lỗi xảy ra khi xóa bài thi.');
+  const handleDelete = (id: number) => {
+    confirmModal({
+      title: 'Xóa bài thi',
+      message: 'Bạn có chắc chắn muốn xóa bài thi này không? Tất cả các câu hỏi và kết quả thi liên quan cũng sẽ bị ảnh hưởng.',
+      confirmText: 'Xóa bài thi',
+      isDestructive: true,
+      onConfirm: async () => {
+        try {
+          await deleteTest(id);
+          toast.success('Xóa bài thi thành công!');
+          loadTests();
+        } catch (error) {
+          console.error("Lỗi xóa bài thi", error);
+          toast.error('Có lỗi xảy ra khi xóa bài thi.');
+        }
       }
-    }
+    });
   };
 
   const getLevelBadgeClass = (level: string) => {

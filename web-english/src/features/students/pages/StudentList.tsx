@@ -7,8 +7,10 @@ import '../../words/pages/WordList.css'; // For Dashboard Layout styles
 
 import AdminLayout from '../../../components/layout/AdminLayout';
 import { Lock, Unlock, CheckCircle2, Eye, X } from 'lucide-react';
+import { useToast } from '../../../context/ToastContext';
 
 const StudentList: React.FC = () => {
+  const { toast, confirmModal } = useToast();
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(false);
   
@@ -25,28 +27,32 @@ const StudentList: React.FC = () => {
   const [studentProgress, setStudentProgress] = useState<any[]>([]);
   const [studentChat, setStudentChat] = useState<any[]>([]);
 
-  const handleToggleLock = async (studentId: number, currentLocked: boolean, username: string) => {
-    const confirmMsg = currentLocked 
-      ? `Bạn có chắc chắn muốn MỞ KHÓA tài khoản cho học viên "${username}" không? Học viên sẽ có thể đăng nhập lại vào ứng dụng.`
-      : `Bạn có chắc chắn muốn KHÓA tài khoản học viên "${username}" không? Học viên sẽ bị đăng xuất ngay và không thể đăng nhập.`;
-    
-    if (!window.confirm(confirmMsg)) return;
-
-    try {
-      const res = await updateStudentLockStatus(studentId, !currentLocked);
-      if (res.success) {
-        alert(res.message);
-        setStudents(prev => prev.map(s => s.id === studentId ? { ...s, isLocked: !currentLocked } : s));
-        if (selectedStudent && selectedStudent.profile.id === studentId) {
-          setSelectedStudent({
-            ...selectedStudent,
-            profile: { ...selectedStudent.profile, isLocked: !currentLocked } as any
-          });
+  const handleToggleLock = (studentId: number, currentLocked: boolean, username: string) => {
+    confirmModal({
+      title: currentLocked ? 'Mở khóa tài khoản' : 'Khóa tài khoản',
+      message: currentLocked 
+        ? `Bạn có chắc chắn muốn MỞ KHÓA tài khoản cho học viên "${username}" không? Học viên sẽ có thể đăng nhập lại vào ứng dụng.`
+        : `Bạn có chắc chắn muốn KHÓA tài khoản học viên "${username}" không? Học viên sẽ bị đăng xuất ngay và không thể đăng nhập.`,
+      confirmText: currentLocked ? 'Mở khóa' : 'Khóa tài khoản',
+      isDestructive: !currentLocked,
+      onConfirm: async () => {
+        try {
+          const res = await updateStudentLockStatus(studentId, !currentLocked);
+          if (res.success) {
+            toast.success(res.message || 'Thay đổi trạng thái tài khoản thành công!');
+            setStudents(prev => prev.map(s => s.id === studentId ? { ...s, isLocked: !currentLocked } : s));
+            if (selectedStudent && selectedStudent.profile.id === studentId) {
+              setSelectedStudent({
+                ...selectedStudent,
+                profile: { ...selectedStudent.profile, isLocked: !currentLocked } as any
+              });
+            }
+          }
+        } catch (err: any) {
+          toast.error(err.response?.data?.message || 'Không thể thay đổi trạng thái tài khoản');
         }
       }
-    } catch (err: any) {
-      alert(err.response?.data?.message || 'Không thể thay đổi trạng thái tài khoản');
-    }
+    });
   };
   
 
@@ -92,7 +98,7 @@ const StudentList: React.FC = () => {
       const cRes = await fetchStudentAiChat(id);
       if (cRes.success) setStudentChat(cRes.data);
     } catch (error) {
-      alert("Lỗi tải chi tiết học viên");
+      toast.error("Lỗi tải chi tiết học viên");
     }
   };
 

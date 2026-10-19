@@ -1,21 +1,21 @@
 import React, { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import { changePassword } from '../api/settings.api';
-import { Lock, User, Palette, Info, Sun, Moon } from 'lucide-react';
+import { Lock, User, Info } from 'lucide-react';
 import '../../courses/pages/CourseList.css'; // Reuse container styles
 
 const Settings: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'profile' | 'appearance' | 'info'>('profile');
-  
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTab = searchParams.get('tab') === 'info' ? 'info' : 'profile';
+  const [activeTab, setActiveTab] = useState<'profile' | 'info'>(initialTab);
+
   // Password state
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
-
-  // Appearance state
-  const [theme, setTheme] = useState(() => localStorage.getItem('admin_theme') || 'light');
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,16 +50,6 @@ const Settings: React.FC = () => {
     }
   };
 
-  const handleThemeChange = (newTheme: string) => {
-    setTheme(newTheme);
-    localStorage.setItem('admin_theme', newTheme);
-    // Real implementation would toggle a class on document.body here
-    // setMessage({ type: 'success', text: 'Đã lưu cấu hình giao diện. Sẽ áp dụng ở phiên bản sau.' });
-    setMessage({ type: 'success', text: 'Chưa có làm khỏi nhấn :().' });
-
-    setTimeout(() => setMessage({ type: '', text: '' }), 3000);
-  };
-
   return (
     <AdminLayout>
       <div className="course-list-container">
@@ -71,19 +61,13 @@ const Settings: React.FC = () => {
           <div style={{ display: 'flex', gap: '16px', marginBottom: '24px', borderBottom: '2px solid #e2e8f0' }}>
             <button 
               style={{ padding: '12px 24px', background: 'none', border: 'none', borderBottom: activeTab === 'profile' ? '2px solid #3b82f6' : 'none', color: activeTab === 'profile' ? '#3b82f6' : '#64748b', fontWeight: 'bold', cursor: 'pointer', marginBottom: '-2px' }}
-              onClick={() => setActiveTab('profile')}
+              onClick={() => { setActiveTab('profile'); setSearchParams({ tab: 'profile' }); }}
             >
               <User size={16} style={{ display: 'inline', marginRight: '8px' }}/> Hồ sơ cá nhân
             </button>
             <button 
-              style={{ padding: '12px 24px', background: 'none', border: 'none', borderBottom: activeTab === 'appearance' ? '2px solid #3b82f6' : 'none', color: activeTab === 'appearance' ? '#3b82f6' : '#64748b', fontWeight: 'bold', cursor: 'pointer', marginBottom: '-2px' }}
-              onClick={() => setActiveTab('appearance')}
-            >
-              <Palette size={16} style={{ display: 'inline', marginRight: '8px' }}/> Giao diện
-            </button>
-            <button 
               style={{ padding: '12px 24px', background: 'none', border: 'none', borderBottom: activeTab === 'info' ? '2px solid #3b82f6' : 'none', color: activeTab === 'info' ? '#3b82f6' : '#64748b', fontWeight: 'bold', cursor: 'pointer', marginBottom: '-2px' }}
-              onClick={() => setActiveTab('info')}
+              onClick={() => { setActiveTab('info'); setSearchParams({ tab: 'info' }); }}
             >
               <Info size={16} style={{ display: 'inline', marginRight: '8px' }}/> Thông tin ứng dụng
             </button>
@@ -145,44 +129,6 @@ const Settings: React.FC = () => {
                     {loading ? 'Đang xử lý...' : 'Lưu mật khẩu mới'}
                   </button>
                 </form>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'appearance' && (
-            <div>
-              <div style={{ background: '#f8fafc', padding: '24px', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '24px' }}>
-                <h3 style={{ marginTop: 0, marginBottom: '20px' }}>Chế độ hiển thị</h3>
-                
-                {message.text && (
-                  <div style={{ padding: '12px', borderRadius: '8px', marginBottom: '20px', backgroundColor: message.type === 'error' ? '#fee2e2' : '#dcfce7', color: message.type === 'error' ? '#ef4444' : '#22c55e' }}>
-                    {message.text}
-                  </div>
-                )}
-
-                <div style={{ display: 'flex', gap: '20px' }}>
-                  <div 
-                    onClick={() => handleThemeChange('light')}
-                    style={{ flex: 1, padding: '20px', border: theme === 'light' ? '2px solid #3b82f6' : '1px solid #cbd5e1', borderRadius: '8px', cursor: 'pointer', textAlign: 'center', background: 'white' }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '10px' }}>
-                      <Sun size={28} color="#eab308" />
-                    </div>
-                    <div style={{ fontWeight: 'bold', color: '#1e293b' }}>Giao diện sáng</div>
-                  </div>
-                  <div 
-                    onClick={() => handleThemeChange('dark')}
-                    style={{ flex: 1, padding: '20px', border: theme === 'dark' ? '2px solid #3b82f6' : '1px solid #cbd5e1', borderRadius: '8px', cursor: 'pointer', textAlign: 'center', background: '#1e293b' }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '10px' }}>
-                      <Moon size={28} color="#60a5fa" />
-                    </div>
-                    <div style={{ fontWeight: 'bold', color: 'white' }}>Giao diện tối</div>
-                  </div>
-                </div>
-                {/* <p style={{ color: '#64748b', fontSize: '0.9rem', marginTop: '20px' }}>
-                  * Lưu ý: Hiện tại ứng dụng đang tập trung hoàn thiện tính năng cốt lõi. Chế độ Dark mode sẽ được áp dụng đồng bộ toàn hệ thống trong các phiên bản cập nhật tới.
-                </p> */}
               </div>
             </div>
           )}

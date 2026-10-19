@@ -4,7 +4,8 @@ export const CreateTopicSchema = z.object({
   body: z.object({
     title: z.string().min(1).max(255),
     description: z.string().optional().nullable(),
-    cefrLevel: z.string().max(10).optional().nullable()
+    cefrLevel: z.string().max(10).optional().nullable(),
+    imageUrl: z.string().optional().nullable().transform(val => (val === "" ? null : val))
   }),
 });
 
@@ -15,6 +16,7 @@ export const UpdateTopicSchema = z.object({
   body: z.object({
     title: z.string().min(1).max(255).optional(),
     description: z.string().optional().nullable(),
-    cefrLevel: z.string().max(10).optional().nullable()
+    cefrLevel: z.string().max(10).optional().nullable(),
+    imageUrl: z.string().optional().nullable().transform(val => (val === "" ? null : val))
   }),
 });

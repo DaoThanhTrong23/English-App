@@ -6,11 +6,13 @@ import { uploadMedia } from '../../tests/api/test.api';
 import { fetchWords } from '../../words/api/words.api';
 import { fetchTests, createTest, deleteTest } from '../../tests/api/test.api';
 import { ArrowLeft, BookOpen, CheckSquare, Plus, Trash2, Edit } from 'lucide-react';
+import { useToast } from '../../../context/ToastContext';
 import './CourseList.css'; // Reuse CSS
 
 const CourseDetail: React.FC = () => {
   const { courseId } = useParams();
   const navigate = useNavigate();
+  const { toast, confirmModal } = useToast();
   const [course, setCourse] = useState<any>(null);
   const location = useLocation();
   const [activeTab, setActiveTab] = useState<'info' | 'words' | 'tests'>(
@@ -98,10 +100,10 @@ const CourseDetail: React.FC = () => {
         content: infoForm.content,
         videoUrl: infoForm.videoUrl
       });
-      alert('Cập nhật thông tin Bài học thành công!');
+      toast.success('Cập nhật thông tin Bài học thành công!');
       loadCourse(course.id);
     } catch (error) {
-      alert('Lỗi khi cập nhật thông tin');
+      toast.error('Lỗi khi cập nhật thông tin');
     }
   };
 
@@ -138,48 +140,62 @@ const CourseDetail: React.FC = () => {
     if (selectedWordIds.length === 0) return;
     try {
       await addWordsToCourse(course.id, selectedWordIds);
-      alert('Đã thêm từ vựng thành công!');
+      toast.success('Đã thêm từ vựng thành công!');
       setIsWordModalOpen(false);
       loadCourse(course.id);
     } catch (error) {
-      alert('Có lỗi xảy ra khi thêm từ vựng.');
+      toast.error('Có lỗi xảy ra khi thêm từ vựng.');
     }
   };
 
-  const handleRemoveWord = async (wordId: number) => {
-    if (window.confirm("Bạn có chắc chắn muốn gỡ từ này khỏi bài học?")) {
-      try {
-        await removeWordFromCourse(course.id, wordId);
-        loadCourse(course.id);
-      } catch (error) {
-        alert('Có lỗi xảy ra khi xóa từ.');
+  const handleRemoveWord = (wordId: number) => {
+    confirmModal({
+      title: 'Gỡ từ vựng',
+      message: 'Bạn có chắc chắn muốn gỡ từ này khỏi bài học?',
+      confirmText: 'Gỡ từ vựng',
+      isDestructive: true,
+      onConfirm: async () => {
+        try {
+          await removeWordFromCourse(course.id, wordId);
+          toast.success('Đã gỡ từ vựng khỏi bài học');
+          loadCourse(course.id);
+        } catch (error) {
+          toast.error('Có lỗi xảy ra khi xóa từ.');
+        }
       }
-    }
+    });
   };
 
   const handleCreateTest = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       await createTest({ ...testForm, lessonId: course.id });
-      alert('Tạo bài luyện tập thành công!');
+      toast.success('Tạo bài luyện tập thành công!');
       setIsTestModalOpen(false);
       setTestForm({ title: '', description: '', ceftLevel: '', skillCategory: '' });
       loadTests(course.id);
-      // Optional: Navigate straight to edit the new test
-      // navigate(`/admin/tests/${res.data.id}`);
     } catch (error) {
-      alert('Có lỗi khi tạo bài luyện tập');
+      toast.error('Có lỗi khi tạo bài luyện tập');
     }
   };
   
-  const handleDeleteTest = async (id: number) => {
-    if(window.confirm('Chắc chắn xóa bài tập này?')) {
-      try {
-        await deleteTest(id);
-        loadTests(course.id);
-      } catch (e) { alert('Lỗi'); }
-    }
-  }
+  const handleDeleteTest = (id: number) => {
+    confirmModal({
+      title: 'Xóa bài luyện tập',
+      message: 'Bạn có chắc chắn muốn xóa bài tập này?',
+      confirmText: 'Xóa bài tập',
+      isDestructive: true,
+      onConfirm: async () => {
+        try {
+          await deleteTest(id);
+          toast.success('Đã xóa bài tập thành công!');
+          loadTests(course.id);
+        } catch (e) {
+          toast.error('Lỗi khi xóa bài tập');
+        }
+      }
+    });
+  };
 
   if (!course) return <AdminLayout><div>Đang tải...</div></AdminLayout>;
 
@@ -266,9 +282,14 @@ const CourseDetail: React.FC = () => {
                     if (!file) return;
                     try {
                       const res = await uploadMedia(file);
-                      if (res?.data?.url) setInfoForm({ ...infoForm, videoUrl: res.data.url });
+                      if (res?.data?.url) {
+                        setInfoForm({ ...infoForm, videoUrl: res.data.url });
+                        toast.success('Tải file phương tiện thành công!');
+                      }
                     } catch(err) {
-                      alert('Lỗi tải file lên');
+                      toast.error('Lỗi khi tải file lên');
+                    } finally {
+                      e.target.value = '';
                     }
                   }} />
                   <button type="button" style={{ padding: '8px 16px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }} onClick={() => document.getElementById('course-media-upload')?.click()}>Tải file lên</button>
