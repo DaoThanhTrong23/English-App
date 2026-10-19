@@ -1,5 +1,22 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, TextInput, ActivityIndicator, Alert, Modal } from 'react-native';
+import React, { useEffect, useState, useRef } from 'react';
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  ScrollView, 
+  TouchableOpacity, 
+  Image, 
+  TextInput, 
+  ActivityIndicator, 
+  Alert, 
+  Modal,
+  KeyboardAvoidingView,
+  Platform,
+  Keyboard,
+  TouchableWithoutFeedback,
+  FlatList,
+  RefreshControl
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -19,12 +36,21 @@ export default function CommunityScreen() {
   const [isPublicPost, setIsPublicPost] = useState(true);
   const [filterTab, setFilterTab] = useState<'all' | 'my' | 'private'>('all');
 
+  // Pagination states
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
+  const isFetchingRef = useRef(false);
+  const PAGE_SIZE = 10;
+
   // Comment Modal state
   const [commentModalVisible, setCommentModalVisible] = useState(false);
   const [currentPostId, setCurrentPostId] = useState<number | null>(null);
   const [comments, setComments] = useState<any[]>([]);
   const [commentText, setCommentText] = useState('');
   const [loadingComments, setLoadingComments] = useState(false);
+  const commentScrollViewRef = useRef<ScrollView>(null);
 
   // Edit Post Modal state
   const [editModalVisible, setEditModalVisible] = useState(false);
@@ -51,26 +77,78 @@ export default function CommunityScreen() {
       }
     };
     loadUserInfo();
-    fetchData('all');
+    fetchPosts('all', 1);
   }, []);
 
-  const fetchData = async (tab: 'all' | 'my' | 'private' = filterTab) => {
+  const fetchPosts = async (tab: 'all' | 'my' | 'private', pageNum: number, isRefresh: boolean = false) => {
+    if (isFetchingRef.current) return;
+    if (!isRefresh && pageNum > 1 && !hasMore) return;
+
+    isFetchingRef.current = true;
     try {
-      setLoading(true);
+      if (pageNum === 1) {
+        if (!isRefresh) setLoading(true);
+      } else {
+        setIsFetchingMore(true);
+      }
+
       const res = await axiosClient.get('/student/community/posts', {
-        params: { filter: tab }
+        params: { 
+          filter: tab,
+          page: pageNum,
+          limit: PAGE_SIZE
+        }
       });
-      if (res.data?.success) setPosts(res.data.data || []);
+
+      if (res.data?.success) {
+        const newPosts = res.data.data || [];
+        const pagination = res.data.pagination;
+
+        if (pageNum === 1) {
+          setPosts(newPosts);
+        } else {
+          setPosts(prev => {
+            const existingIds = new Set(prev.map(p => p.id));
+            const uniqueNewPosts = newPosts.filter((p: any) => !existingIds.has(p.id));
+            return [...prev, ...uniqueNewPosts];
+          });
+        }
+
+        setPage(pageNum);
+        if (pagination) {
+          setHasMore(pagination.hasMore);
+        } else {
+          setHasMore(newPosts.length >= PAGE_SIZE);
+        }
+      }
     } catch (error) {
       console.log('Error fetching community posts:', error);
     } finally {
+      isFetchingRef.current = false;
       setLoading(false);
+      setIsFetchingMore(false);
+      setRefreshing(false);
     }
   };
 
   const handleTabChange = (tab: 'all' | 'my' | 'private') => {
+    if (tab === filterTab && !loading) return;
     setFilterTab(tab);
-    fetchData(tab);
+    setPage(1);
+    setHasMore(true);
+    fetchPosts(tab, 1);
+  };
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    setPage(1);
+    setHasMore(true);
+    fetchPosts(filterTab, 1, true);
+  };
+
+  const handleLoadMore = () => {
+    if (loading || isFetchingMore || refreshing || !hasMore || isFetchingRef.current) return;
+    fetchPosts(filterTab, page + 1);
   };
 
   const pickImage = async (useCamera: boolean = false, isEdit: boolean = false) => {
@@ -137,10 +215,16 @@ export default function CommunityScreen() {
       });
 
       if (res.data?.success) {
+        const newPost = res.data.data;
         setContent('');
         setSelectedImage(null);
         setIsPublicPost(true);
-        fetchData(filterTab);
+        if (newPost) {
+          if (filterTab === 'all' || filterTab === 'my' || (filterTab === 'private' && !newPost.isPublic)) {
+            setPosts(prev => [newPost, ...prev]);
+          }
+        }
+        Alert.alert('Thành công', 'Đã đăng bài viết!');
       }
     } catch (error) {
       Alert.alert("Lỗi", "Không thể đăng bài viết");
@@ -149,15 +233,21 @@ export default function CommunityScreen() {
     }
   };
 
-  const toggleLike = async (postId: number, idx: number) => {
+  const toggleLike = async (postId: number) => {
     try {
       const res = await axiosClient.post(`/student/community/posts/${postId}/like`);
       if (res.data?.success) {
-        const newPosts = [...posts];
         const hasLiked = res.data.data.hasLiked;
-        newPosts[idx].hasLiked = hasLiked;
-        newPosts[idx].likesCount += hasLiked ? 1 : -1;
-        setPosts(newPosts);
+        setPosts(prev => prev.map(p => {
+          if (p.id === postId) {
+            return {
+              ...p,
+              hasLiked,
+              likesCount: Math.max(0, (p.likesCount || 0) + (hasLiked ? 1 : -1))
+            };
+          }
+          return p;
+        }));
       }
     } catch (error) {
       console.log(error);
@@ -170,7 +260,12 @@ export default function CommunityScreen() {
     setLoadingComments(true);
     try {
       const res = await axiosClient.get(`/student/community/posts/${postId}/comments`);
-      if (res.data?.success) setComments(res.data.data);
+      if (res.data?.success) {
+        setComments(res.data.data || []);
+        setTimeout(() => {
+          commentScrollViewRef.current?.scrollToEnd({ animated: false });
+        }, 200);
+      }
     } catch (error) {
       console.log(error);
     } finally {
@@ -181,15 +276,20 @@ export default function CommunityScreen() {
   const postComment = async () => {
     if (!commentText.trim() || !currentPostId) return;
     try {
-      const res = await axiosClient.post(`/student/community/posts/${currentPostId}/comments`, { content: commentText });
+      const res = await axiosClient.post(`/student/community/posts/${currentPostId}/comments`, { content: commentText.trim() });
       if (res.data?.success) {
-        setComments([...comments, res.data.data]);
+        setComments(prev => [...prev, res.data.data]);
         setCommentText('');
         // Update local post comment count
-        const newPosts = [...posts];
-        const pIdx = newPosts.findIndex(p => p.id === currentPostId);
-        if (pIdx > -1) newPosts[pIdx].commentsCount += 1;
-        setPosts(newPosts);
+        setPosts(prev => {
+          const next = [...prev];
+          const pIdx = next.findIndex(p => p.id === currentPostId);
+          if (pIdx > -1) next[pIdx].commentsCount = (next[pIdx].commentsCount || 0) + 1;
+          return next;
+        });
+        setTimeout(() => {
+          commentScrollViewRef.current?.scrollToEnd({ animated: true });
+        }, 150);
       }
     } catch (error) {
       console.log(error);
@@ -237,8 +337,11 @@ export default function CommunityScreen() {
       if (res.data?.success) {
         Alert.alert('Thành công', 'Đã cập nhật bài viết!');
         setEditModalVisible(false);
+        const updated = res.data.data;
+        if (updated) {
+          setPosts(prev => prev.map(p => p.id === editingPost.id ? { ...p, ...updated } : p));
+        }
         setEditingPost(null);
-        fetchData(filterTab);
       }
     } catch (error: any) {
       Alert.alert('Lỗi', error.response?.data?.message || 'Không thể cập nhật bài viết lúc này');
@@ -327,7 +430,7 @@ export default function CommunityScreen() {
         <Text style={[styles.headerTitle, { color: theme.text }]}>Cộng đồng</Text>
         <TouchableOpacity 
           style={[styles.iconBtn, { backgroundColor: isDark ? theme.cardSecondary : '#f3f4f6' }]} 
-          onPress={() => fetchData(filterTab)}
+          onPress={handleRefresh}
         >
           <Ionicons name="refresh" size={24} color={theme.text} />
         </TouchableOpacity>
@@ -375,204 +478,254 @@ export default function CommunityScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* CREATE POST CARD */}
-        <View style={[styles.createPostCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
-          <TextInput 
-            style={[styles.postInput, { color: theme.inputText }]} 
-            placeholder="Chia sẻ suy nghĩ hoặc câu hỏi học tập của bạn..." 
-            placeholderTextColor={theme.subtext} 
-            multiline
-            value={content} 
-            onChangeText={setContent}
-          />
+      <FlatList
+        data={posts}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item: post }) => {
+          const isOwner = currentUserId !== null && post.userId === currentUserId;
 
-          {/* Preview ảnh đính kèm nếu có */}
-          {selectedImage && (
-            <View style={styles.imagePreviewContainer}>
-              <Image source={{ uri: selectedImage }} style={styles.imagePreview} resizeMode="cover" />
-              <TouchableOpacity style={styles.removeImageBtn} onPress={() => setSelectedImage(null)}>
-                <Ionicons name="close-circle" size={24} color="#ef4444" />
-              </TouchableOpacity>
-            </View>
-          )}
-
-          <View style={[styles.createPostFooter, { borderTopColor: theme.border }]}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-              <TouchableOpacity 
-                style={[styles.mediaBtn, { backgroundColor: isDark ? theme.cardSecondary : '#f3f4f6' }]} 
-                onPress={() => pickImage(false, false)}
-              >
-                <Ionicons name="image-outline" size={20} color={theme.primary} />
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={[styles.mediaBtn, { backgroundColor: isDark ? theme.cardSecondary : '#f3f4f6' }]} 
-                onPress={() => pickImage(true, false)}
-              >
-                <Ionicons name="camera-outline" size={20} color={theme.primary} />
-              </TouchableOpacity>
-
-              {/* Nút chuyển đổi chế độ Công khai / Riêng tư khi tạo bài */}
-              <TouchableOpacity
-                style={[
-                  styles.privacyToggle,
-                  {
-                    backgroundColor: isPublicPost
-                      ? (isDark ? '#064e3b' : '#ecfdf5')
-                      : (isDark ? '#27272a' : '#f3f4f6'),
-                    borderColor: isPublicPost
-                      ? (isDark ? '#059669' : '#a7f3d0')
-                      : (isDark ? '#52525b' : '#d1d5db'),
-                  }
-                ]}
-                onPress={() => setIsPublicPost(!isPublicPost)}
-              >
-                <Ionicons
-                  name={isPublicPost ? "globe-outline" : "lock-closed"}
-                  size={14}
-                  color={isPublicPost ? (isDark ? '#34d399' : '#059669') : (isDark ? '#a1a1aa' : '#4b5563')}
+          return (
+            <View style={[styles.postCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
+              <View style={styles.postHeader}>
+                <Image 
+                  source={post.user?.avatarUrl ? {uri: post.user.avatarUrl.startsWith('http') ? post.user.avatarUrl : baseURL + post.user.avatarUrl} : require('../../../assets/images/gacon.gif')} 
+                  style={[styles.postAvatar, { backgroundColor: theme.cardSecondary }]} 
                 />
-                <Text
-                  style={[
-                    styles.privacyToggleText,
-                    {
-                      color: isPublicPost
-                        ? (isDark ? '#34d399' : '#059669')
-                        : (isDark ? '#d4d4d8' : '#374151')
-                    }
-                  ]}
-                >
-                  {isPublicPost ? "Công khai" : "Riêng tư"}
-                </Text>
-              </TouchableOpacity>
-            </View>
-
-            <TouchableOpacity 
-              style={[styles.postBtn, (!content.trim() && !selectedImage) && {opacity: 0.5}]} 
-              onPress={handlePost} 
-              disabled={(!content.trim() && !selectedImage) || posting}
-            >
-              {posting ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.postBtnText}>Đăng bài</Text>}
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {loading ? (
-          <ActivityIndicator size="large" color={theme.primary} style={{marginTop: 20}} />
-        ) : posts.length === 0 ? (
-          <View style={{ alignItems: 'center', marginTop: 40 }}>
-            <Ionicons name="chatbubbles-outline" size={48} color={theme.subtext} />
-            <Text style={{ marginTop: 10, color: theme.subtext, fontSize: 14 }}>
-              {filterTab === 'private' 
-                ? 'Bạn chưa có bài viết riêng tư nào.' 
-                : filterTab === 'my' 
-                ? 'Bạn chưa đăng bài viết nào.' 
-                : 'Chưa có bài viết nào. Hãy chia sẻ bài viết đầu tiên!'}
-            </Text>
-          </View>
-        ) : (
-          posts.map((post, idx) => {
-            const isOwner = currentUserId !== null && post.userId === currentUserId;
-
-            return (
-              <View key={post.id} style={[styles.postCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
-                <View style={styles.postHeader}>
-                  <Image 
-                    source={post.user?.avatarUrl ? {uri: post.user.avatarUrl.startsWith('http') ? post.user.avatarUrl : baseURL + post.user.avatarUrl} : require('../../../assets/images/gacon.gif')} 
-                    style={[styles.postAvatar, { backgroundColor: theme.cardSecondary }]} 
-                  />
-                  <View style={{ flex: 1 }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <Text style={[styles.postName, { color: theme.text }]}>{post.user?.username || 'Người dùng'}</Text>
-                      
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                        {/* Badge trạng thái Công khai / Riêng tư (Nhấn vào để đổi nhanh nếu là bài viết của mình) */}
-                        <TouchableOpacity 
-                          style={[
-                            styles.postPrivacyBadge,
-                            {
-                              backgroundColor: post.isPublic === false
-                                ? (isDark ? '#27272a' : '#f3f4f6')
-                                : (isDark ? '#064e3b' : '#ecfdf5'),
-                              borderColor: post.isPublic === false
-                                ? (isDark ? '#3f3f46' : '#e5e7eb')
-                                : (isDark ? '#047857' : '#a7f3d0')
-                            }
-                          ]}
-                          onPress={() => isOwner && handleQuickTogglePrivacy(post)}
-                          disabled={!isOwner}
-                        >
-                          <Ionicons 
-                            name={post.isPublic === false ? "lock-closed" : "globe-outline"} 
-                            size={11} 
-                            color={post.isPublic === false ? (isDark ? '#a1a1aa' : '#6b7280') : (isDark ? '#34d399' : '#059669')} 
-                          />
-                          <Text style={[
-                            styles.postPrivacyText,
-                            { color: post.isPublic === false ? (isDark ? '#a1a1aa' : '#6b7280') : (isDark ? '#34d399' : '#059669') }
-                          ]}>
-                            {post.isPublic === false ? "Riêng tư" : "Công khai"}
-                          </Text>
-                          {isOwner && (
-                            <Ionicons name="swap-horizontal" size={11} color={post.isPublic === false ? (isDark ? '#a1a1aa' : '#6b7280') : (isDark ? '#34d399' : '#059669')} style={{marginLeft: 2}} />
-                          )}
-                        </TouchableOpacity>
-
-                        {/* Nút Chỉnh sửa dành riêng cho chủ bài viết (đặc biệt tại trang Của tôi) */}
+                <View style={{ flex: 1 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <Text style={[styles.postName, { color: theme.text }]}>{post.user?.username || 'Người dùng'}</Text>
+                    
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      {/* Badge trạng thái Công khai / Riêng tư (Nhấn vào để đổi nhanh nếu là bài viết của mình) */}
+                      <TouchableOpacity 
+                        style={[
+                          styles.postPrivacyBadge,
+                          {
+                            backgroundColor: post.isPublic === false
+                              ? (isDark ? '#27272a' : '#f3f4f6')
+                              : (isDark ? '#064e3b' : '#ecfdf5'),
+                            borderColor: post.isPublic === false
+                              ? (isDark ? '#3f3f46' : '#e5e7eb')
+                              : (isDark ? '#047857' : '#a7f3d0')
+                          }
+                        ]} 
+                        onPress={() => isOwner && handleQuickTogglePrivacy(post)}
+                        disabled={!isOwner}
+                      >
+                        <Ionicons 
+                          name={post.isPublic === false ? "lock-closed" : "globe-outline"} 
+                          size={11} 
+                          color={post.isPublic === false ? (isDark ? '#a1a1aa' : '#6b7280') : (isDark ? '#34d399' : '#059669')} 
+                        />
+                        <Text style={[
+                          styles.postPrivacyText,
+                          { color: post.isPublic === false ? (isDark ? '#a1a1aa' : '#6b7280') : (isDark ? '#34d399' : '#059669') }
+                        ]}>
+                          {post.isPublic === false ? "Riêng tư" : "Công khai"}
+                        </Text>
                         {isOwner && (
-                          <TouchableOpacity 
-                            style={[styles.editActionBtn, { backgroundColor: isDark ? '#27272a' : '#eff6ff', borderColor: isDark ? '#3f3f46' : '#bfdbfe' }]} 
-                            onPress={() => openEditModal(post)}
-                          >
-                            <Ionicons name="create-outline" size={13} color={isDark ? '#60a5fa' : '#2563eb'} />
-                            <Text style={[styles.editActionText, { color: isDark ? '#60a5fa' : '#2563eb' }]}>Sửa</Text>
-                          </TouchableOpacity>
+                          <Ionicons name="swap-horizontal" size={11} color={post.isPublic === false ? (isDark ? '#a1a1aa' : '#6b7280') : (isDark ? '#34d399' : '#059669')} style={{marginLeft: 2}} />
                         )}
-                      </View>
+                      </TouchableOpacity>
+
+                      {/* Nút Chỉnh sửa dành riêng cho chủ bài viết (đặc biệt tại trang Của tôi) */}
+                      {isOwner && (
+                        <TouchableOpacity 
+                          style={[styles.editActionBtn, { backgroundColor: isDark ? '#27272a' : '#eff6ff', borderColor: isDark ? '#3f3f46' : '#bfdbfe' }]} 
+                          onPress={() => openEditModal(post)}
+                        >
+                          <Ionicons name="create-outline" size={13} color={isDark ? '#60a5fa' : '#2563eb'} />
+                          <Text style={[styles.editActionText, { color: isDark ? '#60a5fa' : '#2563eb' }]}>Sửa</Text>
+                        </TouchableOpacity>
+                      )}
                     </View>
-                    <Text style={[styles.postTime, { color: theme.subtext }]}>{formatTime(post.createdAt)}</Text>
                   </View>
-                </View>
-
-                {post.content ? <Text style={[styles.postText, { color: theme.text }]}>{post.content}</Text> : null}
-                
-                {post.imageUrl && (
-                  <Image 
-                    source={{ uri: post.imageUrl.startsWith('http') ? post.imageUrl : baseURL + post.imageUrl }} 
-                    style={styles.postImage} 
-                    resizeMode="cover"
-                  />
-                )}
-
-                <View style={[styles.postActions, { borderTopColor: theme.border }]}>
-                  <TouchableOpacity style={styles.actionItem} onPress={() => toggleLike(post.id, idx)}>
-                    <Ionicons name={post.hasLiked ? "heart" : "heart-outline"} size={20} color={post.hasLiked ? "#ef4444" : theme.subtext} />
-                    <Text style={[styles.actionText, { color: theme.subtext }]}>{post.likesCount || 0}</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={styles.actionItem} onPress={() => openComments(post.id)}>
-                    <Ionicons name="chatbubble-outline" size={20} color={theme.subtext} />
-                    <Text style={[styles.actionText, { color: theme.subtext }]}>{post.commentsCount || 0}</Text>
-                  </TouchableOpacity>
+                  <Text style={[styles.postTime, { color: theme.subtext }]}>{formatTime(post.createdAt)}</Text>
                 </View>
               </View>
-            );
-          })
+
+              {post.content ? <Text style={[styles.postText, { color: theme.text }]}>{post.content}</Text> : null}
+              
+              {post.imageUrl && (
+                <Image 
+                  source={{ uri: post.imageUrl.startsWith('http') ? post.imageUrl : baseURL + post.imageUrl }} 
+                  style={styles.postImage} 
+                  resizeMode="cover"
+                />
+              )}
+
+              <View style={[styles.postActions, { borderTopColor: theme.border }]}>
+                <TouchableOpacity style={styles.actionItem} onPress={() => toggleLike(post.id)}>
+                  <Ionicons name={post.hasLiked ? "heart" : "heart-outline"} size={20} color={post.hasLiked ? "#ef4444" : theme.subtext} />
+                  <Text style={[styles.actionText, { color: theme.subtext }]}>{post.likesCount || 0}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.actionItem} onPress={() => openComments(post.id)}>
+                  <Ionicons name="chatbubble-outline" size={20} color={theme.subtext} />
+                  <Text style={[styles.actionText, { color: theme.subtext }]}>{post.commentsCount || 0}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          );
+        }}
+        ListHeaderComponent={(
+          <View>
+            {/* CREATE POST CARD */}
+            <View style={[styles.createPostCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
+              <TextInput 
+                style={[styles.postInput, { color: theme.inputText }]} 
+                placeholder="Chia sẻ suy nghĩ hoặc câu hỏi học tập của bạn..." 
+                placeholderTextColor={theme.subtext} 
+                multiline
+                value={content} 
+                onChangeText={setContent}
+              />
+
+              {/* Preview ảnh đính kèm nếu có */}
+              {selectedImage && (
+                <View style={styles.imagePreviewContainer}>
+                  <Image source={{ uri: selectedImage }} style={styles.imagePreview} resizeMode="cover" />
+                  <TouchableOpacity style={styles.removeImageBtn} onPress={() => setSelectedImage(null)}>
+                    <Ionicons name="close-circle" size={24} color="#ef4444" />
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              <View style={[styles.createPostFooter, { borderTopColor: theme.border }]}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                  <TouchableOpacity 
+                    style={[styles.mediaBtn, { backgroundColor: isDark ? theme.cardSecondary : '#f3f4f6' }]} 
+                    onPress={() => pickImage(false, false)}
+                  >
+                    <Ionicons name="image-outline" size={20} color={theme.primary} />
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={[styles.mediaBtn, { backgroundColor: isDark ? theme.cardSecondary : '#f3f4f6' }]} 
+                    onPress={() => pickImage(true, false)}
+                  >
+                    <Ionicons name="camera-outline" size={20} color={theme.primary} />
+                  </TouchableOpacity>
+
+                  {/* Nút chuyển đổi chế độ Công khai / Riêng tư khi tạo bài */}
+                  <TouchableOpacity
+                    style={[
+                      styles.privacyToggle,
+                      {
+                        backgroundColor: isPublicPost
+                          ? (isDark ? '#064e3b' : '#ecfdf5')
+                          : (isDark ? '#27272a' : '#f3f4f6'),
+                        borderColor: isPublicPost
+                          ? (isDark ? '#059669' : '#a7f3d0')
+                          : (isDark ? '#52525b' : '#d1d5db'),
+                      }
+                    ]}
+                    onPress={() => setIsPublicPost(!isPublicPost)}
+                  >
+                    <Ionicons
+                      name={isPublicPost ? "globe-outline" : "lock-closed"}
+                      size={14}
+                      color={isPublicPost ? (isDark ? '#34d399' : '#059669') : (isDark ? '#a1a1aa' : '#4b5563')}
+                    />
+                    <Text
+                      style={[
+                        styles.privacyToggleText,
+                        {
+                          color: isPublicPost
+                            ? (isDark ? '#34d399' : '#059669')
+                            : (isDark ? '#d4d4d8' : '#374151')
+                        }
+                      ]}
+                    >
+                      {isPublicPost ? "Công khai" : "Riêng tư"}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+
+                <TouchableOpacity 
+                  style={[styles.postBtn, (!content.trim() && !selectedImage) && {opacity: 0.5}]} 
+                  onPress={handlePost} 
+                  disabled={(!content.trim() && !selectedImage) || posting}
+                >
+                  {posting ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.postBtnText}>Đăng bài</Text>}
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {loading && posts.length === 0 && (
+              <ActivityIndicator size="large" color={theme.primary} style={{ marginVertical: 30 }} />
+            )}
+          </View>
         )}
-      </ScrollView>
+        ListEmptyComponent={
+          !loading ? (
+            <View style={{ alignItems: 'center', marginTop: 30, paddingHorizontal: 20 }}>
+              <Ionicons name="chatbubbles-outline" size={48} color={theme.subtext} />
+              <Text style={{ marginTop: 10, color: theme.subtext, fontSize: 14, textAlign: 'center' }}>
+                {filterTab === 'private' 
+                  ? 'Bạn chưa có bài viết riêng tư nào.' 
+                  : filterTab === 'my' 
+                  ? 'Bạn chưa đăng bài viết nào.' 
+                  : 'Chưa có bài viết nào. Hãy chia sẻ bài viết đầu tiên!'}
+              </Text>
+            </View>
+          ) : null
+        }
+        ListFooterComponent={
+          isFetchingMore ? (
+            <View style={styles.footerLoader}>
+              <ActivityIndicator size="small" color={theme.primary} />
+              <Text style={[styles.footerLoaderText, { color: theme.subtext }]}>Đang tải thêm bài viết...</Text>
+            </View>
+          ) : !hasMore && posts.length > 0 ? (
+            <View style={styles.endOfListContainer}>
+              <View style={[styles.endOfListDivider, { backgroundColor: theme.border }]} />
+              <Text style={[styles.endOfListText, { color: theme.subtext }]}>Đã hiển thị tất cả bài viết</Text>
+              <View style={[styles.endOfListDivider, { backgroundColor: theme.border }]} />
+            </View>
+          ) : null
+        }
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.4}
+        initialNumToRender={5}
+        maxToRenderPerBatch={5}
+        windowSize={7}
+        removeClippedSubviews={Platform.OS === 'android'}
+        refreshControl={
+          <RefreshControl 
+            refreshing={refreshing} 
+            onRefresh={handleRefresh} 
+            colors={[theme.primary]} 
+            tintColor={theme.primary} 
+          />
+        }
+      />
 
       {/* Modal Chỉnh Sửa Bài Viết & Trạng Thái */}
-      <Modal visible={editModalVisible} animationType="slide" transparent={true}>
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { backgroundColor: theme.card, height: '85%' }]}>
-            <View style={[styles.modalHeader, { borderColor: theme.border }]}>
-              <View style={{flexDirection: 'row', alignItems: 'center', gap: 8}}>
-                <Ionicons name="create-outline" size={22} color={theme.primary} />
-                <Text style={[styles.modalTitle, { color: theme.text }]}>Chỉnh sửa bài viết</Text>
+      <Modal 
+        visible={editModalVisible} 
+        animationType="slide" 
+        transparent={true}
+        onRequestClose={() => setEditModalVisible(false)}
+      >
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+          style={styles.keyboardAvoidingView}
+        >
+          <View style={styles.modalOverlay}>
+            <TouchableWithoutFeedback onPress={() => setEditModalVisible(false)}>
+              <View style={styles.modalBackdrop} />
+            </TouchableWithoutFeedback>
+            <View style={[styles.modalContent, { backgroundColor: theme.card, height: '85%' }]}>
+              <View style={[styles.modalHeader, { borderColor: theme.border }]}>
+                <View style={{flexDirection: 'row', alignItems: 'center', gap: 8}}>
+                  <Ionicons name="create-outline" size={22} color={theme.primary} />
+                  <Text style={[styles.modalTitle, { color: theme.text }]}>Chỉnh sửa bài viết</Text>
+                </View>
+                <TouchableOpacity onPress={() => setEditModalVisible(false)}>
+                  <Ionicons name="close" size={24} color={theme.text} />
+                </TouchableOpacity>
               </View>
-              <TouchableOpacity onPress={() => setEditModalVisible(false)}>
-                <Ionicons name="close" size={24} color={theme.text} />
-              </TouchableOpacity>
-            </View>
 
             <ScrollView style={{ flex: 1, padding: 16 }} showsVerticalScrollIndicator={false}>
               {/* Nội dung bài viết */}
@@ -723,49 +876,87 @@ export default function CommunityScreen() {
             </View>
           </View>
         </View>
+        </KeyboardAvoidingView>
       </Modal>
 
       {/* Comment Modal */}
-      <Modal visible={commentModalVisible} animationType="slide" transparent={true}>
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { backgroundColor: theme.card }]}>
-            <View style={[styles.modalHeader, { borderColor: theme.border }]}>
-              <Text style={[styles.modalTitle, { color: theme.text }]}>Bình luận</Text>
-              <TouchableOpacity onPress={() => setCommentModalVisible(false)}>
-                <Ionicons name="close" size={24} color={theme.text} />
-              </TouchableOpacity>
-            </View>
-            <ScrollView style={{flex: 1, padding: 15}}>
-              {loadingComments ? <ActivityIndicator color={theme.primary} /> : comments.map(c => (
-                <View key={c.id} style={styles.commentRow}>
-                  <Image source={c.user?.avatarUrl ? {uri: c.user.avatarUrl.startsWith('http') ? c.user.avatarUrl : baseURL + c.user.avatarUrl} : require('../../../assets/images/gacon.gif')} style={[styles.commentAvatar, { backgroundColor: theme.cardSecondary }]} />
-                  <View style={[styles.commentBubble, { backgroundColor: isDark ? theme.cardSecondary : '#f3f4f6' }]}>
-                    <Text style={[styles.commentName, { color: theme.text }]}>{c.user?.username || 'Người dùng'}</Text>
-                    <Text style={[styles.commentText, { color: isDark ? '#d4d4d8' : '#374151' }]}>{c.content}</Text>
+      <Modal 
+        visible={commentModalVisible} 
+        animationType="slide" 
+        transparent={true}
+        onRequestClose={() => setCommentModalVisible(false)}
+      >
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+          style={styles.keyboardAvoidingView}
+        >
+          <View style={styles.modalOverlay}>
+            <TouchableWithoutFeedback onPress={() => setCommentModalVisible(false)}>
+              <View style={styles.modalBackdrop} />
+            </TouchableWithoutFeedback>
+            <View style={[styles.modalContent, { backgroundColor: theme.card, height: '75%' }]}>
+              <View style={[styles.modalHeader, { borderColor: theme.border }]}>
+                <Text style={[styles.modalTitle, { color: theme.text }]}>Bình luận</Text>
+                <TouchableOpacity onPress={() => setCommentModalVisible(false)}>
+                  <Ionicons name="close" size={24} color={theme.text} />
+                </TouchableOpacity>
+              </View>
+              <ScrollView 
+                ref={commentScrollViewRef} 
+                style={{ flex: 1, padding: 15 }} 
+                keyboardShouldPersistTaps="handled" 
+                showsVerticalScrollIndicator={false}
+              >
+                {loadingComments ? (
+                  <ActivityIndicator color={theme.primary} style={{ marginTop: 20 }} />
+                ) : comments.length === 0 ? (
+                  <View style={{ alignItems: 'center', marginTop: 30 }}>
+                    <Ionicons name="chatbubbles-outline" size={40} color={theme.subtext} />
+                    <Text style={{ color: theme.subtext, marginTop: 8, fontSize: 13 }}>Chưa có bình luận nào. Hãy bắt đầu cuộc trò chuyện!</Text>
                   </View>
-                </View>
-              ))}
-            </ScrollView>
-            <View style={[styles.commentInputRow, { borderColor: theme.border }]}>
-              <TextInput 
-                style={[
-                  styles.commentInput, 
-                  { 
-                    backgroundColor: theme.inputBg, 
-                    color: theme.inputText,
-                    borderColor: theme.border,
-                    borderWidth: isDark ? 1 : 0
-                  }
-                ]} 
-                placeholder="Viết bình luận..." 
-                placeholderTextColor={theme.subtext}
-                value={commentText} 
-                onChangeText={setCommentText} 
-              />
-              <TouchableOpacity onPress={postComment}><Ionicons name="send" size={24} color={theme.primary} /></TouchableOpacity>
+                ) : comments.map(c => (
+                  <View key={c.id} style={styles.commentRow}>
+                    <Image source={c.user?.avatarUrl ? {uri: c.user.avatarUrl.startsWith('http') ? c.user.avatarUrl : baseURL + c.user.avatarUrl} : require('../../../assets/images/gacon.gif')} style={[styles.commentAvatar, { backgroundColor: theme.cardSecondary }]} />
+                    <View style={[styles.commentBubble, { backgroundColor: isDark ? theme.cardSecondary : '#f3f4f6' }]}>
+                      <Text style={[styles.commentName, { color: theme.text }]}>{c.user?.username || 'Người dùng'}</Text>
+                      <Text style={[styles.commentText, { color: isDark ? '#d4d4d8' : '#374151' }]}>{c.content}</Text>
+                    </View>
+                  </View>
+                ))}
+              </ScrollView>
+              <View style={[styles.commentInputRow, { borderColor: theme.border, backgroundColor: theme.card }]}>
+                <TextInput 
+                  style={[
+                    styles.commentInput, 
+                    { 
+                      backgroundColor: theme.inputBg, 
+                      color: theme.inputText,
+                      borderColor: theme.border,
+                      borderWidth: isDark ? 1 : 0
+                    }
+                  ]} 
+                  placeholder="Viết bình luận..." 
+                  placeholderTextColor={theme.subtext}
+                  value={commentText} 
+                  onChangeText={setCommentText} 
+                  returnKeyType="send"
+                  onSubmitEditing={postComment}
+                />
+                <TouchableOpacity 
+                  style={styles.sendCommentBtn}
+                  onPress={postComment}
+                  disabled={!commentText.trim()}
+                >
+                  <Ionicons 
+                    name="send" 
+                    size={22} 
+                    color={commentText.trim() ? theme.primary : theme.subtext} 
+                  />
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </SafeAreaView>
   );
@@ -811,8 +1002,10 @@ const styles = StyleSheet.create({
   actionItem: { flexDirection: 'row', alignItems: 'center', marginRight: 20 },
   actionText: { fontSize: 13, color: '#6b7280', marginLeft: 6 },
   
+  keyboardAvoidingView: { flex: 1 },
+  modalBackdrop: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  modalContent: { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, height: '70%' },
+  modalContent: { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, height: '75%', maxHeight: '90%' },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 18, borderBottomWidth: 1, borderColor: '#e5e7eb' },
   modalTitle: { fontSize: 18, fontWeight: 'bold' },
   labelTitle: { fontSize: 14, fontWeight: 'bold', marginBottom: 6 },
@@ -840,5 +1033,12 @@ const styles = StyleSheet.create({
   commentName: { fontWeight: 'bold', fontSize: 13, marginBottom: 4 },
   commentText: { fontSize: 14, color: '#374151' },
   commentInputRow: { flexDirection: 'row', alignItems: 'center', padding: 15, borderTopWidth: 1, borderColor: '#e5e7eb' },
-  commentInput: { flex: 1, backgroundColor: '#f3f4f6', borderRadius: 20, paddingHorizontal: 15, paddingVertical: 10, marginRight: 10 }
+  commentInput: { flex: 1, backgroundColor: '#f3f4f6', borderRadius: 20, paddingHorizontal: 15, paddingVertical: 10, marginRight: 10 },
+  sendCommentBtn: { padding: 6, justifyContent: 'center', alignItems: 'center' },
+
+  footerLoader: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingVertical: 18, gap: 8 },
+  footerLoaderText: { fontSize: 13, fontWeight: '500' },
+  endOfListContainer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 22, paddingHorizontal: 20, gap: 10 },
+  endOfListDivider: { flex: 1, height: 1 },
+  endOfListText: { fontSize: 12, fontWeight: '500' }
 });

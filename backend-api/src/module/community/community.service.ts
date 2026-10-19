@@ -2,7 +2,11 @@ import { prisma } from '../../config/prisma.js';
 import { ApiError } from '../../shared/http/api-error.js';
 
 export class CommunityService {
-  async getPosts(userId: number, limit: number = 20, filter?: string) {
+  async getPosts(userId: number, page: number = 1, limit: number = 10, filter?: string) {
+    const pageNum = Math.max(1, Number(page) || 1);
+    const take = Math.max(1, Math.min(50, Number(limit) || 10));
+    const skip = (pageNum - 1) * take;
+
     let whereCondition: any = {
       OR: [
         { isPublic: true },
@@ -18,28 +22,32 @@ export class CommunityService {
       whereCondition = { isPublic: true };
     }
 
-    const posts = await prisma.communityPost.findMany({
-      where: whereCondition,
-      orderBy: { createdAt: 'desc' },
-      take: limit,
-      include: {
-        user: {
-          select: { id: true, username: true, avatarUrl: true }
-        },
-        images: {
-          select: { id: true, imageUrl: true }
-        },
-        _count: {
-          select: { comments: true, postLikes: true }
-        },
-        postLikes: {
-          where: { userId },
-          select: { id: true }
+    const [posts, total] = await Promise.all([
+      prisma.communityPost.findMany({
+        where: whereCondition,
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take,
+        include: {
+          user: {
+            select: { id: true, username: true, avatarUrl: true }
+          },
+          images: {
+            select: { id: true, imageUrl: true }
+          },
+          _count: {
+            select: { comments: true, postLikes: true }
+          },
+          postLikes: {
+            where: { userId },
+            select: { id: true }
+          }
         }
-      }
-    });
+      }),
+      prisma.communityPost.count({ where: whereCondition })
+    ]);
 
-    return posts.map(p => ({
+    const mappedPosts = posts.map(p => ({
       ...p,
       hasLiked: p.postLikes.length > 0,
       likesCount: p._count.postLikes,
@@ -47,6 +55,17 @@ export class CommunityService {
       postLikes: undefined,
       _count: undefined
     }));
+
+    return {
+      posts: mappedPosts,
+      pagination: {
+        page: pageNum,
+        limit: take,
+        total,
+        totalPages: Math.ceil(total / take),
+        hasMore: skip + mappedPosts.length < total
+      }
+    };
   }
 
   async createPost(userId: number, content: string, imageUrl?: string, isPublic: boolean = true) {

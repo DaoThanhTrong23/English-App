@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import { changePassword } from '../api/settings.api';
-import { Lock, User, Palette, Info } from 'lucide-react';
+import { Lock, User, Palette, Info, Sun, Moon } from 'lucide-react';
 import '../../courses/pages/CourseList.css'; // Reuse container styles
 
 const Settings: React.FC = () => {
@@ -152,7 +152,7 @@ const Settings: React.FC = () => {
           {activeTab === 'appearance' && (
             <div>
               <div style={{ background: '#f8fafc', padding: '24px', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '24px' }}>
-                <h3 style={{ marginTop: 0, marginBottom: '20px' }}>Chế độ hiển thị (Nhìn đẹp z hoi chứ chưa làm :))))</h3>
+                <h3 style={{ marginTop: 0, marginBottom: '20px' }}>Chế độ hiển thị</h3>
                 
                 {message.text && (
                   <div style={{ padding: '12px', borderRadius: '8px', marginBottom: '20px', backgroundColor: message.type === 'error' ? '#fee2e2' : '#dcfce7', color: message.type === 'error' ? '#ef4444' : '#22c55e' }}>
@@ -165,14 +165,18 @@ const Settings: React.FC = () => {
                     onClick={() => handleThemeChange('light')}
                     style={{ flex: 1, padding: '20px', border: theme === 'light' ? '2px solid #3b82f6' : '1px solid #cbd5e1', borderRadius: '8px', cursor: 'pointer', textAlign: 'center', background: 'white' }}
                   >
-                    <div style={{ fontSize: '24px', marginBottom: '10px' }}>☀️</div>
+                    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '10px' }}>
+                      <Sun size={28} color="#eab308" />
+                    </div>
                     <div style={{ fontWeight: 'bold', color: '#1e293b' }}>Giao diện sáng</div>
                   </div>
                   <div 
                     onClick={() => handleThemeChange('dark')}
                     style={{ flex: 1, padding: '20px', border: theme === 'dark' ? '2px solid #3b82f6' : '1px solid #cbd5e1', borderRadius: '8px', cursor: 'pointer', textAlign: 'center', background: '#1e293b' }}
                   >
-                    <div style={{ fontSize: '24px', marginBottom: '10px' }}>🌙</div>
+                    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '10px' }}>
+                      <Moon size={28} color="#60a5fa" />
+                    </div>
                     <div style={{ fontWeight: 'bold', color: 'white' }}>Giao diện tối</div>
                   </div>
                 </div>

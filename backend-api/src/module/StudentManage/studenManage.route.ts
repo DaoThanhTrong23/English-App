@@ -4,10 +4,9 @@ import { Authenticate } from "../../middleware/authenticate.middleware.js";
 import { authorize } from "../../middleware/authorize.middleware.js";
 import { validate } from "../../middleware/validate.middleware.js";
 import { asyncHandler } from "../../shared/http/async-handler.js";
-import { GetStudentQuerySchema, StudentIdParamSchema } from "./studentManage.schema.js";
+import { GetStudentQuerySchema, StudentIdParamSchema, UpdateStudentStatusSchema } from "./studentManage.schema.js";
 import { studentManageService } from "./studentManage.service.js";
 import { Role } from "../../generated/prisma/index.js";
-import { success } from "zod/v4";
 
 
 const router = Router();
@@ -104,14 +103,10 @@ router.get(
  */
 router.patch(
   "/:id/status",
-  validate(StudentIdParamSchema),
+  validate(UpdateStudentStatusSchema),
   asyncHandler(async (req, res) => {
     const studentId = Number(req.params.id);
     const { isLocked } = req.body;
-
-    if (typeof isLocked !== "boolean") {
-      return res.status(400).json({ success: false, message: "isLocked phải là boolean (true/false)" });
-    }
 
     const result = await studentManageService.updateStudentLockStatus(studentId, isLocked);
 

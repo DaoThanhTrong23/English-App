@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import { fetchActivities, fetchLoginLogs } from '../api/system-logs.api';
-import { Activity, LogIn, Search, Filter } from 'lucide-react';
+import { Activity, LogIn, Search, Filter, Download } from 'lucide-react';
+import * as XLSX from 'xlsx';
 import '../../courses/pages/CourseList.css';
 
 const SystemLogs: React.FC = () => {
@@ -46,12 +47,61 @@ const SystemLogs: React.FC = () => {
     loadData(1);
   };
 
+  const handleExportExcel = () => {
+    const isAct = activeTab === 'activities';
+    const dataToExport = isAct ? activities.map((item, idx) => ({
+      STT: idx + 1,
+      'Thời gian': new Date(item.createdAt).toLocaleString('vi-VN'),
+      'Học viên': item.user?.username || 'Hệ thống',
+      'Email': item.user?.email || '-',
+      'Hành động': item.action,
+      'Chi tiết': item.details || '-',
+      'Địa chỉ IP': item.ipAddress || '-'
+    })) : loginLogs.map((item, idx) => ({
+      STT: idx + 1,
+      'Thời gian đăng nhập': new Date(item.loginTime).toLocaleString('vi-VN'),
+      'Học viên': item.user?.username || '-',
+      'Email': item.user?.email || '-',
+      'Thiết bị': item.deviceInfo || '-',
+      'Địa chỉ IP': item.ipAddress || '-'
+    }));
+
+    if (dataToExport.length === 0) {
+      alert('Không có dữ liệu để xuất!');
+      return;
+    }
+
+    const ws = XLSX.utils.json_to_sheet(dataToExport);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, isAct ? 'Hoat_dong' : 'Dang_nhap');
+    XLSX.writeFile(wb, `${isAct ? 'nhat_ky_hoat_dong' : 'nhat_ky_dang_nhap'}_${new Date().toISOString().slice(0, 10)}.xlsx`);
+  };
+
   return (
     <AdminLayout>
       <div className="course-list-container">
         <div className="course-list-main">
           <div className="course-list-header">
             <h2>Nhật ký hệ thống</h2>
+            <button 
+              className="add-course-btn" 
+              onClick={handleExportExcel}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                backgroundColor: '#10b981',
+                color: 'white',
+                border: 'none',
+                padding: '8px 16px',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontWeight: 600,
+                fontSize: '0.85rem'
+              }}
+            >
+              <Download size={16} /> Xuất Excel
+            </button>
           </div>
 
           <div style={{ display: 'flex', gap: '16px', marginBottom: '24px', borderBottom: '2px solid #e2e8f0' }}>

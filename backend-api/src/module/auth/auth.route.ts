@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response, Router } from "express";
 import { validate } from "../../middleware/validate.middleware.js";
-import { LoginSchema, LogoutSchema, RefreshTokenSChema, RegisterSchema, ChangePasswordSchema } from "./auth.schema.js";
+import { LoginSchema, LogoutSchema, RefreshTokenSChema, RegisterSchema, ChangePasswordSchema, CheckAvailabilitySchema } from "./auth.schema.js";
 import { GoogleLoginSchema, FacebookLoginSchema } from './auth.schema.js';
 
 import { asyncHandler } from "../../shared/http/async-handler.js";
@@ -22,6 +22,16 @@ Authrouter.post("/register", validate(RegisterSchema), asyncHandler(async (req, 
     res.status(201).json({
         success: true,
         message: "Đăng ký tài khoản thành công",
+        data: result
+    });
+}));
+
+Authrouter.get("/check-availability", validate(CheckAvailabilitySchema), asyncHandler(async (req, res) => {
+    const email = req.query.email as string | undefined;
+    const username = req.query.username as string | undefined;
+    const result = await authService.checkAvailability(email, username);
+    res.status(200).json({
+        success: true,
         data: result
     });
 }));

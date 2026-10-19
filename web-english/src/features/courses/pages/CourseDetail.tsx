@@ -18,7 +18,7 @@ const CourseDetail: React.FC = () => {
   );
 
   useEffect(() => {
-    window.location.hash = activeTab;
+    window.history.replaceState(null, '', '#' + activeTab);
   }, [activeTab]);
 
   // Topics

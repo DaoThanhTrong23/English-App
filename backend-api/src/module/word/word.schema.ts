@@ -8,14 +8,14 @@ export const getWordsQuerySchema = z.object({
 });
 
 export const createWordSchema = z.object({
-  headword: z.string().min(1, 'Không được để trống headword'),
-  partOfSpeech: z.string().nullish(),
-  cefrLevel: z.string().nullish(),
-  phonetic: z.string().nullish(),
-  audioUrl: z.string().nullish(),
-  imageUrl: z.string().nullish(),
-  meaning: z.string().min(1, 'Meaning không được để trống').nullish(),
-  exampleSentence: z.string().nullish(),
+  headword: z.string().trim().min(1, 'Không được để trống headword'),
+  partOfSpeech: z.string().nullish().transform(v => (v && v.trim()) ? v.trim() : null),
+  cefrLevel: z.string().nullish().transform(v => (v && v.trim()) ? v.trim() : null),
+  phonetic: z.string().nullish().transform(v => (v && v.trim()) ? v.trim() : null),
+  audioUrl: z.string().nullish().transform(v => (v && v.trim()) ? v.trim() : null),
+  imageUrl: z.string().nullish().transform(v => (v && v.trim()) ? v.trim() : null),
+  meaning: z.string().nullish().transform(v => (v && v.trim()) ? v.trim() : null),
+  exampleSentence: z.string().nullish().transform(v => (v && v.trim()) ? v.trim() : null),
 });
 
 export const updateWordSchema = createWordSchema.partial();

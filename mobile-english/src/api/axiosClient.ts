@@ -2,6 +2,7 @@ import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 import { API_URL } from '../constants/api';
 import { router } from 'expo-router';
+import { Alert } from 'react-native';
 
 export const axiosClient = axios.create({
   baseURL: API_URL,
@@ -24,6 +25,7 @@ axiosClient.interceptors.request.use(
 
 // Hàng đợi xử lý Concurrency Lock tránh gọi refresh token nhiều lần cùng lúc
 let isRefreshing = false;
+let isLockAlertShown = false;
 let failedQueue: Array<{
   resolve: (token: string) => void;
   reject: (error: any) => void;
@@ -49,6 +51,47 @@ axiosClient.interceptors.response.use(
     const isAuthRoute =
       originalRequest?.url?.includes('/auth/login') ||
       originalRequest?.url?.includes('/auth/register');
+
+    // Xử lý lập tức khi phát hiện tài khoản bị Admin khóa (403 account_locked)
+    const errorData = error.response?.data;
+    const isLockedError =
+      error.response?.status === 403 &&
+      (errorData?.error?.code === 'account_locked' ||
+       errorData?.code === 'account_locked' ||
+       String(errorData?.message || '').toLowerCase().includes('khóa') ||
+       String(errorData?.error?.message || '').toLowerCase().includes('khóa'));
+
+    if (isLockedError) {
+      await SecureStore.deleteItemAsync('accessToken').catch(() => {});
+      await SecureStore.deleteItemAsync('refreshToken').catch(() => {});
+      await SecureStore.deleteItemAsync('userInfo').catch(() => {});
+      await SecureStore.deleteItemAsync('userAvatar').catch(() => {});
+
+      if (!isLockAlertShown) {
+        isLockAlertShown = true;
+        const lockMessage =
+          errorData?.message ||
+          errorData?.error?.message ||
+          'Tài khoản của bạn đã bị Quản trị viên khóa. Bạn đã bị đăng xuất khỏi ứng dụng!';
+
+        Alert.alert(
+          'Tài khoản bị khóa 🔒',
+          lockMessage,
+          [
+            {
+              text: 'Đã hiểu',
+              onPress: () => {
+                isLockAlertShown = false;
+                router.replace('/(auth)/login');
+              }
+            }
+          ],
+          { cancelable: false }
+        );
+      }
+      router.replace('/(auth)/login');
+      return Promise.reject(error);
+    }
 
     if (error.response?.status === 401 && !originalRequest._retry && !isAuthRoute) {
       // Nếu đã có 1 request đang refresh, các request song song khác xếp hàng chờ
@@ -96,8 +139,10 @@ axiosClient.interceptors.response.use(
         
       } catch (refreshError) {
         processQueue(refreshError, null);
-        await SecureStore.deleteItemAsync('accessToken');
-        await SecureStore.deleteItemAsync('refreshToken');
+        await SecureStore.deleteItemAsync('accessToken').catch(() => {});
+        await SecureStore.deleteItemAsync('refreshToken').catch(() => {});
+        await SecureStore.deleteItemAsync('userInfo').catch(() => {});
+        await SecureStore.deleteItemAsync('userAvatar').catch(() => {});
         router.replace('/(auth)/login');
         return Promise.reject(refreshError);
       } finally {

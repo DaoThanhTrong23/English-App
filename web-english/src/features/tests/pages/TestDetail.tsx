@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import AdminLayout from '../../../components/layout/AdminLayout';
-import { Plus, Edit, Trash2, ArrowLeft, CheckCircle2, Circle, Upload } from 'lucide-react';
+import { Plus, Edit, Trash2, ArrowLeft, CheckCircle2, Circle, Upload, Star, Target, Tag, Music, Image as ImageIcon } from 'lucide-react';
 import { fetchQuestions, createQuestion, updateQuestion, deleteQuestion, importQuestionsFromExcel, uploadMedia } from '../api/test.api';
 import './TestDetail.css';
 import '../pages/TestList.css'; // Reuse modal classes
@@ -250,11 +250,27 @@ const TestDetail: React.FC = () => {
                       <div className="question-meta">
                         <span className="question-badge">{getQuestionTypeLabel(q.questionType)}</span>
                         <span className="question-badge">{q.points} điểm</span>
-                        <span className="question-badge" style={{ color: '#0284c7', fontWeight: 600 }}>⭐ Elo {q.difficultyElo || 1200}</span>
-                        <span className="question-badge" style={{ color: '#059669', fontWeight: 600 }}>🎯 {q.skillCategory || 'Vocabulary'}</span>
-                        {q.topic && <span className="question-badge" style={{ color: '#6366f1' }}>🏷️ {q.topic}</span>}
-                        {q.audioUrl && <span className="question-badge" style={{ color: '#3b82f6' }}>🎵 Có Audio</span>}
-                        {q.imageUrl && <span className="question-badge" style={{ color: '#8b5cf6' }}>🖼️ Có Ảnh</span>}
+                        <span className="question-badge" style={{ color: '#0284c7', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <Star size={13} /> Elo {q.difficultyElo || 1200}
+                        </span>
+                        <span className="question-badge" style={{ color: '#059669', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <Target size={13} /> {q.skillCategory || 'Vocabulary'}
+                        </span>
+                        {q.topic && (
+                          <span className="question-badge" style={{ color: '#6366f1', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                            <Tag size={13} /> {q.topic}
+                          </span>
+                        )}
+                        {q.audioUrl && (
+                          <span className="question-badge" style={{ color: '#3b82f6', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                            <Music size={13} /> Có Audio
+                          </span>
+                        )}
+                        {q.imageUrl && (
+                          <span className="question-badge" style={{ color: '#8b5cf6', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                            <ImageIcon size={13} /> Có Ảnh
+                          </span>
+                        )}
                       </div>
                     </div>
                     <div className="test-card-actions">
@@ -460,8 +476,8 @@ const TestDetail: React.FC = () => {
                         </div>
                       ))}
 
-                      <button type="button" className="add-answer-btn" onClick={handleAddAnswerRow}>
-                        + Thêm một đáp án
+                      <button type="button" className="add-answer-btn" onClick={handleAddAnswerRow} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                        <Plus size={16} /> Thêm một đáp án
                       </button>
                     </div>
                   </div>

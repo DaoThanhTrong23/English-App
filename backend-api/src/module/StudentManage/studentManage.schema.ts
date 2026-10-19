@@ -17,9 +17,25 @@ export const StudentIdParamSchema = z.object({
     query: z.object({}),
     body: z.object({}),
     params: z.object({
-        id: z.coerce.number().int().positive("ID của học viên học hợp lệ")
+        id: z.coerce.number().int().positive("ID của học viên không hợp lệ")
     })
-})
+});
+
+export const UpdateStudentStatusSchema = z.object({
+    query: z.object({}),
+    params: z.object({
+        id: z.coerce.number().int().positive("ID của học viên không hợp lệ")
+    }),
+    body: z.object({
+        isLocked: z.preprocess((val) => {
+            if (typeof val === "boolean") return val;
+            if (val === "true" || val === 1 || val === "1") return true;
+            if (val === "false" || val === 0 || val === "0") return false;
+            return val;
+        }, z.boolean({ invalid_type_error: "isLocked phải là boolean (true/false)", required_error: "isLocked không được để trống" }))
+    })
+});
 
 export type GetStudentQueryInput = z.infer<typeof GetStudentQuerySchema>["query"];
 export type StudentIdParamInput = z.infer<typeof StudentIdParamSchema>["params"];
+export type UpdateStudentStatusInput = z.infer<typeof UpdateStudentStatusSchema>;

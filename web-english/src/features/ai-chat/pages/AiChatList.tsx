@@ -25,7 +25,8 @@ import {
   Activity,
   ChevronRight,
   Filter,
-  CheckCircle2
+  CheckCircle2,
+  X
 } from 'lucide-react';
 import './AiChatList.css';
 
@@ -227,7 +228,9 @@ const AiChatList: React.FC = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
               {searchTerm && (
-                <button className="clear-search-btn" onClick={() => setSearchTerm('')}>&times;</button>
+                <button className="clear-search-btn" onClick={() => setSearchTerm('')} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <X size={14} />
+                </button>
               )}
             </div>
 
@@ -354,7 +357,9 @@ const AiChatList: React.FC = () => {
                       onChange={(e) => setChatSearch(e.target.value)}
                     />
                     {chatSearch && (
-                      <button onClick={() => setChatSearch('')}>&times;</button>
+                      <button onClick={() => setChatSearch('')} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <X size={14} />
+                      </button>
                     )}
                   </div>
 

@@ -4,11 +4,12 @@ import { logExecution } from "../../shared/decorators/log.decorator.js";
 export class AuthRepository {
     @logExecution()
     async findUserbyIdentifier(identifier: string) {
+        const clean = identifier.trim();
         return prisma.user.findFirst({
             where: {
                 OR: [
-                    { email: identifier },
-                    { username: identifier }
+                    { email: clean.toLowerCase() },
+                    { username: clean }
                 ]
             }
         });
@@ -16,15 +17,15 @@ export class AuthRepository {
 
     @logExecution()
     async findUserByUsername(username: string) {
-        return prisma.user.findUnique({
-            where: { username }
+        return prisma.user.findFirst({
+            where: { username: username.trim() }
         });
     }
 
     @logExecution()
     async findUserByEmail(email: string) {
-        return prisma.user.findUnique({
-            where: { email }
+        return prisma.user.findFirst({
+            where: { email: email.trim().toLowerCase() }
         });
     }
 
@@ -39,9 +40,9 @@ export class AuthRepository {
     async createUser(data: { username: string; email: string; passwordHash: string }) {
         return prisma.user.create({
             data: {
-                username: data.username,
+                username: data.username.trim(),
                 passwordHash: data.passwordHash,
-                email: data.email
+                email: data.email.trim().toLowerCase()
             },
             select: {
                 id: true,

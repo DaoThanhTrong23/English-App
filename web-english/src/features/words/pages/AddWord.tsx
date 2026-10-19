@@ -1,20 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Search, FileUp, Save, UploadCloud, Type, Image as ImageIcon, Volume2, ArrowLeft } from 'lucide-react';
+import { Search, FileUp, Save, UploadCloud, Type, Image as ImageIcon, Volume2, ArrowLeft, Download, CheckCircle, AlertTriangle, FileSpreadsheet } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import './AddWord.css';
-import { fetchTopics } from '../api/words.api';
+import { fetchTopics, createWord, createBulkWords } from '../api/words.api';
 
 const AddWord: React.FC = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'manual' | 'file'>('manual');
   
   // States for file upload
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [parsedWords, setParsedWords] = useState<any[]>([]);
   const [uploadSuccess, setUploadSuccess] = useState<string>('');
+  const [parseError, setParseError] = useState<string>('');
 
   const [searchEn, setSearchEn] = useState('');
   const [searchVi, setSearchVi] = useState('');
@@ -212,75 +216,153 @@ const AddWord: React.FC = () => {
   };
 
   const handleSaveWord = async () => {
-    if (!wordData.headword) {
+    if (!wordData.headword.trim()) {
       alert('Vui lòng nhập từ vựng (Headword)');
       return;
     }
 
     try {
-      const { createWord } = await import('../api/words.api');
       await createWord(wordData);
-      setSearchEn('');
-      setSearchVi('');
+      alert(`Đã thêm từ vựng "${wordData.headword}" thành công!`);
+      navigate('/admin/words');
     } catch (error: any) {
       alert("Lỗi khi lưu từ vựng: " + (error.response?.data?.message || error.message));
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setSelectedFile(e.target.files[0]);
-      setUploadSuccess('');
-    }
+  const handleDownloadTemplate = () => {
+    const templateData = [
+      {
+        headword: 'apple',
+        partOfSpeech: 'noun',
+        cefrLevel: 'A1',
+        phonetic: '/ˈæp.əl/',
+        meaning: 'quả táo',
+        exampleSentence: 'I eat an apple every day.',
+        audioUrl: '',
+        imageUrl: ''
+      },
+      {
+        headword: 'beautiful',
+        partOfSpeech: 'adjective',
+        cefrLevel: 'A2',
+        phonetic: '/ˈbjuː.tɪ.fəl/',
+        meaning: 'xinh đẹp, tươi đẹp',
+        exampleSentence: 'She has a beautiful voice.',
+        audioUrl: '',
+        imageUrl: ''
+      },
+      {
+        headword: 'achieve',
+        partOfSpeech: 'verb',
+        cefrLevel: 'B1',
+        phonetic: '/əˈtʃiːv/',
+        meaning: 'đạt được, hoàn thành',
+        exampleSentence: 'They achieved great success through hard work.',
+        audioUrl: '',
+        imageUrl: ''
+      }
+    ];
+
+    const ws = XLSX.utils.json_to_sheet(templateData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Words');
+    XLSX.writeFile(wb, 'mau_danh_sach_tu_vung.xlsx');
   };
 
-  const handleFileUpload = async () => {
-    if (!selectedFile) {
-      alert('Vui lòng chọn file Excel hoặc CSV!');
-      return;
-    }
-
-    setIsUploading(true);
+  const processFile = (file: File) => {
+    setSelectedFile(file);
     setUploadSuccess('');
+    setParseError('');
+    setParsedWords([]);
 
     const reader = new FileReader();
-    reader.onload = async (e) => {
+    reader.onload = (e) => {
       try {
         const data = e.target?.result;
         const workbook = XLSX.read(data, { type: 'binary' });
         const sheetName = workbook.SheetNames[0];
         const sheet = workbook.Sheets[sheetName];
-        const parsedData = XLSX.utils.sheet_to_json(sheet);
+        const rawData = XLSX.utils.sheet_to_json(sheet) as any[];
 
-        if (parsedData.length === 0) {
-          alert('File không có dữ liệu hợp lệ.');
-          setIsUploading(false);
+        if (!rawData || rawData.length === 0) {
+          setParseError('Tập tin không chứa dòng dữ liệu nào.');
           return;
         }
 
-        // Validate basic headers
-        const firstRow: any = parsedData[0];
-        if (!firstRow.headword) {
-          alert('Thiếu cột bắt buộc "headword" trong file.');
-          setIsUploading(false);
+        const normalized: any[] = [];
+        for (const row of rawData) {
+          const getVal = (keys: string[]) => {
+            for (const k of keys) {
+              const match = Object.keys(row).find(key => key.trim().toLowerCase() === k.toLowerCase());
+              if (match && row[match] !== undefined && row[match] !== null && String(row[match]).trim() !== '') {
+                return String(row[match]).trim();
+              }
+            }
+            return null;
+          };
+
+          const headword = getVal(['headword', 'word', 'từ vựng', 'tu vung', 'từ', 'head_word']);
+          if (!headword) continue;
+
+          normalized.push({
+            headword,
+            partOfSpeech: getVal(['partofspeech', 'pos', 'loại từ', 'từ loại', 'tu loai', 'part_of_speech']),
+            cefrLevel: getVal(['cefrlevel', 'cefr', 'level', 'cấp độ', 'cap do', 'cefr_level']),
+            phonetic: getVal(['phonetic', 'phiên âm', 'phien am', 'ipa']),
+            meaning: getVal(['meaning', 'nghĩa', 'nghia', 'dịch nghĩa', 'dich nghia']),
+            exampleSentence: getVal(['examplesentence', 'example', 'ví dụ', 'vi du', 'câu ví dụ', 'example_sentence']),
+            audioUrl: getVal(['audiourl', 'audio', 'phát âm', 'audio_url']),
+            imageUrl: getVal(['imageurl', 'image', 'hình ảnh', 'hinh anh', 'image_url'])
+          });
+        }
+
+        if (normalized.length === 0) {
+          setParseError('Không tìm thấy từ vựng hợp lệ. Vui lòng đảm bảo có cột "headword" hoặc "Từ vựng".');
           return;
         }
 
-        const { createBulkWords } = await import('../api/words.api');
-        const res = await createBulkWords(parsedData as any[]);
-        
-        setUploadSuccess(`Đã upload thành công ${parsedData.length} từ vựng!`);
-        setSelectedFile(null);
-        alert(`Thêm hàng loạt ${parsedData.length} từ vựng thành công!`);
-      } catch (error) {
-        console.error('Error parsing/uploading file:', error);
-        alert('Có lỗi xảy ra khi đọc file hoặc lưu dữ liệu.');
-      } finally {
-        setIsUploading(false);
+        setParsedWords(normalized);
+      } catch (err: any) {
+        console.error('Lỗi đọc file:', err);
+        setParseError('Không thể đọc tập tin: ' + (err.message || 'Định dạng không hỗ trợ'));
       }
     };
-    
-    reader.readAsBinaryString(selectedFile);
+    reader.readAsBinaryString(file);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      processFile(e.target.files[0]);
+    }
+  };
+
+  const handleFileUpload = async () => {
+    if (parsedWords.length === 0) {
+      alert('Vui lòng chọn file chứa từ vựng hợp lệ!');
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadSuccess('');
+    setParseError('');
+
+    try {
+      await createBulkWords(parsedWords);
+      setUploadSuccess(`Đã thêm thành công ${parsedWords.length} từ vựng vào hệ thống!`);
+      alert(`Đã thêm thành công ${parsedWords.length} từ vựng vào hệ thống!`);
+      setSelectedFile(null);
+      setParsedWords([]);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      navigate('/admin/words');
+    } catch (error: any) {
+      console.error('Error uploading words:', error);
+      const msg = error.response?.data?.message || 'Có lỗi xảy ra khi lưu dữ liệu từ vựng.';
+      setParseError(msg);
+      alert('Lỗi: ' + msg);
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
@@ -449,37 +531,120 @@ const AddWord: React.FC = () => {
 
           {activeTab === 'file' && (
             <div className="file-tab">
-              <div className="upload-area">
+              <div 
+                className={`upload-area ${isDragging ? 'dragging' : ''}`}
+                onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                onDragLeave={() => setIsDragging(false)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setIsDragging(false);
+                  if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                    processFile(e.dataTransfer.files[0]);
+                  }
+                }}
+              >
                 <div className="upload-placeholder">
                   <FileUp size={48} className="upload-icon-svg" />
                 </div>
-                <h3>Kéo thả tập tin vào đây</h3>
-                <p>Hỗ trợ định dạng CSV, XLS, XLSX</p>
+                <h3>Kéo thả tập tin vào đây hoặc bấm nút bên dưới</h3>
+                <p>Hỗ trợ định dạng Excel (.xlsx, .xls) hoặc CSV</p>
                 <input 
                   type="file" 
+                  ref={fileInputRef}
                   className="file-input" 
                   accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" 
                   onChange={handleFileChange}
                 />
-                <button className="browse-btn"><UploadCloud size={16} /> Chọn Tập Tin</button>
-                {selectedFile && <p style={{ marginTop: '10px', color: '#10b981', fontWeight: 'bold' }}>Đã chọn: {selectedFile.name}</p>}
-                {uploadSuccess && <p style={{ marginTop: '10px', color: '#3b82f6', fontWeight: 'bold' }}>{uploadSuccess}</p>}
+                <button 
+                  type="button" 
+                  className="browse-btn" 
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <UploadCloud size={16} /> Chọn Tập Tin
+                </button>
+
+                {selectedFile && (
+                  <div style={{ marginTop: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', color: '#10b981', fontWeight: 600 }}>
+                    <FileSpreadsheet size={18} />
+                    <span>Đã chọn: {selectedFile.name} ({parsedWords.length} từ vựng hợp lệ)</span>
+                  </div>
+                )}
+                {parseError && (
+                  <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', color: '#ef4444', fontWeight: 600 }}>
+                    <AlertTriangle size={16} />
+                    <span>{parseError}</span>
+                  </div>
+                )}
+                {uploadSuccess && (
+                  <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', color: '#16a34a', fontWeight: 600 }}>
+                    <CheckCircle size={16} />
+                    <span>{uploadSuccess}</span>
+                  </div>
+                )}
               </div>
 
               <div className="file-requirements">
-                <h4>Yêu cầu cấu trúc file</h4>
-                <p>Tập tin cần có dòng tiêu đề (Header) với 8 trường dữ liệu sau:</p>
-                <code>headword, partOfSpeech, cefrLevel, phonetic, audioUrl, imageUrl, meaning, exampleSentence</code>
-                <p className="note">Ghi chú: Trường ID và thời gian sẽ được hệ thống khởi tạo tự động.</p>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
+                  <div>
+                    <h4>Yêu cầu cấu trúc file</h4>
+                    <p style={{ margin: '4px 0', color: '#475569' }}>Tập tin cần có dòng tiêu đề (Header) với các trường dữ liệu sau:</p>
+                    <code>headword, partOfSpeech, cefrLevel, phonetic, audioUrl, imageUrl, meaning, exampleSentence</code>
+                    <p className="note" style={{ margin: '4px 0', fontSize: '0.85rem', color: '#64748b' }}>
+                      (Hệ thống tự động nhận diện cả tên cột tiếng Việt như: <em>Từ vựng, Loại từ, Cấp độ, Phiên âm, Nghĩa, Ví dụ</em>)
+                    </p>
+                  </div>
+                  <button type="button" className="download-template-btn" onClick={handleDownloadTemplate}>
+                    <Download size={16} /> Tải file mẫu (.xlsx)
+                  </button>
+                </div>
               </div>
+
+              {parsedWords.length > 0 && (
+                <div className="file-preview-table-container">
+                  <div className="file-preview-header">
+                    <strong>Xem trước dữ liệu ({parsedWords.length} từ vựng sẵn sàng thêm)</strong>
+                    <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Hiển thị tối đa 5 từ đầu tiên</span>
+                  </div>
+                  <div style={{ overflowX: 'auto' }}>
+                    <table className="file-preview-table">
+                      <thead>
+                        <tr>
+                          <th>STT</th>
+                          <th>Từ vựng (Headword)</th>
+                          <th>Loại từ</th>
+                          <th>Cấp độ</th>
+                          <th>Phiên âm</th>
+                          <th>Nghĩa tiếng Việt</th>
+                          <th>Ví dụ</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {parsedWords.slice(0, 5).map((w, idx) => (
+                          <tr key={idx}>
+                            <td>{idx + 1}</td>
+                            <td><strong>{w.headword}</strong></td>
+                            <td>{w.partOfSpeech || '-'}</td>
+                            <td>{w.cefrLevel || '-'}</td>
+                            <td>{w.phonetic || '-'}</td>
+                            <td>{w.meaning || '-'}</td>
+                            <td style={{ maxWidth: '250px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              {w.exampleSentence || '-'}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
 
               <div className="form-actions">
                 <button 
                   className="save-btn upload-btn" 
                   onClick={handleFileUpload}
-                  disabled={isUploading || !selectedFile}
+                  disabled={isUploading || parsedWords.length === 0}
                 >
-                  <Save size={18} /> {isUploading ? 'Đang tải lên...' : 'Thêm dữ liệu'}
+                  <Save size={18} /> {isUploading ? 'Đang thêm vào hệ thống...' : `Thêm ${parsedWords.length > 0 ? parsedWords.length : ''} từ vào hệ thống`}
                 </button>
               </div>
             </div>

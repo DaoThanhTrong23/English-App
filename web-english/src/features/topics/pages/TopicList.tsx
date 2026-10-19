@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminLayout from '../../../components/layout/AdminLayout';
-import { Plus, Edit, Trash2, BookOpen } from 'lucide-react';
+import { Plus, Edit, Trash2, BookOpen, ArrowUp, ArrowDown } from 'lucide-react';
 import { fetchTopics, createTopic, updateTopic, deleteTopic } from '../api/topic.api';
 import '../../courses/pages/CourseList.css';
 
@@ -132,8 +132,10 @@ const TopicList: React.FC = () => {
                     <th>Tên chủ đề</th>
                     <th>Mô tả</th>
                     <th onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')} style={{ cursor: 'pointer', userSelect: 'none', color: '#2563eb' }} title="Bấm để sắp xếp">
-                    Cấp độ {sortOrder === 'asc' ? '↑' : '↓'}
-                  </th>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                        Cấp độ {sortOrder === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />}
+                      </span>
+                    </th>
                     <th>Số bài học</th>
                     <th>Ngày tạo</th>
                     <th>Hành động</th>

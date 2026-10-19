@@ -6,6 +6,7 @@ import './StudentList.css';
 import '../../words/pages/WordList.css'; // For Dashboard Layout styles
 
 import AdminLayout from '../../../components/layout/AdminLayout';
+import { Lock, Unlock, CheckCircle2, Eye, X } from 'lucide-react';
 
 const StudentList: React.FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
@@ -49,10 +50,19 @@ const StudentList: React.FC = () => {
   };
   
 
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [search]);
+
   const loadStudents = async () => {
     setLoading(true);
     try {
-      const res = await getStudents({ page, limit, search });
+      const res = await getStudents({ page, limit, search: debouncedSearch });
       if (res.success) {
         setStudents(res.data.items);
         setTotal(res.data.pagination.totalItems);
@@ -67,7 +77,7 @@ const StudentList: React.FC = () => {
 
   useEffect(() => {
     loadStudents();
-  }, [page, search]);
+  }, [page, debouncedSearch]);
 
   const handleViewDetail = async (id: number) => {
     try {
@@ -147,7 +157,7 @@ const StudentList: React.FC = () => {
                             alignItems: 'center',
                             gap: '4px'
                           }}>
-                            🔒 Đã khóa
+                            <Lock size={13} /> Đã khóa
                           </span>
                         ) : (
                           <span style={{ 
@@ -161,7 +171,7 @@ const StudentList: React.FC = () => {
                             alignItems: 'center',
                             gap: '4px'
                           }}>
-                            ✓ Hoạt động
+                            <CheckCircle2 size={13} /> Hoạt động
                           </span>
                         )}
                       </td>
@@ -183,8 +193,8 @@ const StudentList: React.FC = () => {
                       </td>
                       <td>
                         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                          <button className="view-btn" onClick={() => handleViewDetail(st.id)}>
-                            Xem chi tiết
+                          <button className="view-btn" onClick={() => handleViewDetail(st.id)} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                            <Eye size={14} /> Xem chi tiết
                           </button>
                           {st.isLocked ? (
                             <button 
@@ -196,12 +206,15 @@ const StudentList: React.FC = () => {
                                 padding: '6px 12px',
                                 cursor: 'pointer',
                                 fontSize: '0.85rem',
-                                fontWeight: 600
+                                fontWeight: 600,
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px'
                               }}
                               onClick={() => handleToggleLock(st.id, true, st.username)}
                               title="Mở khóa tài khoản học viên"
                             >
-                              Mở khóa
+                              <Unlock size={14} /> Mở khóa
                             </button>
                           ) : (
                             <button 
@@ -213,12 +226,15 @@ const StudentList: React.FC = () => {
                                 padding: '6px 12px',
                                 cursor: 'pointer',
                                 fontSize: '0.85rem',
-                                fontWeight: 600
+                                fontWeight: 600,
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px'
                               }}
                               onClick={() => handleToggleLock(st.id, false, st.username)}
                               title="Khóa tài khoản học viên"
                             >
-                              Khóa
+                              <Lock size={14} /> Khóa
                             </button>
                           )}
                         </div>
@@ -276,11 +292,14 @@ const StudentList: React.FC = () => {
                         padding: '6px 14px',
                         fontSize: '0.85rem',
                         fontWeight: 'bold',
-                        cursor: 'pointer'
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px'
                       }}
                       onClick={() => handleToggleLock(selectedStudent.profile.id, true, selectedStudent.profile.username)}
                     >
-                      Mở khóa tài khoản
+                      <Unlock size={16} /> Mở khóa tài khoản
                     </button>
                   ) : (
                     <button
@@ -292,15 +311,20 @@ const StudentList: React.FC = () => {
                         padding: '6px 14px',
                         fontSize: '0.85rem',
                         fontWeight: 'bold',
-                        cursor: 'pointer'
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px'
                       }}
                       onClick={() => handleToggleLock(selectedStudent.profile.id, false, selectedStudent.profile.username)}
                     >
-                      Khóa tài khoản
+                      <Lock size={16} /> Khóa tài khoản
                     </button>
                   )}
                 </div>
-                <button className="close-btn" onClick={() => setSelectedStudent(null)}>&times;</button>
+                <button className="close-btn" onClick={() => setSelectedStudent(null)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <X size={20} />
+                </button>
               </div>
 
               <div className="student-details-grid">
@@ -310,9 +334,13 @@ const StudentList: React.FC = () => {
                     <span className="detail-label">Trạng thái:</span>
                     <span className="detail-value">
                       {selectedStudent.profile.isLocked ? (
-                        <span style={{ color: '#dc2626', fontWeight: 600 }}>🔒 Đã khóa tài khoản</span>
+                        <span style={{ color: '#dc2626', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <Lock size={14} /> Đã khóa tài khoản
+                        </span>
                       ) : (
-                        <span style={{ color: '#16a34a', fontWeight: 600 }}>✓ Đang hoạt động</span>
+                        <span style={{ color: '#16a34a', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <CheckCircle2 size={14} /> Đang hoạt động
+                        </span>
                       )}
                     </span>
                   </div>

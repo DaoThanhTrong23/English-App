@@ -32,15 +32,61 @@ export class OnboardingService {
       this.loadQuestionBank();
     }
     
-    // Lấy ngẫu nhiên số câu theo cấu hình để làm test
-    const count = FAME_KT_CONFIG.TEST_SETTINGS.PLACEMENT_QUESTIONS_COUNT;
-    const shuffled = [...this.questionBank].sort(() => 0.5 - Math.random());
-    return shuffled.slice(0, count).map(q => ({
+    const count = FAME_KT_CONFIG.TEST_SETTINGS.PLACEMENT_QUESTIONS_COUNT || 15;
+    const levels = ['A1', 'A2', 'B1', 'B2', 'C1'];
+    const perLevel = Math.max(1, Math.floor(count / levels.length)); // 3 câu mỗi cấp độ
+
+    const selectedQuestions: any[] = [];
+    const globalSkillCounts: Record<string, number> = { Grammar: 0, Vocabulary: 0, Reading: 0, Listening: 0 };
+
+    // Chọn đều theo từng cấp độ CEFR và cân bằng chuẩn 4 kỹ năng
+    levels.forEach(lvl => {
+      const levelQuestions = this.questionBank.filter(q => q.cefr === lvl);
+      if (levelQuestions.length > 0) {
+        // Xáo trộn ngẫu nhiên trước để tạo sự đa dạng
+        const shuffled = [...levelQuestions].sort(() => 0.5 - Math.random());
+        // Sắp xếp ưu tiên các kỹ năng đang có ít câu hỏi nhất trong đề
+        shuffled.sort((a, b) => (globalSkillCounts[a.skillCategory] || 0) - (globalSkillCounts[b.skillCategory] || 0));
+
+        const chosen: any[] = [];
+        const usedSkills = new Set<string>();
+
+        // Ưu tiên chọn các câu thuộc các kỹ năng khác nhau trong cùng bậc
+        for (const q of shuffled) {
+          if (!usedSkills.has(q.skillCategory) && chosen.length < perLevel) {
+            chosen.push(q);
+            usedSkills.add(q.skillCategory);
+            globalSkillCounts[q.skillCategory] = (globalSkillCounts[q.skillCategory] || 0) + 1;
+          }
+        }
+        // Nếu chưa đủ số lượng của bậc đó, lấy thêm từ các câu còn lại
+        for (const q of shuffled) {
+          if (chosen.length < perLevel && !chosen.some(c => c.id === q.id)) {
+            chosen.push(q);
+            globalSkillCounts[q.skillCategory] = (globalSkillCounts[q.skillCategory] || 0) + 1;
+          }
+        }
+        selectedQuestions.push(...chosen);
+      }
+    });
+
+    // Nếu chưa đủ count, bổ sung từ các câu còn lại trong ngân hàng
+    if (selectedQuestions.length < count) {
+      const remaining = this.questionBank.filter(q => !selectedQuestions.some(s => s.id === q.id));
+      const extra = [...remaining].sort(() => 0.5 - Math.random()).slice(0, count - selectedQuestions.length);
+      selectedQuestions.push(...extra);
+    }
+
+    const finalSet = selectedQuestions.slice(0, count);
+
+    return finalSet.map(q => ({
       id: q.id,
       question: q.question,
       options: q.options,
       skillCategory: q.skillCategory,
-      topic: q.topic
+      topic: q.topic,
+      audioText: q.audioText || null,
+      cefr: q.cefr
     }));
   }
 

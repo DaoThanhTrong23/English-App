@@ -203,6 +203,10 @@ export class AuthService {
 
         const currentUser = user!;
 
+        if (currentUser.isLocked) {
+            throw new ApiError(403, "account_locked", "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ Quản trị viên để được mở khóa!");
+        }
+
         const sessionId = generatedSessionId();
         const { accessToken, refreshToken } = await this.createToken(currentUser.id, currentUser.role, sessionId, deviceInfo);
 
@@ -241,6 +245,9 @@ export class AuthService {
         const savedToken = await this.authRepo.findRefreshTokenByHash(oldRefreshTokenHash);
         if (!savedToken) {
             throw new ApiError(401, "token_not_found", "Refresh Token không tồn tại hoặc không hợp lệ");
+        }
+        if (savedToken.user.isLocked) {
+            throw new ApiError(403, "account_locked", "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ Quản trị viên để được mở khóa!");
         }
         if (savedToken.isRevoked) {
             await this.authRepo.revokeAllSessionToken(savedToken.sessionId);
@@ -342,21 +349,44 @@ export class AuthService {
     @logExecution()
     @recordActivity("USER_REGISTER", (result) => `Đăng ký tài khoản mới: ${result.user?.username || result.username}`)
     async register(data: RegisterInput, clientIp?: string) {
+        const cleanEmail = (data.email || "").trim().toLowerCase();
+        const cleanUsername = (data.username || "").trim();
+
+        // 1. Kiểm tra song song sự tồn tại của cả Email và Tên đăng nhập
         const [existingEmail, existingUsername] = await Promise.all([
-            this.authRepo.findUserByEmail(data.email),
-            this.authRepo.findUserByUsername(data.username),
+            this.authRepo.findUserByEmail(cleanEmail),
+            this.authRepo.findUserByUsername(cleanUsername),
         ]);
-        if (existingEmail) {
-            throw new ApiError(409, "email_already_exists", "Email này đã được đăng ký");
+
+        // 2. Chặn tạo tài khoản nếu cả 2 hoặc 1 trong 2 đã bị trùng
+        if (existingEmail && existingUsername) {
+            throw new ApiError(
+                409,
+                "credential_already_exists",
+                "Cả email và tên đăng nhập này đều đã được đăng ký tài khoản khác. Vui lòng chọn email và tên đăng nhập khác."
+            );
         }
+
+        if (existingEmail) {
+            throw new ApiError(
+                409,
+                "email_already_exists",
+                "Email này đã được sử dụng. Vui lòng chọn email khác hoặc đăng nhập."
+            );
+        }
+
         if (existingUsername) {
-            throw new ApiError(409, "username_already_exists", "Username này đã được sử dụng");
+            throw new ApiError(
+                409,
+                "username_already_exists",
+                "Tên đăng nhập này đã tồn tại. Vui lòng chọn tên đăng nhập khác."
+            );
         }
 
         const passwordHash = await bcryptHash(data.password);
         const newUser = await this.authRepo.createUser({
-            username: data.username,
-            email: data.email,
+            username: cleanUsername,
+            email: cleanEmail,
             passwordHash,
         });
 
@@ -421,6 +451,23 @@ export class AuthService {
         });
 
         return { message: "Đổi mật khẩu thành công" };
+    }
+
+    async checkAvailability(email?: string, username?: string) {
+        const cleanEmail = email ? email.trim().toLowerCase() : undefined;
+        const cleanUsername = username ? username.trim() : undefined;
+
+        const [existingEmail, existingUsername] = await Promise.all([
+            cleanEmail ? this.authRepo.findUserByEmail(cleanEmail) : Promise.resolve(null),
+            cleanUsername ? this.authRepo.findUserByUsername(cleanUsername) : Promise.resolve(null),
+        ]);
+
+        return {
+            emailAvailable: cleanEmail ? !existingEmail : true,
+            usernameAvailable: cleanUsername ? !existingUsername : true,
+            emailMessage: existingEmail ? "Email này đã được sử dụng" : undefined,
+            usernameMessage: existingUsername ? "Tên đăng nhập này đã tồn tại" : undefined,
+        };
     }
 }
 

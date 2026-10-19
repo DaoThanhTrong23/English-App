@@ -1,9 +1,10 @@
 import { Tabs, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { StyleSheet, View, Animated, PanResponder, Dimensions, Image } from 'react-native';
+import { StyleSheet, View, Animated, PanResponder, Dimensions, Image, AppState } from 'react-native';
 import { useEffect, useRef } from 'react';
 import * as SecureStore from 'expo-secure-store';
 import { useAppTheme } from '../../context/ThemeContext';
+import { axiosClient } from '../../api/axiosClient';
 
 const BUBBLE_SIZE = 56;
 const PADDING = 16;
@@ -123,6 +124,8 @@ export default function TabLayout() {
   const router = useRouter();
   
   useEffect(() => {
+    let isMounted = true;
+
     const checkOnboarding = async () => {
       try {
         const userInfoStr = await SecureStore.getItemAsync('userInfo');
@@ -138,6 +141,41 @@ export default function TabLayout() {
       }
     };
     checkOnboarding();
+
+    // Kiểm tra định kỳ trạng thái khóa tài khoản theo thời gian thực (Heartbeat)
+    const checkAccountStatus = async () => {
+      try {
+        const token = await SecureStore.getItemAsync('accessToken');
+        if (!token) {
+          router.replace('/(auth)/login');
+          return;
+        }
+        // Gọi API để middleware Authenticate kiểm tra isLocked trong DB
+        await axiosClient.get('/profile/me');
+      } catch (e) {
+        // Nếu tài khoản bị Admin khóa (403 account_locked), axiosClient interceptor sẽ tự động xóa phiên, hiện thông báo và chuyển về login
+      }
+    };
+
+    checkAccountStatus();
+
+    // Heartbeat mỗi 5 giây để ngắt phiên ngay lập tức khi Admin bấm khóa
+    const timer = setInterval(() => {
+      if (isMounted) checkAccountStatus();
+    }, 5000);
+
+    // Kiểm tra ngay khi người dùng mở lại app từ chế độ nền (background -> active)
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') {
+        checkAccountStatus();
+      }
+    });
+
+    return () => {
+      isMounted = false;
+      clearInterval(timer);
+      subscription.remove();
+    };
   }, []);  
   const { theme } = useAppTheme();
 

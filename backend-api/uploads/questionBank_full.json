@@ -1,7 +1,7 @@
 [
   {
-    "id": "q_001",
-    "question": "I ___ a student.",
+    "id": "q_a1_g01",
+    "question": "I ___ a student at the university.",
     "options": [
       "am",
       "is",
@@ -15,738 +15,1513 @@
     "cefr": "A1"
   },
   {
-    "id": "q_002",
-    "question": "She ___ to the store every morning.",
+    "id": "q_a1_g02",
+    "question": "She ___ to the market every morning.",
     "options": [
-      "go",
       "goes",
+      "go",
       "going",
       "gone"
     ],
     "correct": "goes",
     "difficultyElo": 950,
     "skillCategory": "Grammar",
-    "topic": "General English",
+    "topic": "Daily Life",
     "cefr": "A1"
   },
   {
-    "id": "q_003",
-    "question": "They ___ playing football now.",
+    "id": "q_a1_g03",
+    "question": "They ___ playing football in the park right now.",
     "options": [
-      "am",
-      "is",
       "are",
+      "is",
+      "am",
       "be"
     ],
     "correct": "are",
     "difficultyElo": 980,
     "skillCategory": "Grammar",
-    "topic": "General English",
+    "topic": "Sports & Hobbies",
     "cefr": "A1"
   },
   {
-    "id": "q_004",
-    "question": "What ___ your name?",
+    "id": "q_a1_g04",
+    "question": "He doesn't ___ a car, so he takes the bus.",
     "options": [
-      "am",
-      "is",
-      "are",
-      "be"
-    ],
-    "correct": "is",
-    "difficultyElo": 900,
-    "skillCategory": "Grammar",
-    "topic": "General English",
-    "cefr": "A1"
-  },
-  {
-    "id": "q_005",
-    "question": "I have two ___.",
-    "options": [
-      "childs",
-      "childrens",
-      "child",
-      "children"
-    ],
-    "correct": "children",
-    "difficultyElo": 1050,
-    "skillCategory": "Vocabulary",
-    "topic": "General English",
-    "cefr": "A1"
-  },
-  {
-    "id": "q_006",
-    "question": "He doesn't ___ a car.",
-    "options": [
-      "has",
       "have",
+      "has",
       "having",
       "had"
     ],
     "correct": "have",
     "difficultyElo": 1000,
     "skillCategory": "Grammar",
-    "topic": "General English",
+    "topic": "Transportation",
     "cefr": "A1"
   },
   {
-    "id": "q_007",
-    "question": "My mother's brother is my ___.",
-    "options": [
-      "uncle",
-      "aunt",
-      "cousin",
-      "nephew"
-    ],
-    "correct": "uncle",
-    "difficultyElo": 950,
-    "skillCategory": "Vocabulary",
-    "topic": "General English",
-    "cefr": "A1"
-  },
-  {
-    "id": "q_008",
-    "question": "Read: 'Open from 9 AM to 5 PM'. What time does it close?",
-    "options": [
-      "9 AM",
-      "12 PM",
-      "5 PM",
-      "9 PM"
-    ],
-    "correct": "5 PM",
-    "difficultyElo": 920,
-    "skillCategory": "Reading",
-    "topic": "General English",
-    "cefr": "A1"
-  },
-  {
-    "id": "q_009",
-    "question": "We ___ breakfast at 7 o'clock.",
-    "options": [
-      "make",
-      "do",
-      "have",
-      "take"
-    ],
-    "correct": "have",
-    "difficultyElo": 1080,
-    "skillCategory": "Vocabulary",
-    "topic": "General English",
-    "cefr": "A1"
-  },
-  {
-    "id": "q_010",
+    "id": "q_a1_g05",
     "question": "Where ___ you from?",
     "options": [
-      "do",
       "are",
       "is",
-      "does"
+      "am",
+      "do"
     ],
     "correct": "are",
-    "difficultyElo": 900,
+    "difficultyElo": 920,
     "skillCategory": "Grammar",
-    "topic": "General English",
+    "topic": "Introductions",
     "cefr": "A1"
   },
   {
-    "id": "q_011",
-    "question": "I ___ to London last year.",
+    "id": "q_a1_v01",
+    "question": "My father's sister is my ___.",
     "options": [
-      "go",
+      "aunt",
+      "uncle",
+      "cousin",
+      "niece"
+    ],
+    "correct": "aunt",
+    "difficultyElo": 940,
+    "skillCategory": "Vocabulary",
+    "topic": "Family",
+    "cefr": "A1"
+  },
+  {
+    "id": "q_a1_v02",
+    "question": "I usually have ___ at 7:00 in the morning.",
+    "options": [
+      "breakfast",
+      "lunch",
+      "dinner",
+      "supper"
+    ],
+    "correct": "breakfast",
+    "difficultyElo": 960,
+    "skillCategory": "Vocabulary",
+    "topic": "Daily Life",
+    "cefr": "A1"
+  },
+  {
+    "id": "q_a1_v03",
+    "question": "The cat is sleeping ___ the table.",
+    "options": [
+      "under",
+      "between",
+      "among",
+      "during"
+    ],
+    "correct": "under",
+    "difficultyElo": 980,
+    "skillCategory": "Vocabulary",
+    "topic": "Prepositions",
+    "cefr": "A1"
+  },
+  {
+    "id": "q_a1_v04",
+    "question": "Mr. John works in a hospital. He is a ___.",
+    "options": [
+      "doctor",
+      "pilot",
+      "farmer",
+      "singer"
+    ],
+    "correct": "doctor",
+    "difficultyElo": 920,
+    "skillCategory": "Vocabulary",
+    "topic": "Jobs & Occupations",
+    "cefr": "A1"
+  },
+  {
+    "id": "q_a1_v05",
+    "question": "There are seven days in a ___.",
+    "options": [
+      "week",
+      "month",
+      "year",
+      "weekend"
+    ],
+    "correct": "week",
+    "difficultyElo": 900,
+    "skillCategory": "Vocabulary",
+    "topic": "Time & Calendar",
+    "cefr": "A1"
+  },
+  {
+    "id": "q_a1_r01",
+    "question": "Notice: 'Library hours: 8:00 AM - 5:00 PM Monday to Friday'. When does the library close?",
+    "options": [
+      "At 5:00 PM",
+      "At 8:00 AM",
+      "On weekends",
+      "At noon"
+    ],
+    "correct": "At 5:00 PM",
+    "difficultyElo": 920,
+    "skillCategory": "Reading",
+    "topic": "Public Notices",
+    "cefr": "A1"
+  },
+  {
+    "id": "q_a1_r02",
+    "question": "Message: 'Hi Anna, please buy some milk and bread on your way home. Thanks, Mom.' What should Anna buy?",
+    "options": [
+      "Milk and bread",
+      "Only milk",
+      "Only bread",
+      "Dinner"
+    ],
+    "correct": "Milk and bread",
+    "difficultyElo": 960,
+    "skillCategory": "Reading",
+    "topic": "Daily Messages",
+    "cefr": "A1"
+  },
+  {
+    "id": "q_a1_r03",
+    "question": "Sign: 'Coffee Shop: Buy 1 drink, get 1 cookie free!' What is free?",
+    "options": [
+      "A cookie",
+      "A cup of coffee",
+      "All drinks",
+      "A sandwich"
+    ],
+    "correct": "A cookie",
+    "difficultyElo": 980,
+    "skillCategory": "Reading",
+    "topic": "Advertisements",
+    "cefr": "A1"
+  },
+  {
+    "id": "q_a1_r04",
+    "question": "Passage: 'Tom has a small dog. Its name is Max. Max likes running in the garden.' Who is Max?",
+    "options": [
+      "Tom's dog",
+      "Tom's cat",
+      "Tom's brother",
+      "Tom's garden"
+    ],
+    "correct": "Tom's dog",
+    "difficultyElo": 940,
+    "skillCategory": "Reading",
+    "topic": "Short Stories",
+    "cefr": "A1"
+  },
+  {
+    "id": "q_a1_r05",
+    "question": "Sign: 'Push button to open door.' What should you do to open the door?",
+    "options": [
+      "Push the button",
+      "Pull the handle",
+      "Wait for someone",
+      "Kick the door"
+    ],
+    "correct": "Push the button",
+    "difficultyElo": 1000,
+    "skillCategory": "Reading",
+    "topic": "Instructions",
+    "cefr": "A1"
+  },
+  {
+    "id": "q_a1_l01",
+    "question": "Nghe đoạn hội thoại và cho biết người nói đang mua gì.",
+    "audioText": "Hello, I would like two cups of hot tea, please.",
+    "options": [
+      "Hot tea",
+      "Cold coffee",
+      "Fruit juice",
+      "Bottled water"
+    ],
+    "correct": "Hot tea",
+    "difficultyElo": 920,
+    "skillCategory": "Listening",
+    "topic": "Ordering Food",
+    "cefr": "A1"
+  },
+  {
+    "id": "q_a1_l02",
+    "question": "Nghe câu sau và chọn thời gian máy bay khởi hành.",
+    "audioText": "Flight VN123 to Da Nang will depart at ten thirty.",
+    "options": [
+      "10:30",
+      "10:13",
+      "11:30",
+      "9:30"
+    ],
+    "correct": "10:30",
+    "difficultyElo": 950,
+    "skillCategory": "Listening",
+    "topic": "Travel & Transport",
+    "cefr": "A1"
+  },
+  {
+    "id": "q_a1_l03",
+    "question": "Nghe và cho biết người nói thích làm gì vào cuối tuần.",
+    "audioText": "On weekends, I love reading books in my bedroom.",
+    "options": [
+      "Reading books",
+      "Playing sports",
+      "Watching movies",
+      "Cooking meals"
+    ],
+    "correct": "Reading books",
+    "difficultyElo": 980,
+    "skillCategory": "Listening",
+    "topic": "Hobbies",
+    "cefr": "A1"
+  },
+  {
+    "id": "q_a1_l04",
+    "question": "Nghe câu thông báo và xác định thời tiết hôm nay thế nào.",
+    "audioText": "Good morning! It is very sunny and warm today.",
+    "options": [
+      "Sunny and warm",
+      "Rainy and cold",
+      "Snowy and windy",
+      "Foggy and stormy"
+    ],
+    "correct": "Sunny and warm",
+    "difficultyElo": 940,
+    "skillCategory": "Listening",
+    "topic": "Weather",
+    "cefr": "A1"
+  },
+  {
+    "id": "q_a1_l05",
+    "question": "Nghe đoạn thoại ngắn: Mary đang tìm đồ vật gì?",
+    "audioText": "Excuse me, where is my blue pen? Oh, it is next to the notebook.",
+    "options": [
+      "A blue pen",
+      "A notebook",
+      "A red bag",
+      "A pencil case"
+    ],
+    "correct": "A blue pen",
+    "difficultyElo": 990,
+    "skillCategory": "Listening",
+    "topic": "School & Study",
+    "cefr": "A1"
+  },
+  {
+    "id": "q_a2_g01",
+    "question": "I ___ to London with my parents last summer.",
+    "options": [
       "went",
+      "go",
       "gone",
-      "going"
+      "was going"
     ],
     "correct": "went",
-    "difficultyElo": 1150,
-    "skillCategory": "Grammar",
-    "topic": "General English",
-    "cefr": "A2"
-  },
-  {
-    "id": "q_012",
-    "question": "Did you ___ the movie?",
-    "options": [
-      "likes",
-      "liked",
-      "like",
-      "liking"
-    ],
-    "correct": "like",
     "difficultyElo": 1120,
     "skillCategory": "Grammar",
-    "topic": "General English",
+    "topic": "Past Tense",
     "cefr": "A2"
   },
   {
-    "id": "q_013",
-    "question": "She is taller ___ her sister.",
+    "id": "q_a2_g02",
+    "question": "She is much taller ___ her older brother.",
     "options": [
-      "then",
-      "that",
       "than",
-      "this"
+      "then",
+      "as",
+      "like"
     ],
     "correct": "than",
-    "difficultyElo": 1180,
+    "difficultyElo": 1150,
     "skillCategory": "Grammar",
-    "topic": "General English",
+    "topic": "Comparisons",
     "cefr": "A2"
   },
   {
-    "id": "q_014",
-    "question": "I am interested ___ learning English.",
+    "id": "q_a2_g03",
+    "question": "I am really interested ___ learning foreign languages.",
     "options": [
-      "on",
       "in",
+      "on",
       "at",
-      "for"
+      "about"
     ],
     "correct": "in",
-    "difficultyElo": 1250,
+    "difficultyElo": 1220,
     "skillCategory": "Grammar",
-    "topic": "General English",
+    "topic": "Prepositions",
     "cefr": "A2"
   },
   {
-    "id": "q_015",
-    "question": "Can you ___ me a favor?",
+    "id": "q_a2_g04",
+    "question": "We ___ watching TV when suddenly the lights went out.",
+    "options": [
+      "were",
+      "was",
+      "are",
+      "have been"
+    ],
+    "correct": "were",
+    "difficultyElo": 1260,
+    "skillCategory": "Grammar",
+    "topic": "Past Continuous",
+    "cefr": "A2"
+  },
+  {
+    "id": "q_a2_g05",
+    "question": "How ___ luggage do you plan to take on the trip?",
+    "options": [
+      "much",
+      "many",
+      "few",
+      "any"
+    ],
+    "correct": "much",
+    "difficultyElo": 1180,
+    "skillCategory": "Grammar",
+    "topic": "Countable & Uncountable",
+    "cefr": "A2"
+  },
+  {
+    "id": "q_a2_v01",
+    "question": "Could you please ___ me a favor and carry this box?",
+    "options": [
+      "do",
+      "make",
+      "give",
+      "take"
+    ],
+    "correct": "do",
+    "difficultyElo": 1200,
+    "skillCategory": "Vocabulary",
+    "topic": "Collocations",
+    "cefr": "A2"
+  },
+  {
+    "id": "q_a2_v02",
+    "question": "My brother is preparing food in a five-star restaurant. He is a ___.",
+    "options": [
+      "chef",
+      "waiter",
+      "cashier",
+      "manager"
+    ],
+    "correct": "chef",
+    "difficultyElo": 1180,
+    "skillCategory": "Vocabulary",
+    "topic": "Jobs",
+    "cefr": "A2"
+  },
+  {
+    "id": "q_a2_v03",
+    "question": "I lost my house keys, so I am looking ___ them everywhere.",
+    "options": [
+      "for",
+      "at",
+      "after",
+      "into"
+    ],
+    "correct": "for",
+    "difficultyElo": 1220,
+    "skillCategory": "Vocabulary",
+    "topic": "Phrasal Verbs",
+    "cefr": "A2"
+  },
+  {
+    "id": "q_a2_v04",
+    "question": "She felt very ___ after walking ten kilometers in the sun.",
+    "options": [
+      "exhausted",
+      "excited",
+      "interested",
+      "proud"
+    ],
+    "correct": "exhausted",
+    "difficultyElo": 1250,
+    "skillCategory": "Vocabulary",
+    "topic": "Feelings & States",
+    "cefr": "A2"
+  },
+  {
+    "id": "q_a2_v05",
+    "question": "You should ___ an appointment before visiting the dentist.",
     "options": [
       "make",
       "do",
       "take",
-      "give"
+      "create"
     ],
-    "correct": "do",
-    "difficultyElo": 1220,
+    "correct": "make",
+    "difficultyElo": 1210,
     "skillCategory": "Vocabulary",
-    "topic": "General English",
+    "topic": "Health & Daily Life",
     "cefr": "A2"
   },
   {
-    "id": "q_016",
-    "question": "Read: 'Please do not feed the animals.' What should you not do?",
+    "id": "q_a2_r01",
+    "question": "Email: 'Dear Peter, your dentist appointment has been moved to Thursday at 3 PM due to a schedule conflict.' When is the new appointment?",
     "options": [
-      "Touch them",
-      "Look at them",
-      "Give them food",
-      "Take pictures"
+      "Thursday at 3 PM",
+      "Thursday morning",
+      "Friday at 3 PM",
+      "Wednesday"
     ],
-    "correct": "Give them food",
-    "difficultyElo": 1100,
+    "correct": "Thursday at 3 PM",
+    "difficultyElo": 1140,
     "skillCategory": "Reading",
-    "topic": "General English",
+    "topic": "Appointments",
     "cefr": "A2"
   },
   {
-    "id": "q_017",
-    "question": "I ___ TV when the phone rang.",
+    "id": "q_a2_r02",
+    "question": "Sign: 'Warning: Wet Floor. Please walk carefully.' What does the sign advise people to do?",
     "options": [
-      "watch",
-      "watched",
-      "was watching",
-      "am watching"
+      "Walk carefully",
+      "Do not enter",
+      "Clean the floor",
+      "Take off shoes"
     ],
-    "correct": "was watching",
-    "difficultyElo": 1280,
-    "skillCategory": "Grammar",
-    "topic": "General English",
+    "correct": "Walk carefully",
+    "difficultyElo": 1120,
+    "skillCategory": "Reading",
+    "topic": "Safety Warnings",
     "cefr": "A2"
   },
   {
-    "id": "q_018",
-    "question": "He works as a ___ in a restaurant.",
+    "id": "q_a2_r03",
+    "question": "Menu note: 'All lunch specials include a bowl of soup and iced tea.' What comes with the lunch special?",
     "options": [
-      "chef",
-      "cooker",
-      "chief",
-      "cooking"
+      "Soup and iced tea",
+      "Only coffee",
+      "Dessert and wine",
+      "Free pizza"
     ],
-    "correct": "chef",
+    "correct": "Soup and iced tea",
     "difficultyElo": 1190,
-    "skillCategory": "Vocabulary",
-    "topic": "General English",
+    "skillCategory": "Reading",
+    "topic": "Food & Dining",
     "cefr": "A2"
   },
   {
-    "id": "q_019",
-    "question": "How ___ water do you drink?",
+    "id": "q_a2_r04",
+    "question": "Note: 'Train to Oxford delayed by 20 minutes due to bad weather.' Why is the train delayed?",
     "options": [
-      "many",
-      "much",
-      "lot",
-      "some"
+      "Bad weather",
+      "Track maintenance",
+      "Engine breakdown",
+      "Too many passengers"
     ],
-    "correct": "much",
+    "correct": "Bad weather",
+    "difficultyElo": 1230,
+    "skillCategory": "Reading",
+    "topic": "Travel Notices",
+    "cefr": "A2"
+  },
+  {
+    "id": "q_a2_r05",
+    "question": "Text: 'Students must return all borrowed library books before June 15th to avoid a late fee.' What must students do before June 15th?",
+    "options": [
+      "Return borrowed books",
+      "Pay library fees",
+      "Borrow new books",
+      "Buy textbooks"
+    ],
+    "correct": "Return borrowed books",
+    "difficultyElo": 1270,
+    "skillCategory": "Reading",
+    "topic": "School Rules",
+    "cefr": "A2"
+  },
+  {
+    "id": "q_a2_l01",
+    "question": "Nghe đoạn hội thoại: Người phụ nữ muốn đi đến đâu?",
+    "audioText": "Could you tell me how to get to the nearest post office? Go straight for two blocks, it is on your left.",
+    "options": [
+      "The post office",
+      "The police station",
+      "The bank",
+      "The bus stop"
+    ],
+    "correct": "The post office",
     "difficultyElo": 1150,
-    "skillCategory": "Grammar",
-    "topic": "General English",
+    "skillCategory": "Listening",
+    "topic": "Directions",
     "cefr": "A2"
   },
   {
-    "id": "q_020",
-    "question": "I'm looking ___ my keys. Have you seen them?",
+    "id": "q_a2_l02",
+    "question": "Nghe đoạn thông báo: Chuyến tàu tiếp theo sẽ khởi hành ở sân ga nào?",
+    "audioText": "Attention all passengers, the express train to Manchester is arriving at Platform Number 4.",
     "options": [
-      "at",
-      "for",
-      "after",
-      "up"
+      "Platform 4",
+      "Platform 14",
+      "Platform 40",
+      "Platform 1"
     ],
-    "correct": "for",
-    "difficultyElo": 1290,
-    "skillCategory": "Grammar",
-    "topic": "General English",
+    "correct": "Platform 4",
+    "difficultyElo": 1180,
+    "skillCategory": "Listening",
+    "topic": "Announcements",
     "cefr": "A2"
   },
   {
-    "id": "q_021",
-    "question": "If it rains, we ___ at home.",
+    "id": "q_a2_l03",
+    "question": "Nghe và cho biết món ăn mà người đàn ông gọi là gì.",
+    "audioText": "I will have the grilled chicken with salad, and no dressing, please.",
     "options": [
-      "stay",
-      "will stay",
-      "stayed",
-      "would stay"
+      "Grilled chicken with salad",
+      "Beef steak with potatoes",
+      "Fish and chips",
+      "Fried chicken with rice"
     ],
-    "correct": "will stay",
-    "difficultyElo": 1350,
+    "correct": "Grilled chicken with salad",
+    "difficultyElo": 1220,
+    "skillCategory": "Listening",
+    "topic": "Restaurant Orders",
+    "cefr": "A2"
+  },
+  {
+    "id": "q_a2_l04",
+    "question": "Nghe đoạn thoại: David sẽ làm gì vào tối nay?",
+    "audioText": "Are you free tonight, David? No, I have to study for my history exam tomorrow.",
+    "options": [
+      "Study for an exam",
+      "Go to a party",
+      "Watch a film",
+      "Visit his parents"
+    ],
+    "correct": "Study for an exam",
+    "difficultyElo": 1240,
+    "skillCategory": "Listening",
+    "topic": "Plans & Appointments",
+    "cefr": "A2"
+  },
+  {
+    "id": "q_a2_l05",
+    "question": "Nghe nhân viên khách sạn nói: Giờ trả phòng là mấy giờ?",
+    "audioText": "Welcome to Sunrise Hotel. Breakfast starts at 6 AM and checkout time is at 11:00 AM.",
+    "options": [
+      "11:00 AM",
+      "6:00 AM",
+      "12:00 PM",
+      "10:00 AM"
+    ],
+    "correct": "11:00 AM",
+    "difficultyElo": 1190,
+    "skillCategory": "Listening",
+    "topic": "Hotel Services",
+    "cefr": "A2"
+  },
+  {
+    "id": "q_b1_g01",
+    "question": "If it rains tomorrow, we ___ our outdoor picnic.",
+    "options": [
+      "will cancel",
+      "canceled",
+      "would cancel",
+      "cancel"
+    ],
+    "correct": "will cancel",
+    "difficultyElo": 1330,
     "skillCategory": "Grammar",
-    "topic": "General English",
+    "topic": "Conditionals",
     "cefr": "B1"
   },
   {
-    "id": "q_022",
-    "question": "I have been working here ___ 2020.",
+    "id": "q_b1_g02",
+    "question": "She has been working as a software engineer here ___ 2020.",
     "options": [
-      "for",
       "since",
+      "for",
       "in",
-      "from"
+      "during"
     ],
     "correct": "since",
-    "difficultyElo": 1320,
+    "difficultyElo": 1350,
     "skillCategory": "Grammar",
-    "topic": "General English",
+    "topic": "Present Perfect",
     "cefr": "B1"
   },
   {
-    "id": "q_023",
-    "question": "The book was so ___ that I couldn't put it down.",
+    "id": "q_b1_g03",
+    "question": "I am not used ___ up early on cold winter mornings.",
     "options": [
-      "bored",
-      "boring",
-      "interested",
-      "interesting"
-    ],
-    "correct": "interesting",
-    "difficultyElo": 1380,
-    "skillCategory": "Vocabulary",
-    "topic": "General English",
-    "cefr": "B1"
-  },
-  {
-    "id": "q_024",
-    "question": "You ___ to wear a uniform to school.",
-    "options": [
-      "must",
-      "have",
-      "should",
-      "need"
-    ],
-    "correct": "have",
-    "difficultyElo": 1420,
-    "skillCategory": "Grammar",
-    "topic": "General English",
-    "cefr": "B1"
-  },
-  {
-    "id": "q_025",
-    "question": "I'm not used ___ up so early.",
-    "options": [
-      "to wake",
       "to waking",
-      "waking",
-      "wake"
+      "to wake",
+      "wake",
+      "woke"
     ],
     "correct": "to waking",
+    "difficultyElo": 1460,
+    "skillCategory": "Grammar",
+    "topic": "Gerunds & Infinitives",
+    "cefr": "B1"
+  },
+  {
+    "id": "q_b1_g04",
+    "question": "Could you please tell me where ___?",
+    "options": [
+      "the subway station is",
+      "is the subway station",
+      "the subway station was",
+      "does the subway station be"
+    ],
+    "correct": "the subway station is",
+    "difficultyElo": 1440,
+    "skillCategory": "Grammar",
+    "topic": "Embedded Questions",
+    "cefr": "B1"
+  },
+  {
+    "id": "q_b1_g05",
+    "question": "The teacher suggested that Mark ___ more time practicing speaking.",
+    "options": [
+      "spend",
+      "spends",
+      "spent",
+      "spending"
+    ],
+    "correct": "spend",
     "difficultyElo": 1480,
     "skillCategory": "Grammar",
-    "topic": "General English",
+    "topic": "Subjunctive",
     "cefr": "B1"
   },
   {
-    "id": "q_026",
-    "question": "Could you tell me where ___?",
+    "id": "q_b1_v01",
+    "question": "The novel was so ___ that I stayed up all night to finish it.",
     "options": [
-      "is the bank",
-      "the bank is",
-      "does the bank",
-      "bank is"
+      "captivating",
+      "boring",
+      "exhausting",
+      "confusing"
     ],
-    "correct": "the bank is",
-    "difficultyElo": 1450,
-    "skillCategory": "Grammar",
-    "topic": "General English",
+    "correct": "captivating",
+    "difficultyElo": 1380,
+    "skillCategory": "Vocabulary",
+    "topic": "Adjectives",
     "cefr": "B1"
   },
   {
-    "id": "q_027",
-    "question": "Despite the bad weather, they ___ to finish the project.",
+    "id": "q_b1_v02",
+    "question": "Despite heavy rain, the workers ___ to complete the bridge on schedule.",
     "options": [
       "managed",
-      "succeeded",
-      "achieved",
-      "could"
+      "failed",
+      "refused",
+      "hesitated"
     ],
     "correct": "managed",
-    "difficultyElo": 1490,
+    "difficultyElo": 1420,
     "skillCategory": "Vocabulary",
-    "topic": "General English",
+    "topic": "Verbs",
     "cefr": "B1"
   },
   {
-    "id": "q_028",
-    "question": "He apologized ___ being late.",
-    "options": [
-      "for",
-      "of",
-      "about",
-      "to"
-    ],
-    "correct": "for",
-    "difficultyElo": 1360,
-    "skillCategory": "Grammar",
-    "topic": "General English",
-    "cefr": "B1"
-  },
-  {
-    "id": "q_029",
-    "question": "We ran out ___ milk, so I went to the store.",
-    "options": [
-      "of",
-      "off",
-      "from",
-      "with"
-    ],
-    "correct": "of",
-    "difficultyElo": 1410,
-    "skillCategory": "Vocabulary",
-    "topic": "General English",
-    "cefr": "B1"
-  },
-  {
-    "id": "q_030",
-    "question": "The meeting has been put ___ until next week.",
+    "id": "q_b1_v03",
+    "question": "We ran ___ of coffee beans, so I went to the supermarket.",
     "options": [
       "out",
       "off",
+      "away",
+      "over"
+    ],
+    "correct": "out",
+    "difficultyElo": 1370,
+    "skillCategory": "Vocabulary",
+    "topic": "Phrasal Verbs",
+    "cefr": "B1"
+  },
+  {
+    "id": "q_b1_v04",
+    "question": "The urgent meeting has been put ___ until next Tuesday.",
+    "options": [
+      "off",
+      "on",
       "up",
       "away"
     ],
     "correct": "off",
-    "difficultyElo": 1470,
+    "difficultyElo": 1450,
     "skillCategory": "Vocabulary",
-    "topic": "General English",
+    "topic": "Phrasal Verbs",
     "cefr": "B1"
   },
   {
-    "id": "q_031",
-    "question": "If I ___ you, I would take that job.",
+    "id": "q_b1_v05",
+    "question": "Regular physical exercise has numerous ___ for your mental health.",
     "options": [
-      "was",
+      "benefits",
+      "harms",
+      "disadvantages",
+      "injuries"
+    ],
+    "correct": "benefits",
+    "difficultyElo": 1360,
+    "skillCategory": "Vocabulary",
+    "topic": "Health",
+    "cefr": "B1"
+  },
+  {
+    "id": "q_b1_r01",
+    "question": "Passage: 'Remote work has increased dramatically in recent years. While it offers flexibility and eliminates daily commutes, many workers report feelings of isolation and difficulty separating personal life from work.' What is one reported drawback of remote work?",
+    "options": [
+      "Feeling isolated",
+      "High commuting costs",
+      "Strict office hours",
+      "Lack of flexibility"
+    ],
+    "correct": "Feeling isolated",
+    "difficultyElo": 1380,
+    "skillCategory": "Reading",
+    "topic": "Workplace",
+    "cefr": "B1"
+  },
+  {
+    "id": "q_b1_r02",
+    "question": "Passage: 'Electric vehicles produce zero tailpipe emissions, helping improve urban air quality. However, the environmental impact of manufacturing their lithium batteries remains a major concern.' What is a major concern about electric vehicles?",
+    "options": [
+      "Battery manufacturing impact",
+      "High tailpipe emissions",
+      "Low urban air quality",
+      "Inability to recharge"
+    ],
+    "correct": "Battery manufacturing impact",
+    "difficultyElo": 1430,
+    "skillCategory": "Reading",
+    "topic": "Environment & Tech",
+    "cefr": "B1"
+  },
+  {
+    "id": "q_b1_r03",
+    "question": "Company Email: 'Due to system maintenance, all company internal servers will be temporarily offline this Saturday from 10 PM to 4 AM. Please save your work files before 9:30 PM.' What are employees required to do?",
+    "options": [
+      "Save files before 9:30 PM",
+      "Work through Saturday night",
+      "Restart servers on Sunday",
+      "Email IT department"
+    ],
+    "correct": "Save files before 9:30 PM",
+    "difficultyElo": 1360,
+    "skillCategory": "Reading",
+    "topic": "Corporate Communications",
+    "cefr": "B1"
+  },
+  {
+    "id": "q_b1_r04",
+    "question": "Article: 'Studies show that people who read books regularly for 30 minutes a day sleep better and experience less chronic stress than non-readers.' According to the study, what is one benefit of reading regularly?",
+    "options": [
+      "Better sleep and reduced stress",
+      "Higher physical fitness",
+      "Faster walking speed",
+      "Decreased memory retention"
+    ],
+    "correct": "Better sleep and reduced stress",
+    "difficultyElo": 1410,
+    "skillCategory": "Reading",
+    "topic": "Health & Lifestyle",
+    "cefr": "B1"
+  },
+  {
+    "id": "q_b1_r05",
+    "question": "Review: 'The hotel was situated in a prime location near the cathedral. However, the breakfast selection was rather limited and the Wi-Fi connection frequently dropped.' What did the reviewer dislike about the hotel?",
+    "options": [
+      "Limited breakfast and unstable Wi-Fi",
+      "The location near the cathedral",
+      "The friendly staff",
+      "The expensive parking"
+    ],
+    "correct": "Limited breakfast and unstable Wi-Fi",
+    "difficultyElo": 1460,
+    "skillCategory": "Reading",
+    "topic": "Reviews",
+    "cefr": "B1"
+  },
+  {
+    "id": "q_b1_l01",
+    "question": "Nghe đoạn hội thoại: Lý do người phụ nữ không thể tham dự cuộc họp chiều nay là gì?",
+    "audioText": "I won't be able to make it to the two o'clock project meeting because I have a sudden doctor appointment.",
+    "options": [
+      "She has a doctor appointment",
+      "She missed her flight",
+      "She is on vacation",
+      "She is stuck in traffic"
+    ],
+    "correct": "She has a doctor appointment",
+    "difficultyElo": 1350,
+    "skillCategory": "Listening",
+    "topic": "Work & Schedule",
+    "cefr": "B1"
+  },
+  {
+    "id": "q_b1_l02",
+    "question": "Nghe thông báo ở sân bay: Hành khách đi Tokyo cần đến cổng nào?",
+    "audioText": "This is the final boarding call for passengers on flight JL402 bound for Tokyo. Please proceed immediately to Gate 17.",
+    "options": [
+      "Gate 17",
+      "Gate 7",
+      "Gate 70",
+      "Gate 27"
+    ],
+    "correct": "Gate 17",
+    "difficultyElo": 1390,
+    "skillCategory": "Listening",
+    "topic": "Airport Announcements",
+    "cefr": "B1"
+  },
+  {
+    "id": "q_b1_l03",
+    "question": "Nghe đoạn thoại: Hai người quyết định sẽ ăn tối ở đâu?",
+    "audioText": "How about that new Italian place down the street? Sounds great, I'm really craving authentic pasta tonight.",
+    "options": [
+      "An Italian restaurant",
+      "A fast food shop",
+      "At home",
+      "A Japanese restaurant"
+    ],
+    "correct": "An Italian restaurant",
+    "difficultyElo": 1340,
+    "skillCategory": "Listening",
+    "topic": "Dining Out",
+    "cefr": "B1"
+  },
+  {
+    "id": "q_b1_l04",
+    "question": "Nghe thông báo thời tiết: Ngày mai thời tiết sẽ chuyển biến như thế nào?",
+    "audioText": "Expect temperatures to drop significantly tomorrow with heavy rain and strong winds developing by late afternoon.",
+    "options": [
+      "Heavy rain and strong winds",
+      "Warm sunshine all day",
+      "Light snow and no wind",
+      "High humidity and fog"
+    ],
+    "correct": "Heavy rain and strong winds",
+    "difficultyElo": 1420,
+    "skillCategory": "Listening",
+    "topic": "Weather Reports",
+    "cefr": "B1"
+  },
+  {
+    "id": "q_b1_l05",
+    "question": "Nghe đoạn ghi âm cuộc gọi: Khách hàng yêu cầu hỗ trợ vấn đề gì?",
+    "audioText": "Hello, I placed an order three days ago, but the tracking status still shows pending shipment. Can you check it for me?",
+    "options": [
+      "Order tracking status",
+      "Refund request",
+      "Password reset",
+      "Product return"
+    ],
+    "correct": "Order tracking status",
+    "difficultyElo": 1470,
+    "skillCategory": "Listening",
+    "topic": "Customer Service",
+    "cefr": "B1"
+  },
+  {
+    "id": "q_b2_g01",
+    "question": "If I ___ in your position, I would definitely accept that prestigious scholarship.",
+    "options": [
+      "were",
       "am",
-      "were",
-      "had been"
-    ],
-    "correct": "were",
-    "difficultyElo": 1550,
-    "skillCategory": "Grammar",
-    "topic": "General English",
-    "cefr": "B2"
-  },
-  {
-    "id": "q_032",
-    "question": "By the time we arrived, the train ___.",
-    "options": [
-      "left",
-      "has left",
-      "had left",
-      "was leaving"
-    ],
-    "correct": "had left",
-    "difficultyElo": 1580,
-    "skillCategory": "Grammar",
-    "topic": "General English",
-    "cefr": "B2"
-  },
-  {
-    "id": "q_033",
-    "question": "She is highly ___ in several programming languages.",
-    "options": [
-      "proficient",
-      "efficient",
-      "sufficient",
-      "deficient"
-    ],
-    "correct": "proficient",
-    "difficultyElo": 1650,
-    "skillCategory": "Vocabulary",
-    "topic": "General English",
-    "cefr": "B2"
-  },
-  {
-    "id": "q_034",
-    "question": "I'd rather you ___ smoke in here.",
-    "options": [
-      "don't",
-      "didn't",
-      "not",
-      "won't"
-    ],
-    "correct": "didn't",
-    "difficultyElo": 1620,
-    "skillCategory": "Grammar",
-    "topic": "General English",
-    "cefr": "B2"
-  },
-  {
-    "id": "q_035",
-    "question": "The project was a failure due to a lack of ___.",
-    "options": [
-      "funding",
-      "founding",
-      "finds",
-      "funds"
-    ],
-    "correct": "funding",
-    "difficultyElo": 1520,
-    "skillCategory": "Vocabulary",
-    "topic": "General English",
-    "cefr": "B2"
-  },
-  {
-    "id": "q_036",
-    "question": "Scarcely ___ the house when it started to rain.",
-    "options": [
-      "I had left",
-      "had I left",
-      "I left",
-      "did I leave"
-    ],
-    "correct": "had I left",
-    "difficultyElo": 1680,
-    "skillCategory": "Grammar",
-    "topic": "General English",
-    "cefr": "B2"
-  },
-  {
-    "id": "q_037",
-    "question": "It's time we ___ going home.",
-    "options": [
-      "are",
-      "were",
-      "be",
+      "had been",
       "will be"
     ],
     "correct": "were",
+    "difficultyElo": 1530,
+    "skillCategory": "Grammar",
+    "topic": "Second Conditional",
+    "cefr": "B2"
+  },
+  {
+    "id": "q_b2_g02",
+    "question": "By the time the rescue team arrived at the site, the fire ___ completely.",
+    "options": [
+      "had been extinguished",
+      "was extinguished",
+      "extinguished",
+      "has extinguished"
+    ],
+    "correct": "had been extinguished",
     "difficultyElo": 1610,
     "skillCategory": "Grammar",
-    "topic": "General English",
+    "topic": "Past Perfect Passive",
     "cefr": "B2"
   },
   {
-    "id": "q_038",
-    "question": "The CEO ___ a speech at the conference tomorrow.",
+    "id": "q_b2_g03",
+    "question": "I would rather you ___ disclose this confidential financial report to the press.",
     "options": [
-      "gives",
-      "is to give",
-      "is giving",
-      "give"
+      "didn't",
+      "don't",
+      "won't",
+      "not"
     ],
-    "correct": "is giving",
-    "difficultyElo": 1540,
+    "correct": "didn't",
+    "difficultyElo": 1640,
     "skillCategory": "Grammar",
-    "topic": "General English",
+    "topic": "Would Rather + Past Subjunctive",
     "cefr": "B2"
   },
   {
-    "id": "q_039",
-    "question": "He was accused ___ stealing the money.",
+    "id": "q_b2_g04",
+    "question": "Scarcely ___ entered the building when the fire alarm began ringing loudly.",
+    "options": [
+      "had he",
+      "he had",
+      "did he have",
+      "was he"
+    ],
+    "correct": "had he",
+    "difficultyElo": 1680,
+    "skillCategory": "Grammar",
+    "topic": "Inversion",
+    "cefr": "B2"
+  },
+  {
+    "id": "q_b2_g05",
+    "question": "He was accused ___ leaking classified company documents to competitors.",
     "options": [
       "of",
-      "for",
       "with",
+      "for",
       "about"
     ],
     "correct": "of",
-    "difficultyElo": 1590,
+    "difficultyElo": 1580,
     "skillCategory": "Grammar",
-    "topic": "General English",
+    "topic": "Verb + Preposition",
     "cefr": "B2"
   },
   {
-    "id": "q_040",
-    "question": "The ___ of the new policy will affect everyone.",
+    "id": "q_b2_v01",
+    "question": "She is remarkably ___ in multiple programming languages and cloud architectures.",
     "options": [
-      "implication",
-      "imply",
-      "implicating",
-      "implied"
+      "proficient",
+      "fluent",
+      "capable",
+      "efficient"
     ],
-    "correct": "implication",
+    "correct": "proficient",
+    "difficultyElo": 1620,
+    "skillCategory": "Vocabulary",
+    "topic": "Skills & Qualifications",
+    "cefr": "B2"
+  },
+  {
+    "id": "q_b2_v02",
+    "question": "The research initiative was suspended prematurely due to an acute shortage of ___.",
+    "options": [
+      "funding",
+      "spending",
+      "currency",
+      "tuition"
+    ],
+    "correct": "funding",
+    "difficultyElo": 1540,
+    "skillCategory": "Vocabulary",
+    "topic": "Business & Finance",
+    "cefr": "B2"
+  },
+  {
+    "id": "q_b2_v03",
+    "question": "The economic ___ of this legislation will have far-reaching effects on consumer spending.",
+    "options": [
+      "implications",
+      "indications",
+      "inferences",
+      "intentions"
+    ],
+    "correct": "implications",
     "difficultyElo": 1660,
     "skillCategory": "Vocabulary",
-    "topic": "General English",
+    "topic": "Economics",
     "cefr": "B2"
   },
   {
-    "id": "q_041",
-    "question": "Not only ___ the exam, but he also got the highest score.",
+    "id": "q_b2_v04",
+    "question": "His explanation sounded plausible initially, but further inspection revealed it was totally ___.",
     "options": [
-      "he passed",
-      "did he pass",
-      "he did pass",
-      "passed he"
+      "flawed",
+      "accurate",
+      "reliable",
+      "concrete"
     ],
-    "correct": "did he pass",
+    "correct": "flawed",
+    "difficultyElo": 1590,
+    "skillCategory": "Vocabulary",
+    "topic": "Critical Thinking",
+    "cefr": "B2"
+  },
+  {
+    "id": "q_b2_v05",
+    "question": "The government has implemented strict measures to ___ carbon emissions across heavy industries.",
+    "options": [
+      "curb",
+      "boost",
+      "elevate",
+      "propel"
+    ],
+    "correct": "curb",
+    "difficultyElo": 1650,
+    "skillCategory": "Vocabulary",
+    "topic": "Environment & Policy",
+    "cefr": "B2"
+  },
+  {
+    "id": "q_b2_r01",
+    "question": "Passage: 'Artificial intelligence algorithms have demonstrated remarkable diagnostic accuracy in medical imaging. Nonetheless, ethical questions concerning algorithmic bias, patient data privacy, and the legal liability for automated misdiagnoses pose significant barriers to mainstream clinical deployment.' What is the author's primary attitude toward AI in medicine?",
+    "options": [
+      "Optimistic about its capability but wary of ethical and legal hurdles",
+      "Completely opposed due to patient privacy violations",
+      "Convinced that AI has already replaced human radiologists",
+      "Indifferent to the technology's medical capabilities"
+    ],
+    "correct": "Optimistic about its capability but wary of ethical and legal hurdles",
+    "difficultyElo": 1650,
+    "skillCategory": "Reading",
+    "topic": "Artificial Intelligence in Medicine",
+    "cefr": "B2"
+  },
+  {
+    "id": "q_b2_r02",
+    "question": "Passage: 'Urban green spaces not only provide recreational opportunities but also mitigate the urban heat island effect by evapotranspiration. Cities that invest in vegetative canopy coverage consistently report lower summer energy expenditures on air conditioning.' What secondary financial benefit of urban green spaces is highlighted?",
+    "options": [
+      "Lower energy spending on air conditioning",
+      "Increased revenue from timber sales",
+      "Reduced municipal tax rates",
+      "Higher tourism hotel fees"
+    ],
+    "correct": "Lower energy spending on air conditioning",
+    "difficultyElo": 1590,
+    "skillCategory": "Reading",
+    "topic": "Urban Planning & Ecology",
+    "cefr": "B2"
+  },
+  {
+    "id": "q_b2_r03",
+    "question": "Corporate memo: 'To foster cross-functional synergy, the engineering and marketing teams will begin biweekly sprint retrospectives. Attendance is mandatory for lead developers and product managers.' What is the primary purpose of the new meetings?",
+    "options": [
+      "To encourage collaboration across different departments",
+      "To negotiate salary increases for lead developers",
+      "To audit software code security vulnerabilities",
+      "To resolve disciplinary issues in the marketing team"
+    ],
+    "correct": "To encourage collaboration across different departments",
+    "difficultyElo": 1550,
+    "skillCategory": "Reading",
+    "topic": "Corporate Management",
+    "cefr": "B2"
+  },
+  {
+    "id": "q_b2_r04",
+    "question": "Excerpt: 'Cognitive dissonance occurs when an individual holds contradictory beliefs, leading to psychological discomfort that compels them to rationalize their behavior rather than alter their underlying habits.' How do individuals typically resolve cognitive dissonance according to the text?",
+    "options": [
+      "By rationalizing their behavior",
+      "By immediately changing their habits",
+      "By seeking professional psychiatric therapy",
+      "By confronting opposing peer groups"
+    ],
+    "correct": "By rationalizing their behavior",
+    "difficultyElo": 1620,
+    "skillCategory": "Reading",
+    "topic": "Psychology",
+    "cefr": "B2"
+  },
+  {
+    "id": "q_b2_r05",
+    "question": "Financial Column: 'Central banks often raise benchmark interest rates to temper inflationary pressures. However, overly aggressive tightening risks cooling economic growth to the point of triggering an economic recession.' What risk is associated with raising interest rates too aggressively?",
+    "options": [
+      "Causing an economic recession",
+      "Inducing hyperinflation in grocery prices",
+      "Depreciating sovereign currency values",
+      "Eliminating foreign direct investment"
+    ],
+    "correct": "Causing an economic recession",
+    "difficultyElo": 1670,
+    "skillCategory": "Reading",
+    "topic": "Macroeconomics",
+    "cefr": "B2"
+  },
+  {
+    "id": "q_b2_l01",
+    "question": "Nghe cuộc thảo luận trong cuộc họp: Thách thức lớn nhất đối với sản phẩm mới là gì?",
+    "audioText": "While consumer interest is undeniably high, our primary bottleneck remains the supply chain delays in sourcing microchips.",
+    "options": [
+      "Supply chain delays in sourcing chips",
+      "Lack of consumer interest",
+      "High retail pricing",
+      "Marketing team disagreement"
+    ],
+    "correct": "Supply chain delays in sourcing chips",
+    "difficultyElo": 1560,
+    "skillCategory": "Listening",
+    "topic": "Business Strategy",
+    "cefr": "B2"
+  },
+  {
+    "id": "q_b2_l02",
+    "question": "Nghe trích đoạn bài giảng: Giáo sư nhấn mạnh điều gì về sự tuyệt chủng của loài ong?",
+    "audioText": "Pollinators like bees contribute to over thirty percent of global food crop production. Their decline threatens global food security.",
+    "options": [
+      "Their decline poses a threat to food security",
+      "Bees are harmful to thirty percent of crops",
+      "Bee populations have reached an all-time high",
+      "Food production is unaffected by pollinators"
+    ],
+    "correct": "Their decline poses a threat to food security",
+    "difficultyElo": 1610,
+    "skillCategory": "Listening",
+    "topic": "Ecology & Science",
+    "cefr": "B2"
+  },
+  {
+    "id": "q_b2_l03",
+    "question": "Nghe cuộc đàm phán thương mại: Người mua muốn thương lượng điều khoản nào?",
+    "audioText": "We are satisfied with the unit quality, but we cannot sign the contract unless you agree to a five percent bulk discount and thirty-day payment terms.",
+    "options": [
+      "A discount and 30-day payment terms",
+      "Free international air freight",
+      "An immediate full cash prepayment",
+      "A redesign of the product packaging"
+    ],
+    "correct": "A discount and 30-day payment terms",
+    "difficultyElo": 1640,
+    "skillCategory": "Listening",
+    "topic": "Negotiation",
+    "cefr": "B2"
+  },
+  {
+    "id": "q_b2_l04",
+    "question": "Nghe bản tin tài chính: Thị trường chứng khoán phản ứng thế nào sau báo cáo việc làm?",
+    "audioText": "Wall Street rallied sharply today after the Labor Department reported lower than expected unemployment figures.",
+    "options": [
+      "Stock markets rose sharply",
+      "Stock markets crashed dramatically",
+      "Trading was suspended for the day",
+      "Bond yields plummeted to historic lows"
+    ],
+    "correct": "Stock markets rose sharply",
+    "difficultyElo": 1580,
+    "skillCategory": "Listening",
+    "topic": "Financial News",
+    "cefr": "B2"
+  },
+  {
+    "id": "q_b2_l05",
+    "question": "Nghe cuộc phỏng vấn tuyển dụng: Ứng viên tự nhận thấy thế mạnh nổi bật nhất của mình là gì?",
+    "audioText": "My background in data analytics enables me to translate complex telemetry data into actionable commercial insights for stakeholders.",
+    "options": [
+      "Translating complex data into business insights",
+      "Writing legal contracts for international partners",
+      "Managing warehouse logistics and shipping",
+      "Organizing large public relations events"
+    ],
+    "correct": "Translating complex data into business insights",
+    "difficultyElo": 1670,
+    "skillCategory": "Listening",
+    "topic": "Job Interview",
+    "cefr": "B2"
+  },
+  {
+    "id": "q_c1_g01",
+    "question": "Not only ___ with flying colors, but he also achieved the highest GPA in the institution's history.",
+    "options": [
+      "did he graduate",
+      "he graduated",
+      "was he graduated",
+      "he did graduate"
+    ],
+    "correct": "did he graduate",
     "difficultyElo": 1750,
     "skillCategory": "Grammar",
-    "topic": "General English",
+    "topic": "Negative Inversion",
     "cefr": "C1"
   },
   {
-    "id": "q_042",
-    "question": "The committee ___ of five members.",
-    "options": [
-      "consists",
-      "comprises",
-      "is composed",
-      "includes"
-    ],
-    "correct": "consists",
-    "difficultyElo": 1720,
-    "skillCategory": "Vocabulary",
-    "topic": "General English",
-    "cefr": "C1"
-  },
-  {
-    "id": "q_043",
-    "question": "He gave me a ___ look when I asked about his past.",
-    "options": [
-      "peculiar",
-      "peculiarly",
-      "peculiarity",
-      "peculiarities"
-    ],
-    "correct": "peculiar",
-    "difficultyElo": 1780,
-    "skillCategory": "Vocabulary",
-    "topic": "General English",
-    "cefr": "C1"
-  },
-  {
-    "id": "q_044",
-    "question": "___ had I spoken than I realized my mistake.",
+    "id": "q_c1_g02",
+    "question": "___ had the keynote speaker stepped onto the podium than the audience erupted in thunderous applause.",
     "options": [
       "No sooner",
       "Hardly",
       "Scarcely",
-      "Barely"
+      "Seldom"
     ],
     "correct": "No sooner",
-    "difficultyElo": 1800,
+    "difficultyElo": 1790,
     "skillCategory": "Grammar",
-    "topic": "General English",
+    "topic": "Correlative Inversion (No sooner... than)",
     "cefr": "C1"
   },
   {
-    "id": "q_045",
-    "question": "The company is on the ___ of bankruptcy.",
+    "id": "q_c1_g03",
+    "question": "It is of paramount importance that every board member ___ present during the voting session.",
     "options": [
-      "verge",
-      "edge",
-      "brink",
-      "margin"
-    ],
-    "correct": "brink",
-    "difficultyElo": 1820,
-    "skillCategory": "Vocabulary",
-    "topic": "General English",
-    "cefr": "C1"
-  },
-  {
-    "id": "q_046",
-    "question": "It is imperative that she ___ present at the meeting.",
-    "options": [
-      "is",
       "be",
-      "were",
+      "is",
+      "was",
       "are"
     ],
     "correct": "be",
     "difficultyElo": 1760,
     "skillCategory": "Grammar",
-    "topic": "General English",
+    "topic": "Mandative Subjunctive",
     "cefr": "C1"
   },
   {
-    "id": "q_047",
-    "question": "His argument was entirely ___; it didn't make any sense.",
-    "options": [
-      "lucid",
-      "coherent",
-      "fallacious",
-      "cogent"
-    ],
-    "correct": "fallacious",
-    "difficultyElo": 1850,
-    "skillCategory": "Vocabulary",
-    "topic": "General English",
-    "cefr": "C1"
-  },
-  {
-    "id": "q_048",
-    "question": "___ you need any further information, please do not hesitate to contact us.",
+    "id": "q_c1_g04",
+    "question": "___ you require any further clarification regarding the compliance policy, please contact our legal department.",
     "options": [
       "Should",
-      "If",
       "Were",
-      "Had"
+      "Had",
+      "Unless"
     ],
     "correct": "Should",
-    "difficultyElo": 1730,
+    "difficultyElo": 1720,
     "skillCategory": "Grammar",
-    "topic": "General English",
+    "topic": "Inversion in First Conditional",
     "cefr": "C1"
   },
   {
-    "id": "q_049",
-    "question": "The politician was forced to ___ his previous statement.",
+    "id": "q_c1_g05",
+    "question": "Had the advisory committee ___ informed earlier, the disaster might have been averted.",
+    "options": [
+      "been",
+      "be",
+      "being",
+      "have been"
+    ],
+    "correct": "been",
+    "difficultyElo": 1810,
+    "skillCategory": "Grammar",
+    "topic": "Third Conditional Inversion",
+    "cefr": "C1"
+  },
+  {
+    "id": "q_c1_v01",
+    "question": "The defense attorney argued that the prosecution's central premise was entirely ___, lacking empirical substance.",
+    "options": [
+      "fallacious",
+      "impeccable",
+      "meticulous",
+      "plausible"
+    ],
+    "correct": "fallacious",
+    "difficultyElo": 1840,
+    "skillCategory": "Vocabulary",
+    "topic": "Advanced Vocabulary",
+    "cefr": "C1"
+  },
+  {
+    "id": "q_c1_v02",
+    "question": "Following the public scandal, the senator was compelled to publicly ___ his defamatory remarks.",
     "options": [
       "retract",
-      "extract",
-      "detract",
-      "contract"
+      "reiterate",
+      "bolster",
+      "perpetuate"
     ],
     "correct": "retract",
-    "difficultyElo": 1790,
+    "difficultyElo": 1780,
     "skillCategory": "Vocabulary",
-    "topic": "General English",
+    "topic": "Politics & Discourse",
     "cefr": "C1"
   },
   {
-    "id": "q_050",
-    "question": "She has a ___ for remembering names and faces.",
+    "id": "q_c1_v03",
+    "question": "She possesses an undeniable ___ for resolving interpersonal disputes with diplomatic finesse.",
     "options": [
       "knack",
-      "habit",
-      "custom",
-      "trend"
+      "flaw",
+      "stigma",
+      "reluctance"
     ],
     "correct": "knack",
-    "difficultyElo": 1810,
+    "difficultyElo": 1800,
     "skillCategory": "Vocabulary",
-    "topic": "General English",
+    "topic": "Idiomatic Expressions",
+    "cefr": "C1"
+  },
+  {
+    "id": "q_c1_v04",
+    "question": "The startup hovered on the ___ of insolvency before securing a multi-million-dollar venture capital injection.",
+    "options": [
+      "brink",
+      "verge",
+      "apex",
+      "climax"
+    ],
+    "correct": "brink",
+    "difficultyElo": 1820,
+    "skillCategory": "Vocabulary",
+    "topic": "Business Metaphors",
+    "cefr": "C1"
+  },
+  {
+    "id": "q_c1_v05",
+    "question": "The diplomat's ambiguous remarks were deliberately designed to ___ the true intent of the negotiations.",
+    "options": [
+      "obfuscate",
+      "elucidate",
+      "corroborate",
+      "substantiate"
+    ],
+    "correct": "obfuscate",
+    "difficultyElo": 1860,
+    "skillCategory": "Vocabulary",
+    "topic": "Diplomacy & Rhetoric",
+    "cefr": "C1"
+  },
+  {
+    "id": "q_c1_r01",
+    "question": "Passage: 'Epistemological skepticism posits that true knowledge is inherently unattainable due to the fallibility of human perception and sensory cognition. Rather than promoting nihilism, however, ancient skeptics viewed suspended judgment as a tranquil pathway toward inner equanimity.' According to the passage, what did ancient skeptics believe was the outcome of suspending judgment?",
+    "options": [
+      "Inner equanimity and tranquility",
+      "Descent into destructive nihilism",
+      "Infallible scientific certainty",
+      "Absolute sensory clarity"
+    ],
+    "correct": "Inner equanimity and tranquility",
+    "difficultyElo": 1830,
+    "skillCategory": "Reading",
+    "topic": "Philosophy & Epistemology",
+    "cefr": "C1"
+  },
+  {
+    "id": "q_c1_r02",
+    "question": "Passage: 'The paradigm shift toward decentralized finance (DeFi) promises to democratize capital allocation by disintermediating traditional custodial banking institutions. Nonetheless, the immutable nature of smart contract execution creates systemic vulnerabilities: code exploits and oracle manipulation cannot be readily rectified via regulatory decree.' What is identified as an inherent vulnerability of decentralized finance?",
+    "options": [
+      "Immutability preventing easy rectification of code exploits",
+      "Excessive regulatory oversight by central authorities",
+      "Over-reliance on traditional custodial bank tellers",
+      "Complete lack of algorithmic automated execution"
+    ],
+    "correct": "Immutability preventing easy rectification of code exploits",
+    "difficultyElo": 1860,
+    "skillCategory": "Reading",
+    "topic": "Financial Technology & Cryptography",
+    "cefr": "C1"
+  },
+  {
+    "id": "q_c1_r03",
+    "question": "Excerpt: 'In literary theory, the intentional fallacy warns critics against interpreting a text solely through the biographical intentions of its author. Once unleashed into the public sphere, the literary artifact acquires autonomous polysemy that transcends its creator's original design.' What does the concept of 'autonomous polysemy' suggest about a literary work?",
+    "options": [
+      "It possesses multiple meanings independent of authorial intent",
+      "It strictly conveys the author's singular biographical experience",
+      "It should be discarded as devoid of artistic value",
+      "It can only be comprehended through historical author biographies"
+    ],
+    "correct": "It possesses multiple meanings independent of authorial intent",
+    "difficultyElo": 1870,
+    "skillCategory": "Reading",
+    "topic": "Literary Theory & Hermeneutics",
+    "cefr": "C1"
+  },
+  {
+    "id": "q_c1_r04",
+    "question": "Scientific Essay: 'Epigenetic modifications do not alter underlying nucleotide sequences, yet they exert profound regulatory control over gene expression. Environmental stressors—such as malnutrition or toxic exposure—can induce enduring epigenetic marks that reverberate across transgenerational lineages.' What is true regarding epigenetic modifications according to the passage?",
+    "options": [
+      "They alter gene expression without changing DNA sequences",
+      "They permanently rewrite the core nucleotide sequence",
+      "They are immune to external environmental stressors",
+      "They cannot be transmitted across generational lines"
+    ],
+    "correct": "They alter gene expression without changing DNA sequences",
+    "difficultyElo": 1820,
+    "skillCategory": "Reading",
+    "topic": "Genetics & Molecular Biology",
+    "cefr": "C1"
+  },
+  {
+    "id": "q_c1_r05",
+    "question": "Editorial: 'The pervasive ubiquity of algorithmic content curation has fostered echo chambers, wherein dissenting viewpoints are systematically filtered out. By reinforcing pre-existing biases, such platforms risk balkanizing civic discourse and eroding democratic consensus.' What consequence of algorithmic curation is the author cautioning against?",
+    "options": [
+      "Fragmentation of public discourse and erosion of consensus",
+      "Proliferation of overly diverse political viewpoints",
+      "Collapse of technological infrastructure and network outages",
+      "Excessive exposure to contradictory dissenting arguments"
+    ],
+    "correct": "Fragmentation of public discourse and erosion of consensus",
+    "difficultyElo": 1850,
+    "skillCategory": "Reading",
+    "topic": "Media Studies & Democracy",
+    "cefr": "C1"
+  },
+  {
+    "id": "q_c1_l01",
+    "question": "Nghe trích đoạn tọa đàm kinh tế: Diễn giả nhận định rủi ro tiềm tàng của việc nới lỏng định lượng kéo dài là gì?",
+    "audioText": "Protracted quantitative easing inadvertently exacerbates wealth disparity by inflating asset valuations while leaving real wage growth essentially stagnant for the lower quintiles.",
+    "options": [
+      "Worsening wealth inequality through asset inflation",
+      "Excessive hyperinflation in basic commodity prices",
+      "Immediate collapse of sovereign bond markets",
+      "Rapid exponential increases in median worker wages"
+    ],
+    "correct": "Worsening wealth inequality through asset inflation",
+    "difficultyElo": 1820,
+    "skillCategory": "Listening",
+    "topic": "Monetary Economics",
+    "cefr": "C1"
+  },
+  {
+    "id": "q_c1_l02",
+    "question": "Nghe trích đoạn tranh luận học thuật: Luận điểm chính của nhà ngôn ngữ học về sự biến đổi ngôn ngữ là gì?",
+    "audioText": "Prescriptivist lamentations over colloquial linguistic evolution invariably overlook the truth: language is a dynamic, self-optimizing adaptive system, not a static monument to be embalmed.",
+    "options": [
+      "Language is a dynamic adaptive system, not static",
+      "Colloquial slang destroys classical grammar rules",
+      "Language evolution should be heavily regulated by academies",
+      "Ancient vocabulary must be strictly embalmed and preserved"
+    ],
+    "correct": "Language is a dynamic adaptive system, not static",
+    "difficultyElo": 1850,
+    "skillCategory": "Listening",
+    "topic": "Linguistics & Sociolinguistics",
+    "cefr": "C1"
+  },
+  {
+    "id": "q_c1_l03",
+    "question": "Nghe phân tích chính sách năng lượng: Tại sao việc tích hợp năng lượng tái tạo vào lưới điện quốc gia lại gặp thách thức?",
+    "audioText": "Intermittency remains the Achilles heel of renewables. Without utility-scale battery storage breakthroughs, grid operators must maintain fossil-fuel peaking plants on standby.",
+    "options": [
+      "Intermittent generation requires backup power plants",
+      "Renewable energy produces toxic chemical runoff",
+      "Utility-scale batteries are already excessively abundant",
+      "Wind and solar power produce unmanageable electricity surpluses"
+    ],
+    "correct": "Intermittent generation requires backup power plants",
+    "difficultyElo": 1790,
+    "skillCategory": "Listening",
+    "topic": "Energy Grid & Sustainability",
+    "cefr": "C1"
+  },
+  {
+    "id": "q_c1_l04",
+    "question": "Nghe bài phỏng vấn giám đốc công nghệ: Ông ấy bày tỏ quan ngại đạo đức nào về mô hình AI sinh tổng quát?",
+    "audioText": "The unconstrained scraping of proprietary artistic works to train generative diffusion models fundamentally commodifies creative labor without attribution or remuneration.",
+    "options": [
+      "Exploitation of creative labor without attribution or pay",
+      "High electrical consumption of data center servers",
+      "Lack of computational processing power in modern chips",
+      "Inability of diffusion models to produce photorealistic images"
+    ],
+    "correct": "Exploitation of creative labor without attribution or pay",
+    "difficultyElo": 1870,
+    "skillCategory": "Listening",
+    "topic": "AI Ethics & Intellectual Property",
+    "cefr": "C1"
+  },
+  {
+    "id": "q_c1_l05",
+    "question": "Nghe báo cáo y tế công cộng: Nguyên nhân chính dẫn đến sự gia tăng của vi khuẩn kháng kháng sinh là gì?",
+    "audioText": "The widespread sub-therapeutic administration of antimicrobial compounds in industrial livestock agriculture directly accelerates horizontal gene transfer among pathogenic bacterial strains.",
+    "options": [
+      "Overuse of antimicrobials in industrial livestock agriculture",
+      "Patients taking too high doses of prescribed hospital antibiotics",
+      "Lack of hygiene in modern municipal water filtration",
+      "Genetic cloning of virus strains in academic research facilities"
+    ],
+    "correct": "Overuse of antimicrobials in industrial livestock agriculture",
+    "difficultyElo": 1840,
+    "skillCategory": "Listening",
+    "topic": "Public Health & Epidemiology",
     "cefr": "C1"
   }
 ]

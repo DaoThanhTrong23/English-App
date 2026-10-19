@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import AdminLayout from '../../../components/layout/AdminLayout';
-import { Plus, Edit, Trash2, Download, Search, RefreshCw, Hash, Tag, Layers } from 'lucide-react';
+import { Plus, Edit, Trash2, Download, Search, RefreshCw, Hash, Tag, Layers, X } from 'lucide-react';
 import { fetchKeywords, createKeyword, updateKeyword, deleteKeyword, downloadKeywordCsv, type KeywordGroup } from '../api/keyword.api';
 import '../../courses/pages/CourseList.css';
 import './KeywordSettings.css';
@@ -289,7 +289,9 @@ const KeywordSettings: React.FC = () => {
           <div className="modal-content" style={{ maxWidth: '600px' }} onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h3>{editingGroup ? 'Chỉnh sửa nhóm từ khóa' : 'Thêm nhóm từ khóa mới'}</h3>
-              <button className="close-btn" onClick={handleCloseModal}>&times;</button>
+              <button className="close-btn" onClick={handleCloseModal} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <X size={20} />
+              </button>
             </div>
             <form onSubmit={handleSubmit}>
               <div className="form-group" style={{ marginBottom: '16px' }}>

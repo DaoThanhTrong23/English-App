@@ -65,7 +65,10 @@ const CourseList: React.FC = () => {
   };
 
   useEffect(() => {
-    loadCourses();
+    const timer = setTimeout(() => {
+      loadCourses();
+    }, 300);
+    return () => clearTimeout(timer);
   }, [page, limit, search, cefrLevel, filterTopicId]);
 
   const handleOpenModal = (course?: any) => {

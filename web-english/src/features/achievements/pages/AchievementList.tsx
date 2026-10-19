@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import AdminLayout from '../../../components/layout/AdminLayout';
-import { Plus, Edit, Trash2, Trophy } from 'lucide-react';
+import { Plus, Edit, Trash2, Trophy, Upload } from 'lucide-react';
 import { fetchAchievements, createAchievement, updateAchievement, deleteAchievement } from '../api/achievement.api';
+import { uploadMedia } from '../../tests/api/test.api';
 import '../../courses/pages/CourseList.css';
 
 const AchievementList: React.FC = () => {
@@ -9,6 +10,8 @@ const AchievementList: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState(false);
   
   const [formData, setFormData] = useState({
     title: '',
@@ -82,6 +85,22 @@ const AchievementList: React.FC = () => {
       } catch (error) {
         alert('Có lỗi xảy ra khi xóa');
       }
+    }
+  };
+
+  const handleUploadIcon = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploading(true);
+    try {
+      const res = await uploadMedia(file);
+      if (res.data?.url) {
+        setFormData(prev => ({ ...prev, iconUrl: res.data.url }));
+      }
+    } catch (err) {
+      alert('Không thể tải ảnh lên');
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -193,13 +212,50 @@ const AchievementList: React.FC = () => {
                 />
               </div>
               <div className="form-group">
-                <label>Icon URL (Đường dẫn ảnh/huy hiệu)</label>
-                <input 
-                  type="text" 
-                  value={formData.iconUrl} 
-                  onChange={(e) => setFormData({...formData, iconUrl: e.target.value})} 
-                  placeholder="https://..."
-                />
+                <label>Huy hiệu / Biểu tượng danh hiệu</label>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <input 
+                    type="text" 
+                    value={formData.iconUrl} 
+                    onChange={(e) => setFormData({...formData, iconUrl: e.target.value})} 
+                    placeholder="URL ảnh hoặc bấm Tải ảnh lên..."
+                    style={{ flex: 1 }}
+                  />
+                  <input 
+                    type="file" 
+                    ref={fileInputRef} 
+                    style={{ display: 'none' }} 
+                    accept="image/*"
+                    onChange={handleUploadIcon}
+                  />
+                  <button 
+                    type="button" 
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploading}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      padding: '8px 14px',
+                      background: '#eff6ff',
+                      color: '#2563eb',
+                      border: '1px solid #bfdbfe',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      fontWeight: 600,
+                      fontSize: '0.85rem',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    <Upload size={14} /> {isUploading ? 'Đang tải...' : 'Tải ảnh lên'}
+                  </button>
+                </div>
+                {formData.iconUrl && (
+                  <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <img src={formData.iconUrl} alt="Preview" style={{ width: '40px', height: '40px', objectFit: 'contain', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '2px', background: '#f8fafc' }} />
+                    <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Xem trước huy hiệu</span>
+                  </div>
+                )}
               </div>
               <div className="modal-actions">
                 <button type="button" className="cancel-btn" onClick={handleCloseModal}>Hủy</button>

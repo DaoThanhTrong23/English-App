@@ -3,10 +3,15 @@ import z from "zod";
 export const RegisterSchema = z.object({
     body: z.object({
         username: z.string()
-                    .min(3,"Tài khoản tối thiểu 3 ký tự")
-                    .max(50,"Tài khoản dài tối đa 50 ký tự")
-                    .regex(/^[a-zA-Z0-9_]+$/,"Username chỉ chứa chữ, số và dấu gạch dưới"),
-        email: z.string().email("Email không đúng định dạng").max(100),
+                    .trim()
+                    .min(3, "Tên đăng nhập phải có ít nhất 3 ký tự")
+                    .max(50, "Tên đăng nhập dài tối đa 50 ký tự")
+                    .regex(/^[a-zA-Z0-9_]+$/, "Tên đăng nhập chỉ chứa chữ cái, số và dấu gạch dưới (_)"),
+        email: z.string()
+                    .trim()
+                    .toLowerCase()
+                    .email("Email không đúng định dạng")
+                    .max(100, "Email dài tối đa 100 ký tự"),
         password: z.string()
             .min(8, "Mật khẩu phải dài ít nhất 8 ký tự")
             .regex(/[a-z]/, "Mật khẩu phải chứa ít nhất 1 chữ thường")
@@ -17,6 +22,15 @@ export const RegisterSchema = z.object({
         deviceInfo: z.string().optional()
     }),
     query: z.object({}),
+    params: z.object({})
+});
+
+export const CheckAvailabilitySchema = z.object({
+    body: z.object({}),
+    query: z.object({
+        username: z.string().trim().optional(),
+        email: z.string().trim().toLowerCase().optional()
+    }),
     params: z.object({})
 });
 

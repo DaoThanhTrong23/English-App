@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator, Alert, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as Speech from 'expo-speech';
 import { axiosClient } from '../api/axiosClient';
 import * as SecureStore from 'expo-secure-store';
 import { useAppTheme } from '../context/ThemeContext';
@@ -29,20 +30,46 @@ export default function OnboardingScreen() {
   // Test Data
   const [questions, setQuestions] = useState<any[]>([]);
   const [currentQIndex, setCurrentQIndex] = useState(0);
-  const [answers, setAnswers] = useState<{id: string, answer: string}[]>([]);
+  const [answers, setAnswers] = useState<{id: string, answer: string, timeTakenMs?: number}[]>([]);
+  const questionStartTime = useRef<number>(Date.now());
   
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
 
+  // Dừng phát âm thanh khi chuyển câu hoặc component unmount
+  useEffect(() => {
+    if (step === 2 && questions.length > 0 && questions[currentQIndex]) {
+      questionStartTime.current = Date.now();
+      Speech.stop();
+      const q = questions[currentQIndex];
+      if (q.skillCategory === 'Listening' && q.audioText) {
+        setTimeout(() => {
+          Speech.speak(q.audioText, { language: 'en-US', rate: 0.85 });
+        }, 350);
+      }
+    }
+    return () => {
+      Speech.stop();
+    };
+  }, [currentQIndex, step]);
+
+  const playAudio = (text: string) => {
+    Speech.stop();
+    Speech.speak(text, { language: 'en-US', rate: 0.85 });
+  };
+
   const startTest = async () => {
-    if (!job || !interests) {
-      Alert.alert('Thiếu thông tin', 'Vui lòng nhập đầy đủ nghề nghiệp và sở thích để chúng tôi gợi ý tốt hơn!');
+    if (!job || interests.length === 0) {
+      Alert.alert('Thiếu thông tin', 'Vui lòng chọn nghề nghiệp và ít nhất một sở thích để chúng tôi gợi ý lộ trình phù hợp!');
       return;
     }
     setLoading(true);
     try {
       const res = await axiosClient.get('/onboarding/placement-test');
-      setQuestions(res.data.data);
+      setQuestions(res.data.data || []);
+      setCurrentQIndex(0);
+      setAnswers([]);
+      questionStartTime.current = Date.now();
       setStep(2);
     } catch (e) {
       Alert.alert('Lỗi', 'Không tải được bài test');
@@ -52,8 +79,10 @@ export default function OnboardingScreen() {
   };
 
   const selectAnswer = async (answer: string) => {
+    Speech.stop();
     const q = questions[currentQIndex];
-    const newAnswers = [...answers, { id: q.id, answer }];
+    const timeTakenMs = Math.max(500, Date.now() - questionStartTime.current);
+    const newAnswers = [...answers, { id: q.id, answer, timeTakenMs }];
     setAnswers(newAnswers);
 
     // Kích hoạt Tự động dừng (Auto-stop) với Backend
@@ -79,6 +108,7 @@ export default function OnboardingScreen() {
   };
 
   const submitTest = async (finalAnswers: any) => {
+    Speech.stop();
     setLoading(true);
     try {
       const res = await axiosClient.post('/onboarding/submit', {
@@ -169,13 +199,48 @@ export default function OnboardingScreen() {
 
       {/* BƯỚC 2: LÀM BÀI TEST */}
       {step === 2 && questions.length > 0 && (
-        <View style={styles.content}>
-          <Text style={[styles.progressText, { color: theme.subtext }]}>Câu hỏi {currentQIndex + 1} / {questions.length}</Text>
+        <ScrollView contentContainerStyle={styles.content}>
+          <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12}}>
+            <Text style={[styles.progressText, { color: theme.subtext, marginBottom: 0 }]}>
+              Câu hỏi {currentQIndex + 1} / {questions.length}
+            </Text>
+            <View style={[styles.skillBadge, { backgroundColor: isDark ? '#1e293b' : '#eff6ff', borderColor: isDark ? '#3b82f6' : '#bfdbfe' }]}>
+              <Ionicons 
+                name={
+                  questions[currentQIndex].skillCategory === 'Listening' ? 'volume-high' :
+                  questions[currentQIndex].skillCategory === 'Reading' ? 'book-outline' :
+                  questions[currentQIndex].skillCategory === 'Vocabulary' ? 'text-outline' : 'pencil-outline'
+                } 
+                size={14} 
+                color={theme.primary} 
+                style={{marginRight: 4}} 
+              />
+              <Text style={[styles.skillBadgeText, { color: theme.primary }]}>
+                {questions[currentQIndex].skillCategory === 'Listening' ? 'Nghe hiểu' :
+                 questions[currentQIndex].skillCategory === 'Reading' ? 'Đọc hiểu' :
+                 questions[currentQIndex].skillCategory === 'Vocabulary' ? 'Từ vựng' : 'Ngữ pháp'}
+              </Text>
+            </View>
+          </View>
+
           <View style={[styles.progressBar, { backgroundColor: theme.cardSecondary }]}>
             <View style={[styles.progressFill, { width: `${((currentQIndex + 1) / questions.length) * 100}%`, backgroundColor: theme.primary }]} />
           </View>
           
-          <Text style={[styles.questionText, { color: theme.text }]}>{questions[currentQIndex].question}</Text>
+          {/* Nút phát âm thanh cho kỹ năng Listening */}
+          {questions[currentQIndex].skillCategory === 'Listening' && (
+            <TouchableOpacity 
+              style={[styles.audioPlayBtn, { backgroundColor: theme.primary }]} 
+              onPress={() => playAudio(questions[currentQIndex].audioText || questions[currentQIndex].question)}
+            >
+              <Ionicons name="volume-high" size={24} color="#fff" />
+              <Text style={styles.audioPlayText}>Bấm để nghe âm thanh 🔊</Text>
+            </TouchableOpacity>
+          )}
+
+          <Text style={[styles.questionText, { color: theme.text }]}>
+            {questions[currentQIndex].question}
+          </Text>
           
           {questions[currentQIndex].options.map((opt: string, idx: number) => (
             <TouchableOpacity 
@@ -183,35 +248,64 @@ export default function OnboardingScreen() {
               style={[styles.optionBtn, { backgroundColor: theme.card, borderColor: theme.border }]}
               onPress={() => selectAnswer(opt)}
             >
-              <Text style={[styles.optionText, { color: theme.text }]}>{opt}</Text>
+              <View style={[styles.optionLetter, { backgroundColor: isDark ? theme.cardSecondary : '#f3f4f6' }]}>
+                <Text style={[styles.optionLetterText, { color: theme.text }]}>{String.fromCharCode(65 + idx)}</Text>
+              </View>
+              <Text style={[styles.optionText, { color: theme.text, flex: 1 }]}>{opt}</Text>
             </TouchableOpacity>
           ))}
-        </View>
+        </ScrollView>
       )}
 
       {/* BƯỚC 3: KẾT QUẢ & RECOMMENDATION */}
       {step === 3 && result && (
-        <View style={styles.content}>
+        <ScrollView contentContainerStyle={styles.content}>
           <Ionicons name="trophy" size={80} color="#f59e0b" style={{alignSelf: 'center', marginBottom: 20}} />
-          <Text style={[styles.title, { color: theme.text }]}>Hoàn tất đánh giá!</Text>
+          <Text style={[styles.title, { color: theme.text }]}>Hoàn tất đánh giá năng lực! 🎓</Text>
           
           <View style={[styles.resultCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
-            
-    <Text style={[styles.resultLabel, { color: theme.subtext }]}>Điểm số: <Text style={[styles.resultValue, { color: theme.text }]}>{result.score}</Text></Text>
-    {result.stoppedEarly && (
-      <View style={{backgroundColor: isDark ? '#1e293b' : '#dbeafe', padding: 10, borderRadius: 8, marginTop: 10, marginBottom: 5}}>
-        <Text style={{color: isDark ? '#93c5fd' : '#1e40af', fontSize: 13, fontWeight: '500'}}>
-          ⚡ Tính năng Tự động dừng (Auto-stop): Thuật toán thông minh FAME-KT đã phân tích xong trình độ của bạn chỉ sau {result.questionsUsed} câu hỏi mà không cần làm hết bài!
-        </Text>
-      </View>
-    )}
-  
-            <Text style={[styles.resultLabel, { color: theme.subtext }]}>Trình độ CEFR: <Text style={[styles.resultValue, {color: theme.primary}]}>{result.cefrLevel}</Text></Text>
+            <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12}}>
+              <Text style={[styles.resultLabel, { color: theme.subtext, marginBottom: 0 }]}>
+                Điểm số: <Text style={[styles.resultValue, { color: theme.text }]}>{result.score}</Text>
+              </Text>
+              <View style={[styles.cefrBadge, { backgroundColor: theme.primary }]}>
+                <Text style={styles.cefrBadgeText}>CEFR {result.cefrLevel}</Text>
+              </View>
+            </View>
+
+            {result.stoppedEarly && (
+              <View style={{backgroundColor: isDark ? '#1e293b' : '#dbeafe', padding: 12, borderRadius: 10, marginBottom: 12}}>
+                <Text style={{color: isDark ? '#93c5fd' : '#1e40af', fontSize: 13, fontWeight: '500', lineHeight: 18}}>
+                  ⚡ Tính năng Tự động dừng (Auto-stop): Thuật toán thông minh FAME-KT đã phân tích xong trình độ của bạn chỉ sau {result.questionsUsed} câu hỏi mà không cần làm hết bài!
+                </Text>
+              </View>
+            )}
+
             {result.eloProfile && (
-              <View style={{marginTop: 10}}>
-                <Text style={[styles.resultLabel, { color: theme.subtext }]}>Phân tích năng lực (FAME-KT Elo):</Text>
-                <Text style={{color: theme.subtext}}>Ngữ pháp: {result.eloProfile.Grammar} | Từ vựng: {result.eloProfile.Vocabulary}</Text>
-                <Text style={{color: theme.subtext}}>Nghe: {result.eloProfile.Listening} | Đọc: {result.eloProfile.Reading}</Text>
+              <View style={{marginTop: 5}}>
+                <Text style={[styles.resultLabel, { color: theme.subtext, marginBottom: 10 }]}>Báo cáo năng lực đa chiều (FAME-KT Elo):</Text>
+                <View style={styles.skillsGrid}>
+                  <View style={[styles.skillBox, { backgroundColor: isDark ? theme.cardSecondary : '#f8fafc', borderColor: theme.border }]}>
+                    <Text style={styles.skillIcon}>✏️</Text>
+                    <Text style={[styles.skillName, { color: theme.subtext }]}>Ngữ pháp</Text>
+                    <Text style={[styles.skillElo, { color: theme.text }]}>{result.eloProfile.Grammar}</Text>
+                  </View>
+                  <View style={[styles.skillBox, { backgroundColor: isDark ? theme.cardSecondary : '#f8fafc', borderColor: theme.border }]}>
+                    <Text style={styles.skillIcon}>📚</Text>
+                    <Text style={[styles.skillName, { color: theme.subtext }]}>Từ vựng</Text>
+                    <Text style={[styles.skillElo, { color: theme.text }]}>{result.eloProfile.Vocabulary}</Text>
+                  </View>
+                  <View style={[styles.skillBox, { backgroundColor: isDark ? theme.cardSecondary : '#f8fafc', borderColor: theme.border }]}>
+                    <Text style={styles.skillIcon}>🎧</Text>
+                    <Text style={[styles.skillName, { color: theme.subtext }]}>Nghe hiểu</Text>
+                    <Text style={[styles.skillElo, { color: theme.text }]}>{result.eloProfile.Listening}</Text>
+                  </View>
+                  <View style={[styles.skillBox, { backgroundColor: isDark ? theme.cardSecondary : '#f8fafc', borderColor: theme.border }]}>
+                    <Text style={styles.skillIcon}>📖</Text>
+                    <Text style={[styles.skillName, { color: theme.subtext }]}>Đọc hiểu</Text>
+                    <Text style={[styles.skillElo, { color: theme.text }]}>{result.eloProfile.Reading}</Text>
+                  </View>
+                </View>
               </View>
             )}
           </View>
@@ -242,9 +336,9 @@ export default function OnboardingScreen() {
                 </Text>
                 <Text style={[styles.courseDesc, { color: theme.subtext }]}>{group.desc}</Text>
               </TouchableOpacity>
-            )
+            );
           })}
-        </View>
+        </ScrollView>
       )}
     </SafeAreaView>
   );
@@ -254,8 +348,8 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   content: { padding: 24 },
-  title: { fontSize: 26, fontWeight: 'bold', marginBottom: 12, textAlign: 'center' },
-  subtitle: { fontSize: 15, marginBottom: 24, textAlign: 'center', lineHeight: 22 },
+  title: { fontSize: 24, fontWeight: 'bold', marginBottom: 12, textAlign: 'center' },
+  subtitle: { fontSize: 14, marginBottom: 20, textAlign: 'center', lineHeight: 20 },
   inputGroup: { marginBottom: 20 },
   label: { fontSize: 14, fontWeight: '600', marginBottom: 8 },
   input: { borderRadius: 12, padding: 16, fontSize: 15 },
@@ -267,16 +361,33 @@ const styles = StyleSheet.create({
   chipText: { fontSize: 14, fontWeight: '500' },
   chipTextSelected: { fontWeight: 'bold' },
 
-  progressText: { fontSize: 14, fontWeight: '600', marginBottom: 8 },
-  progressBar: { height: 6, borderRadius: 3, marginBottom: 30 },
+  progressText: { fontSize: 14, fontWeight: '600' },
+  progressBar: { height: 6, borderRadius: 3, marginBottom: 20 },
   progressFill: { height: '100%', borderRadius: 3 },
-  questionText: { fontSize: 22, fontWeight: 'bold', marginBottom: 30, lineHeight: 32 },
-  optionBtn: { padding: 18, borderWidth: 2, borderRadius: 12, marginBottom: 12 },
-  optionText: { fontSize: 16, fontWeight: '500', textAlign: 'center' },
+  skillBadge: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, borderWidth: 1 },
+  skillBadgeText: { fontSize: 12, fontWeight: '600' },
+
+  audioPlayBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 14, borderRadius: 12, marginBottom: 20, gap: 8 },
+  audioPlayText: { color: '#ffffff', fontSize: 15, fontWeight: 'bold' },
+
+  questionText: { fontSize: 20, fontWeight: 'bold', marginBottom: 25, lineHeight: 28 },
+  optionBtn: { flexDirection: 'row', alignItems: 'center', padding: 14, borderWidth: 1.5, borderRadius: 12, marginBottom: 12 },
+  optionLetter: { width: 30, height: 30, borderRadius: 15, justifyContent: 'center', alignItems: 'center', marginRight: 12 },
+  optionLetterText: { fontSize: 14, fontWeight: 'bold' },
+  optionText: { fontSize: 15, fontWeight: '500' },
 
   resultCard: { padding: 20, borderRadius: 16, marginBottom: 24, borderWidth: 1 },
-  resultLabel: { fontSize: 16, marginBottom: 8 },
-  resultValue: { fontSize: 20, fontWeight: 'bold' },
+  resultLabel: { fontSize: 15, fontWeight: '500' },
+  resultValue: { fontSize: 18, fontWeight: 'bold' },
+  cefrBadge: { paddingHorizontal: 12, paddingVertical: 5, borderRadius: 20 },
+  cefrBadgeText: { color: '#ffffff', fontSize: 13, fontWeight: 'bold' },
+
+  skillsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 8 },
+  skillBox: { width: '48%', padding: 12, borderRadius: 12, borderWidth: 1, alignItems: 'center' },
+  skillIcon: { fontSize: 20, marginBottom: 4 },
+  skillName: { fontSize: 12, fontWeight: '500' },
+  skillElo: { fontSize: 16, fontWeight: 'bold', marginTop: 2 },
+
   courseCard: { padding: 16, borderRadius: 12, borderWidth: 1, marginBottom: 12 },
   courseTitle: { fontSize: 16, fontWeight: 'bold' },
   courseDesc: { fontSize: 13, marginTop: 4 }

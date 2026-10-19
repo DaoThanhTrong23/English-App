@@ -84,7 +84,11 @@ export default function LoginScreen() {
 
     } catch (e: any) {
       console.log('SOCIAL LOGIN ERROR:', e);
-      setErrorMsg('Đăng nhập MXH thất bại: ' + (e.response?.data?.message || e.message));
+      const msg = e.response?.data?.message || e.response?.data?.error?.message || e.message;
+      setErrorMsg('Đăng nhập MXH thất bại: ' + msg);
+      if (String(msg).toLowerCase().includes('khóa')) {
+        Alert.alert('Tài khoản bị khóa', String(msg));
+      }
     }
   };
 
@@ -145,7 +149,11 @@ export default function LoginScreen() {
       if (e.message === 'Network Error') {
         setErrorMsg('Không thể kết nối đến Server! Vui lòng kiểm tra IP mạng.');
       } else {
-        setErrorMsg(e.response?.data?.message || 'Có lỗi xảy ra, vui lòng thử lại!');
+        const msg = e.response?.data?.message || e.response?.data?.error?.message || 'Có lỗi xảy ra, vui lòng thử lại!';
+        setErrorMsg(msg);
+        if (String(msg).toLowerCase().includes('khóa')) {
+          Alert.alert('Tài khoản bị khóa', String(msg));
+        }
       }
     }
   };

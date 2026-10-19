@@ -35,10 +35,15 @@ communityRouter.get(
   "/posts",
   asyncHandler(async (req: any, res) => {
     const userId = Number(req.user?.userId);
-    const limit = Number(req.query.limit) || 20;
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
     const filter = req.query?.filter as string | undefined;
-    const result = await communityService.getPosts(userId, limit, filter);
-    res.status(200).json({ success: true, data: result });
+    const result = await communityService.getPosts(userId, page, limit, filter);
+    res.status(200).json({ 
+      success: true, 
+      data: result.posts, 
+      pagination: result.pagination 
+    });
   })
 );
 

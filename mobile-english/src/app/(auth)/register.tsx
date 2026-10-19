@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, KeyboardAvoidingView, Platform, ScrollView, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, KeyboardAvoidingView, Platform, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { axiosClient } from '../../api/axiosClient';
 import * as SecureStore from 'expo-secure-store';
@@ -21,6 +21,97 @@ export default function RegisterScreen() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+
+  // Trạng thái kiểm tra trùng lặp email và username
+  const [usernameError, setUsernameError] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [isCheckingUsername, setIsCheckingUsername] = useState(false);
+  const [isCheckingEmail, setIsCheckingEmail] = useState(false);
+  const [isUsernameValid, setIsUsernameValid] = useState(false);
+  const [isEmailValid, setIsEmailValid] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Debounce kiểm tra trùng tên đăng nhập
+  useEffect(() => {
+    const cleanUser = username.trim();
+    if (!cleanUser) {
+      setUsernameError('');
+      setIsUsernameValid(false);
+      return;
+    }
+
+    if (cleanUser.length < 3) {
+      setIsUsernameValid(false);
+      return;
+    }
+
+    const usernameRegex = /^[a-zA-Z0-9_]+$/;
+    if (!usernameRegex.test(cleanUser)) {
+      setUsernameError('Tên đăng nhập chỉ chứa chữ cái, số và dấu gạch dưới (_)');
+      setIsUsernameValid(false);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      try {
+        setIsCheckingUsername(true);
+        const res = await axiosClient.get(`/auth/check-availability?username=${encodeURIComponent(cleanUser)}`);
+        if (res.data?.data) {
+          if (!res.data.data.usernameAvailable) {
+            setUsernameError(res.data.data.usernameMessage || 'Tên đăng nhập này đã tồn tại');
+            setIsUsernameValid(false);
+          } else {
+            setUsernameError('');
+            setIsUsernameValid(true);
+          }
+        }
+      } catch (err) {
+        // Bỏ qua lỗi mạng trong lúc gõ phím
+      } finally {
+        setIsCheckingUsername(false);
+      }
+    }, 450);
+
+    return () => clearTimeout(timer);
+  }, [username]);
+
+  // Debounce kiểm tra trùng Email
+  useEffect(() => {
+    const cleanMail = email.trim().toLowerCase();
+    if (!cleanMail) {
+      setEmailError('');
+      setIsEmailValid(false);
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(cleanMail)) {
+      setIsEmailValid(false);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      try {
+        setIsCheckingEmail(true);
+        const res = await axiosClient.get(`/auth/check-availability?email=${encodeURIComponent(cleanMail)}`);
+        if (res.data?.data) {
+          if (!res.data.data.emailAvailable) {
+            setEmailError(res.data.data.emailMessage || 'Email này đã được sử dụng');
+            setIsEmailValid(false);
+          } else {
+            setEmailError('');
+            setIsEmailValid(true);
+          }
+        }
+      } catch (err) {
+        // Bỏ qua lỗi mạng trong lúc gõ phím
+      } finally {
+        setIsCheckingEmail(false);
+      }
+    }, 450);
+
+    return () => clearTimeout(timer);
+  }, [email]);
 
   // 1. Cấu hình Google Auth Session (Lấy id_token)
   const [gRequest, gResponse, gPromptAsync] = Google.useIdTokenAuthRequest({
@@ -76,7 +167,7 @@ export default function RegisterScreen() {
   const handleAuth = async () => {
     setErrorMsg('');
     const trimmedUsername = username.trim();
-    const trimmedEmail = email.trim();
+    const trimmedEmail = email.trim().toLowerCase();
 
     if (!trimmedUsername || !trimmedEmail || !password) {
       setErrorMsg('Vui lòng nhập đầy đủ thông tin!');
@@ -105,6 +196,17 @@ export default function RegisterScreen() {
       return;
     }
 
+    // Kiểm tra nhanh trạng thái lỗi trùng lặp đã được phát hiện trước đó
+    if (usernameError) {
+      setErrorMsg(usernameError);
+      return;
+    }
+
+    if (emailError) {
+      setErrorMsg(emailError);
+      return;
+    }
+
     if (password !== confirmPassword) {
       setErrorMsg('Mật khẩu nhập lại không khớp!');
       return;
@@ -117,6 +219,7 @@ export default function RegisterScreen() {
     }
 
     try {
+      setIsSubmitting(true);
       const deviceInfo = Platform.OS;
       
       // Handle Register với username và email do học viên tự nhập
@@ -200,8 +303,28 @@ export default function RegisterScreen() {
       if (e.message === 'Network Error') {
         setErrorMsg('Không thể kết nối đến Server! Vui lòng kiểm tra IP mạng.');
       } else {
-        setErrorMsg(e.response?.data?.message || 'Có lỗi xảy ra, vui lòng thử lại!');
+        const errorData = e.response?.data;
+        const serverMsg = errorData?.message || errorData?.error?.message || 'Có lỗi xảy ra, vui lòng thử lại!';
+        const errorCode = errorData?.error?.code;
+
+        setErrorMsg(serverMsg);
+
+        if (errorCode === 'credential_already_exists' || (serverMsg.toLowerCase().includes('email') && (serverMsg.toLowerCase().includes('tên đăng nhập') || serverMsg.toLowerCase().includes('username')))) {
+          setEmailError('Email này đã được sử dụng.');
+          setUsernameError('Tên đăng nhập này đã tồn tại.');
+          Alert.alert('Không thể tạo tài khoản', 'Cả Email và Tên đăng nhập này đều đã được đăng ký tài khoản khác. Vui lòng chọn thông tin khác.');
+        } else if (errorCode === 'email_already_exists' || serverMsg.toLowerCase().includes('email')) {
+          setEmailError(serverMsg);
+          Alert.alert('Không thể tạo tài khoản', serverMsg);
+        } else if (errorCode === 'username_already_exists' || serverMsg.toLowerCase().includes('tên đăng nhập') || serverMsg.toLowerCase().includes('username')) {
+          setUsernameError(serverMsg);
+          Alert.alert('Không thể tạo tài khoản', serverMsg);
+        } else {
+          Alert.alert('Không thể tạo tài khoản', serverMsg);
+        }
       }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -216,37 +339,74 @@ export default function RegisterScreen() {
         <Text style={[styles.subtitle, { color: theme.subtext }]}>Đăng ký để học tiếng Anh cùng EngMaster</Text>
 
         {errorMsg ? (
-          <View style={{ backgroundColor: isDark ? '#450a0a' : '#fee2e2', padding: 10, borderRadius: 8, marginBottom: 15, width: '100%' }}>
-            <Text style={{ color: '#ef4444', fontSize: 13, textAlign: 'center' }}>{errorMsg}</Text>
+          <View style={{ backgroundColor: isDark ? '#450a0a' : '#fee2e2', padding: 12, borderRadius: 10, marginBottom: 15, width: '100%', borderWidth: 1, borderColor: '#ef4444' }}>
+            <Text style={{ color: '#ef4444', fontSize: 13, textAlign: 'center', fontWeight: '500' }}>{errorMsg}</Text>
           </View>
         ) : null}
 
         <View style={styles.formContainer}>
           <Text style={[styles.inputLabel, { color: theme.text }]}>Tên đăng nhập</Text>
-          <View style={[styles.inputWrapper, { backgroundColor: theme.inputBg, borderColor: theme.border }]}>
+          <View style={[styles.inputWrapper, { 
+            backgroundColor: theme.inputBg, 
+            borderColor: usernameError ? '#ef4444' : (isUsernameValid ? '#22c55e' : theme.border) 
+          }]}>
             <TextInput
               style={[styles.input, { color: theme.inputText }]}
               placeholder="vd: hocvien_123"
               placeholderTextColor={theme.subtext}
               value={username}
-              onChangeText={setUsername}
+              onChangeText={(text) => {
+                setUsername(text);
+                setUsernameError('');
+              }}
               autoCapitalize="none"
               autoCorrect={false}
             />
+            {isCheckingUsername ? (
+              <ActivityIndicator size="small" color={theme.subtext} style={{ marginRight: 12 }} />
+            ) : isUsernameValid ? (
+              <Ionicons name="checkmark-circle" size={20} color="#22c55e" style={{ marginRight: 12 }} />
+            ) : usernameError ? (
+              <Ionicons name="alert-circle" size={20} color="#ef4444" style={{ marginRight: 12 }} />
+            ) : null}
           </View>
+          {usernameError ? (
+            <Text style={{ color: '#ef4444', fontSize: 12, marginTop: -14, marginBottom: 14, marginLeft: 4 }}>
+              {usernameError}
+            </Text>
+          ) : null}
 
           <Text style={[styles.inputLabel, { color: theme.text }]}>Email của bạn</Text>
-          <View style={[styles.inputWrapper, { backgroundColor: theme.inputBg, borderColor: theme.border }]}>
+          <View style={[styles.inputWrapper, { 
+            backgroundColor: theme.inputBg, 
+            borderColor: emailError ? '#ef4444' : (isEmailValid ? '#22c55e' : theme.border) 
+          }]}>
             <TextInput
               style={[styles.input, { color: theme.inputText }]}
               placeholder="example@gmail.com"
               placeholderTextColor={theme.subtext}
               value={email}
-              onChangeText={setEmail}
+              onChangeText={(text) => {
+                setEmail(text);
+                setEmailError('');
+              }}
               autoCapitalize="none"
+              autoCorrect={false}
               keyboardType="email-address"
             />
+            {isCheckingEmail ? (
+              <ActivityIndicator size="small" color={theme.subtext} style={{ marginRight: 12 }} />
+            ) : isEmailValid ? (
+              <Ionicons name="checkmark-circle" size={20} color="#22c55e" style={{ marginRight: 12 }} />
+            ) : emailError ? (
+              <Ionicons name="alert-circle" size={20} color="#ef4444" style={{ marginRight: 12 }} />
+            ) : null}
           </View>
+          {emailError ? (
+            <Text style={{ color: '#ef4444', fontSize: 12, marginTop: -14, marginBottom: 14, marginLeft: 4 }}>
+              {emailError}
+            </Text>
+          ) : null}
 
           <View style={styles.passwordHeader}>
             <Text style={[styles.inputLabel, { color: theme.text }]}>Mật khẩu</Text>
@@ -277,8 +437,16 @@ export default function RegisterScreen() {
             />
           </View>
 
-          <TouchableOpacity style={[styles.loginButton, { backgroundColor: theme.primary }]} onPress={handleAuth}>
-            <Text style={styles.loginButtonText}>Đăng ký</Text>
+          <TouchableOpacity 
+            style={[styles.loginButton, { backgroundColor: isSubmitting ? '#93c5fd' : theme.primary }]} 
+            onPress={handleAuth}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <ActivityIndicator color="#ffffff" size="small" />
+            ) : (
+              <Text style={styles.loginButtonText}>Đăng ký</Text>
+            )}
           </TouchableOpacity>
         </View>
 

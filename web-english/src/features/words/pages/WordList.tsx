@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchWords, deleteWord, updateWord } from '../api/words.api';
 import AdminLayout from '../../../components/layout/AdminLayout';
+import { Plus, Edit2, Trash2 } from 'lucide-react';
 import './WordList.css';
 
 const WordList: React.FC = () => {
@@ -203,7 +204,9 @@ const WordList: React.FC = () => {
       <div className="word-list-main">
         <div className="word-list-header">
           <h2 className="dashboard-title">Quản lý từ vựng</h2>
-          <button className="add-word-btn" onClick={() => navigate('/admin/words/add')}>+ Thêm từ mới</button>
+          <button className="add-word-btn" onClick={() => navigate('/admin/words/add')} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            <Plus size={16} /> Thêm từ mới
+          </button>
         </div>
 
         <div className="word-list-controls">
@@ -258,8 +261,12 @@ const WordList: React.FC = () => {
                       </td>
                       <td>
                         <div className="action-buttons">
-                          <button className="edit-btn" onClick={() => handleEditClick(w)}>Sửa</button>
-                          <button className="delete-btn" onClick={() => handleDelete(w.id, w.headword)}>Xóa</button>
+                          <button className="edit-btn" onClick={() => handleEditClick(w)} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                            <Edit2 size={13} /> Sửa
+                          </button>
+                          <button className="delete-btn" onClick={() => handleDelete(w.id, w.headword)} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                            <Trash2 size={13} /> Xóa
+                          </button>
                         </div>
                       </td>
                     </tr>
