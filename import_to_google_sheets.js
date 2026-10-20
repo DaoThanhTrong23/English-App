@@ -1,5 +1,5 @@
 /**
- * GOOGLE APPS SCRIPT ĐỒNG BỘ TOÀN BỘ 341 TEST CASES VÀO GOOGLE SHEET
+ * GOOGLE APPS SCRIPT ĐỒNG BỘ TOÀN BỘ 573 TEST CASES VÀO GOOGLE SHEET
  * Hướng dẫn sử dụng:
  * 1. Mở file Google Sheet: https://docs.google.com/spreadsheets/d/1EvdRJjuI5xfPb_B_put6StR6Dq-YLQmE8tkvc_6qFVM/edit
  * 2. Trên thanh menu, chọn: Tiện ích mở rộng (Extensions) -> Apps Script
@@ -27,6 +27,38 @@ function importAllTestCases() {
       "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
     },
     {
+      "TCID": "AI-GOP-01",
+      "Test Title": "evaluatePronunciationGOP với targetIpa rõ ràng",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Khởi tạo Service với Mock Repository / Prisma Client.\n2. Kích hoạt hàm nghiệp vụ tương ứng của AI.\n3. Kiểm tra giá trị trả về hoặc bắt exception.",
+      "Data": "Dữ liệu test fixture trong AI.mock.ts",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
+    },
+    {
+      "TCID": "AI-GOP-02",
+      "Test Title": "evaluatePronunciationGOP tự động phân giải IPA từ COMMON_IPA_DICT khi targetIpa để trống",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Khởi tạo Service với Mock Repository / Prisma Client.\n2. Kích hoạt hàm nghiệp vụ tương ứng của AI.\n3. Kiểm tra giá trị trả về hoặc bắt exception.",
+      "Data": "Dữ liệu test fixture trong AI.mock.ts",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
+    },
+    {
+      "TCID": "AI-GOP-03",
+      "Test Title": "evaluatePronunciationGOP tự động tra cứu IPA từ DB Word khi không có trong dict",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Khởi tạo Service với Mock Repository / Prisma Client.\n2. Kích hoạt hàm nghiệp vụ tương ứng của AI.\n3. Kiểm tra giá trị trả về hoặc bắt exception.",
+      "Data": "Dữ liệu test fixture trong AI.mock.ts",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
+    },
+    {
+      "TCID": "AI-GOP-04",
+      "Test Title": "evaluatePronunciationGOP tự sinh IPA qua Rule-based G2P khi từ không có trong DB",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Khởi tạo Service với Mock Repository / Prisma Client.\n2. Kích hoạt hàm nghiệp vụ tương ứng của AI.\n3. Kiểm tra giá trị trả về hoặc bắt exception.",
+      "Data": "Dữ liệu test fixture trong AI.mock.ts",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
+    },
+    {
       "TCID": "AI-02a",
       "Test Title": "Ollama trả về JSON không đúng format ném lỗi cú pháp",
       "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
@@ -37,6 +69,14 @@ function importAllTestCases() {
     {
       "TCID": "AI-02b",
       "Test Title": "Lỗi khi lưu tin nhắn chat với session không hợp lệ ném lỗi",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Khởi tạo Service với Mock Repository / Prisma Client.\n2. Kích hoạt hàm nghiệp vụ tương ứng của AI.\n3. Kiểm tra giá trị trả về hoặc bắt exception.",
+      "Data": "Dữ liệu test fixture trong AI.mock.ts",
+      "Result Expect": "Ném ngoại lệ ApiError với status 4xx, mã lỗi 'ApiError'."
+    },
+    {
+      "TCID": "AI-GOP-05",
+      "Test Title": "evaluatePronunciationGOP khi âm thanh im lặng (< 1600 samples) trả về score 0",
       "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
       "Step": "1. Khởi tạo Service với Mock Repository / Prisma Client.\n2. Kích hoạt hàm nghiệp vụ tương ứng của AI.\n3. Kiểm tra giá trị trả về hoặc bắt exception.",
       "Data": "Dữ liệu test fixture trong AI.mock.ts",
@@ -59,6 +99,22 @@ function importAllTestCases() {
       "Result Expect": "Ném ngoại lệ ApiError với status 4xx, mã lỗi 'ApiError'."
     },
     {
+      "TCID": "AI-GOP-CON-01",
+      "Test Title": "2 request chấm phát âm GOP song song không xung đột bộ nhớ",
+      "Test Summary": "Kiểm thử đụng độ đồng thời (Concurrency / Race Condition - Update vs Delete)",
+      "Step": "1. Khởi tạo Service với Mock Repository / Prisma Client.\n2. Kích hoạt hàm nghiệp vụ tương ứng của AI.\n3. Kiểm tra giá trị trả về hoặc bắt exception.",
+      "Data": "Dữ liệu test fixture trong AI.mock.ts",
+      "Result Expect": "Hệ thống phân giải đụng độ an toàn: phát hiện bản ghi đã bị xóa (P2025/404) hoặc cập nhật nguyên tử, không sinh trạng thái zombie."
+    },
+    {
+      "TCID": "AI-GOP-NET-01",
+      "Test Title": "Lỗi DB khi tra cứu IPA tự động fallback sang G2P rule",
+      "Test Summary": "Kiểm thử đụng độ đồng thời (Concurrency / Race Condition - Update vs Delete)",
+      "Step": "1. Khởi tạo Service với Mock Repository / Prisma Client.\n2. Kích hoạt hàm nghiệp vụ tương ứng của AI.\n3. Kiểm tra giá trị trả về hoặc bắt exception.",
+      "Data": "Dữ liệu test fixture trong AI.mock.ts",
+      "Result Expect": "Hệ thống phân giải đụng độ an toàn: phát hiện bản ghi đã bị xóa (P2025/404) hoặc cập nhật nguyên tử, không sinh trạng thái zombie."
+    },
+    {
       "TCID": "AI-IT-01",
       "Test Title": "POST /api/ai/grade-essay chấm bài viết thành công",
       "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
@@ -72,6 +128,14 @@ function importAllTestCases() {
       "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
       "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/ai/chat.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
       "Data": "{ message: 'Hello AI assistant!' }",
+      "Result Expect": "HTTP Status: 200. Response trả về success = true cùng dữ liệu hợp lệ."
+    },
+    {
+      "TCID": "AI-IT-GOP-01",
+      "Test Title": "POST /api/ai/evaluate-pronunciation chấm phát âm thành công",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/ai/evaluate-pronunciation.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "Path param hoặc Payload chuẩn của AI",
       "Result Expect": "HTTP Status: 200. Response trả về success = true cùng dữ liệu hợp lệ."
     },
     {
@@ -91,11 +155,51 @@ function importAllTestCases() {
       "Result Expect": "HTTP Status: 400. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
     },
     {
+      "TCID": "AI-IT-GOP-02",
+      "Test Title": "POST /api/ai/evaluate-pronunciation thiếu file audio trả về 400",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/ai/evaluate-pronunciation.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "Path param hoặc Payload chuẩn của AI",
+      "Result Expect": "HTTP Status: 400. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "AI-IT-GOP-03",
+      "Test Title": "POST /api/ai/evaluate-pronunciation thiếu targetWord trả về 400",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/ai/evaluate-pronunciation.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "Path param hoặc Payload chuẩn của AI",
+      "Result Expect": "HTTP Status: 400. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "AI-IT-GOP-04",
+      "Test Title": "POST /api/ai/evaluate-pronunciation upload file không phải âm thanh trả về 400",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/ai/evaluate-pronunciation.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "Path param hoặc Payload chuẩn của AI",
+      "Result Expect": "HTTP Status: 400. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "AI-IT-GOP-CON-01",
+      "Test Title": "2 request chấm phát âm GOP đồng thời",
+      "Test Summary": "Kiểm thử đụng độ đồng thời (Concurrency / Race Condition - Update vs Delete)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/....\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "Path param hoặc Payload chuẩn của AI",
+      "Result Expect": "HTTP Status: 200. Response trả về success = true cùng dữ liệu hợp lệ."
+    },
+    {
       "TCID": "AI-IT-05",
       "Test Title": "Mất kết nối LLM service khi chấm bài trả về 500",
       "Test Summary": "Kiểm thử mất kết nối mạng & Lỗi hệ thống (Network & System Error)",
       "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/....\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
       "Data": "{ text: 'Valid length paragraph that fails on connection.' }",
+      "Result Expect": "HTTP Status: 500. Hệ thống bắt lỗi thông qua error-handler, trả về HTTP 500 an toàn."
+    },
+    {
+      "TCID": "AI-IT-GOP-NET-01",
+      "Test Title": "Lỗi Whisper/GOP inference khi chấm phát âm trả về 500",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/....\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "Path param hoặc Payload chuẩn của AI",
       "Result Expect": "HTTP Status: 500. Hệ thống bắt lỗi thông qua error-handler, trả về HTTP 500 an toàn."
     }
   ],
@@ -723,6 +827,46 @@ function importAllTestCases() {
       "Result Expect": "Ném ngoại lệ ApiError với status 403, mã lỗi 'ApiError'."
     },
     {
+      "TCID": "AUTH-VAL-01",
+      "Test Title": "Validation: Chặn đăng ký khi username < 3 ký tự hoặc chứa ký tự đặc biệt",
+      "Test Summary": "Kiểm thử phân quyền & Bảo mật (Authorization & Security 401/403)",
+      "Step": "1. Khởi tạo Service với Mock Repository / Prisma Client.\n2. Kích hoạt hàm nghiệp vụ tương ứng của auth.\n3. Kiểm tra giá trị trả về hoặc bắt exception.",
+      "Data": "Dữ liệu test fixture trong auth.mock.ts",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
+    },
+    {
+      "TCID": "AUTH-VAL-02",
+      "Test Title": "Validation: Chặn đăng ký khi email sai định dạng hoặc vượt quá 100 ký tự",
+      "Test Summary": "Kiểm thử phân quyền & Bảo mật (Authorization & Security 401/403)",
+      "Step": "1. Khởi tạo Service với Mock Repository / Prisma Client.\n2. Kích hoạt hàm nghiệp vụ tương ứng của auth.\n3. Kiểm tra giá trị trả về hoặc bắt exception.",
+      "Data": "Dữ liệu test fixture trong auth.mock.ts",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
+    },
+    {
+      "TCID": "AUTH-VAL-03",
+      "Test Title": "Validation: Chặn đăng ký khi mật khẩu yếu (thiếu chữ hoa, thường, số hoặc ký tự đặc biệt)",
+      "Test Summary": "Kiểm thử phân quyền & Bảo mật (Authorization & Security 401/403)",
+      "Step": "1. Khởi tạo Service với Mock Repository / Prisma Client.\n2. Kích hoạt hàm nghiệp vụ tương ứng của auth.\n3. Kiểm tra giá trị trả về hoặc bắt exception.",
+      "Data": "Dữ liệu test fixture trong auth.mock.ts",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
+    },
+    {
+      "TCID": "AUTH-VAL-04",
+      "Test Title": "Validation: Chặn đăng nhập khi để trống identifier hoặc password",
+      "Test Summary": "Kiểm thử phân quyền & Bảo mật (Authorization & Security 401/403)",
+      "Step": "1. Khởi tạo Service với Mock Repository / Prisma Client.\n2. Kích hoạt hàm nghiệp vụ tương ứng của auth.\n3. Kiểm tra giá trị trả về hoặc bắt exception.",
+      "Data": "Dữ liệu test fixture trong auth.mock.ts",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
+    },
+    {
+      "TCID": "AUTH-VAL-05",
+      "Test Title": "Validation: Chặn đổi mật khẩu khi mật khẩu mới không đạt chuẩn bảo mật",
+      "Test Summary": "Kiểm thử phân quyền & Bảo mật (Authorization & Security 401/403)",
+      "Step": "1. Khởi tạo Service với Mock Repository / Prisma Client.\n2. Kích hoạt hàm nghiệp vụ tương ứng của auth.\n3. Kiểm tra giá trị trả về hoặc bắt exception.",
+      "Data": "Dữ liệu test fixture trong auth.mock.ts",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
+    },
+    {
       "TCID": "AUTH-05",
       "Test Title": "Phát hiện đụng độ / replay refresh token: >= 3 lần refresh/phút hủy toàn bộ phiên",
       "Test Summary": "Kiểm thử đụng độ đồng thời (Concurrency / Race Condition - Update vs Delete)",
@@ -827,26 +971,138 @@ function importAllTestCases() {
       "Result Expect": "HTTP Status: 200. Response trả về success = true cùng dữ liệu hợp lệ."
     },
     {
-      "TCID": "AUTH-IT-03",
-      "Test Title": "POST /api/auth/login thiếu mật khẩu trả về 422 Validation Error",
+      "TCID": "AUTH-IT-VAL-01",
+      "Test Title": "POST /api/auth/register: Nhập username ngắn hơn 3 ký tự trả về 422",
       "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
-      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/auth/login.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
-      "Data": "{ identifier: 'valid@example.com', }",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/auth/register:.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ username: 'ab', email: 'valid@example.com', password: 'Password123@' }",
       "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
     },
     {
-      "TCID": "AUTH-IT-04",
-      "Test Title": "POST /api/auth/register email không đúng định dạng trả về 422",
+      "TCID": "AUTH-IT-VAL-02",
+      "Test Title": "POST /api/auth/register: Nhập username chứa ký tự đặc biệt hoặc khoảng trắng trả về 422",
       "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
-      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/auth/register.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
-      "Data": "{ username: 'invalidmail', email: 'not-an-email', password: 'Password123@', }",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/auth/register:.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ username: 'user name!@#', email: 'valid@example.com', password: 'Password123@' }",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "AUTH-IT-VAL-03",
+      "Test Title": "POST /api/auth/register: Nhập username dài vượt quá 50 ký tự trả về 422",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/auth/register:.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ username: 'a'.repeat(51",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "AUTH-IT-VAL-04",
+      "Test Title": "POST /api/auth/register: Nhập email sai định dạng (thiếu @ hoặc domain) trả về 422",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/auth/register:.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ username: 'validuser', email: 'not-an-email', password: 'Password123@' }",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "AUTH-IT-VAL-05",
+      "Test Title": "POST /api/auth/register: Nhập password ngắn hơn 8 ký tự trả về 422",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/auth/register:.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ username: 'validuser', email: 'valid@example.com', password: 'Pass1!' }",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "AUTH-IT-VAL-06",
+      "Test Title": "POST /api/auth/register: Nhập password thiếu chữ in hoa trả về 422",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/auth/register:.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ username: 'validuser', email: 'valid@example.com', password: 'password123@' }",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "AUTH-IT-VAL-07",
+      "Test Title": "POST /api/auth/register: Nhập password thiếu chữ in thường trả về 422",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/auth/register:.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ username: 'validuser', email: 'valid@example.com', password: 'PASSWORD123@' }",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "AUTH-IT-VAL-08",
+      "Test Title": "POST /api/auth/register: Nhập password thiếu số trả về 422",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/auth/register:.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ username: 'validuser', email: 'valid@example.com', password: 'Password@@@' }",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "AUTH-IT-VAL-09",
+      "Test Title": "POST /api/auth/register: Nhập password thiếu ký tự đặc biệt trả về 422",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/auth/register:.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ username: 'validuser', email: 'valid@example.com', password: 'Password123' }",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "AUTH-IT-VAL-10",
+      "Test Title": "POST /api/auth/login: Để trống hoặc thiếu trường identifier trả về 422",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/auth/login:.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ identifier: '', password: 'Password123@' }",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "AUTH-IT-VAL-11",
+      "Test Title": "POST /api/auth/login: Để trống hoặc thiếu trường password trả về 422",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/auth/login:.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ identifier: 'valid@example.com' }",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "AUTH-IT-VAL-12",
+      "Test Title": "POST /api/auth/refresh: Gửi body rỗng hoặc thiếu refreshToken trả về 422",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/auth/refresh:.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{}",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "AUTH-IT-VAL-13",
+      "Test Title": "POST /api/auth/logout: Gửi body thiếu refreshToken trả về 422",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/auth/logout:.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{}",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "AUTH-IT-VAL-14",
+      "Test Title": "POST /api/auth/change-password: Nhập newPassword vi phạm chính sách mật khẩu mạnh trả về 422",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/auth/change-password:.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ oldPassword: 'Password123@', newPassword: 'simple' }",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "AUTH-IT-VAL-15",
+      "Test Title": "POST /api/auth/google: Gửi body thiếu trường idToken trả về 422",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/auth/google:.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{}",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "AUTH-IT-VAL-16",
+      "Test Title": "POST /api/auth/facebook: Gửi body thiếu trường accessToken trả về 422",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/auth/facebook:.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{}",
       "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
     },
     {
       "TCID": "AUTH-IT-04b",
-      "Test Title": "POST /api/auth/logout không gửi header Authorization trả về 401",
+      "Test Title": "POST /api/auth/logout: Không gửi header Authorization trả về 401",
       "Test Summary": "Kiểm thử phân quyền & Bảo mật (Authorization & Security 401/403)",
-      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/auth/logout.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/auth/logout:.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
       "Data": "{ refreshToken: 'some_refresh_token' }",
       "Result Expect": "HTTP Status: 401. Báo lỗi unauthorized do chưa cung cấp token xác thực."
     },
@@ -897,6 +1153,62 @@ function importAllTestCases() {
       "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/auth/login.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
       "Data": "{ identifier: 'user@example.com', password: 'Password123@', }",
       "Result Expect": "HTTP Status: 500. Hệ thống bắt lỗi thông qua error-handler, trả về HTTP 500 an toàn."
+    },
+    {
+      "TCID": "PRF-01",
+      "Test Title": "GET /api/profile/me trả về 200 kèm đầy đủ các chỉ số thống kê từ vựng mới",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/profile/me.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "Path param hoặc Payload chuẩn của auth",
+      "Result Expect": "HTTP Status: 200. Response trả về success = true cùng dữ liệu hợp lệ."
+    },
+    {
+      "TCID": "PRF-02",
+      "Test Title": "GET /api/profile/saved-words trả về 200 kèm danh sách từ vựng đã lưu",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/profile/saved-words.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "Path param hoặc Payload chuẩn của auth",
+      "Result Expect": "HTTP Status: 200. Response trả về success = true cùng dữ liệu hợp lệ."
+    },
+    {
+      "TCID": "PRF-03",
+      "Test Title": "GET /api/profile/me khi người dùng không tồn tại trả về 404",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/profile/me.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "Path param hoặc Payload chuẩn của auth",
+      "Result Expect": "HTTP Status: 404. Báo lỗi student_not_found do bản ghi đã bị xóa hoặc không tồn tại."
+    },
+    {
+      "TCID": "PRF-04",
+      "Test Title": "GET /api/profile/me khi chưa xác thực trả về 401 Unauthorized",
+      "Test Summary": "Kiểm thử phân quyền & Bảo mật (Authorization & Security 401/403)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/profile/me.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "Path param hoặc Payload chuẩn của auth",
+      "Result Expect": "HTTP Status: 401. Báo lỗi unauthorized do chưa cung cấp token xác thực."
+    },
+    {
+      "TCID": "PRF-05",
+      "Test Title": "2 request song song lấy /me và /saved-words không gây nghẽn kết nối",
+      "Test Summary": "Kiểm thử đụng độ đồng thời (Concurrency / Race Condition - Update vs Delete)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/profile/me.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "Path param hoặc Payload chuẩn của auth",
+      "Result Expect": "HTTP Status: 200. Response trả về success = true cùng dữ liệu hợp lệ."
+    },
+    {
+      "TCID": "PRF-06",
+      "Test Title": "Mất kết nối DB khi đếm tiến độ /me trả về 500",
+      "Test Summary": "Kiểm thử toàn vẹn dữ liệu & Xung đột (Data Conflict / Rollback)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/profile/me.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "Path param hoặc Payload chuẩn của auth",
+      "Result Expect": "HTTP Status: 500. Hệ thống bắt lỗi thông qua error-handler, trả về HTTP 500 an toàn."
+    },
+    {
+      "TCID": "PRF-07",
+      "Test Title": "Lỗi hệ thống khi lấy danh sách saved-words trả về 500",
+      "Test Summary": "Kiểm thử toàn vẹn dữ liệu & Xung đột (Data Conflict / Rollback)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/profile/saved-words.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "Path param hoặc Payload chuẩn của auth",
+      "Result Expect": "HTTP Status: 500. Hệ thống bắt lỗi thông qua error-handler, trả về HTTP 500 an toàn."
     }
   ],
   "bubble-game": [
@@ -925,6 +1237,70 @@ function importAllTestCases() {
       "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
     },
     {
+      "TCID": "BBG-LOG-01",
+      "Test Title": "Ghi activity log thành công khi bắt đầu ván chơi (USER_START_GAME_SUCCESS)",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.startGame() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, { limit: 4 }",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
+    },
+    {
+      "TCID": "BBG-LOG-02",
+      "Test Title": "Ghi activity log thất bại khi không đủ từ vựng (USER_START_GAME_FAILED)",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.startGame() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, { limit: 4 }",
+      "Result Expect": "Ném ngoại lệ ApiError với status 4xx, mã lỗi 'ApiError'."
+    },
+    {
+      "TCID": "BBG-LOG-03",
+      "Test Title": "Ghi activity log thành công khi lưu tiến trình tạm (USER_SAVE_PROCESS_GAME_SUCCESS)",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.matchPair() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, mockMatchPairInput",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
+    },
+    {
+      "TCID": "BBG-LOG-04",
+      "Test Title": "Ghi activity log thành công khi kết thúc ván chơi (USER_FINISH_GAME_SUCCESS)",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.finishGame() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, mockFinishGameInput",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
+    },
+    {
+      "TCID": "BBG-LOG-05",
+      "Test Title": "Ghi activity log thất bại khi kết thúc ván chơi bị lỗi DB (USER_FINISH_GAME_FAILED)",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.finishGame() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, mockFinishGameInput",
+      "Result Expect": "Ném ngoại lệ ApiError với status 4xx, mã lỗi 'ApiError'."
+    },
+    {
+      "TCID": "BBG-CONF-01",
+      "Test Title": "Đụng độ khi đang lưu tiến trình tạm nhưng có request kết thúc ván chơi diễn ra đồng thời",
+      "Test Summary": "Kiểm thử đụng độ đồng thời (Concurrency / Race Condition - Update vs Delete)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.matchPair() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, mockMatchPairInput",
+      "Result Expect": "Hệ thống phân giải đụng độ an toàn: phát hiện bản ghi đã bị xóa (P2025/404) hoặc cập nhật nguyên tử, không sinh trạng thái zombie."
+    },
+    {
+      "TCID": "BBG-CONF-02",
+      "Test Title": "Hai request chốt điểm finishGame gửi đồng thời với số điểm khác nhau (race condition)",
+      "Test Summary": "Kiểm thử đụng độ đồng thời (Concurrency / Race Condition - Update vs Delete)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.finishGame() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, mockFinishGameInput",
+      "Result Expect": "Hệ thống phân giải đụng độ an toàn: phát hiện bản ghi đã bị xóa (P2025/404) hoặc cập nhật nguyên tử, không sinh trạng thái zombie."
+    },
+    {
+      "TCID": "BBG-03",
+      "Test Title": "Hai request chốt điểm finishGame gửi đồng thời",
+      "Test Summary": "Kiểm thử đụng độ đồng thời (Concurrency / Race Condition - Update vs Delete)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.finishGame() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, mockFinishGameInput",
+      "Result Expect": "Hệ thống phân giải đụng độ an toàn: phát hiện bản ghi đã bị xóa (P2025/404) hoặc cập nhật nguyên tử, không sinh trạng thái zombie."
+    },
+    {
       "TCID": "BBG-02a",
       "Test Title": "Khởi tạo game khi không đủ từ vựng (< 4 từ) ném lỗi 400",
       "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
@@ -941,17 +1317,33 @@ function importAllTestCases() {
       "Result Expect": "Ném ngoại lệ ApiError với status 400, mã lỗi 'not_enough_words'."
     },
     {
-      "TCID": "BBG-03",
-      "Test Title": "Hai request chốt điểm finishGame gửi đồng thời",
-      "Test Summary": "Kiểm thử đụng độ đồng thời (Concurrency / Race Condition - Update vs Delete)",
-      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.finishGame() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
-      "Data": "Args: 1, mockFinishGameInput",
-      "Result Expect": "Hệ thống phân giải đụng độ an toàn: phát hiện bản ghi đã bị xóa (P2025/404) hoặc cập nhật nguyên tử, không sinh trạng thái zombie."
+      "TCID": "BBG-VAL-01",
+      "Test Title": "Validation: Chặn StartGameSchema khi limit < 4 hoặc limit > 20 hoặc lessonId <= 0",
+      "Test Summary": "Kiểm thử phân quyền & Bảo mật (Authorization & Security 401/403)",
+      "Step": "1. Khởi tạo Service với Mock Repository / Prisma Client.\n2. Kích hoạt hàm nghiệp vụ tương ứng của bubble-game.\n3. Kiểm tra giá trị trả về hoặc bắt exception.",
+      "Data": "Dữ liệu test fixture trong bubble-game.mock.ts",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
+    },
+    {
+      "TCID": "BBG-VAL-02",
+      "Test Title": "Validation: Chặn MatchPairSchema khi currentScore âm hoặc thiếu matchedPairs",
+      "Test Summary": "Kiểm thử phân quyền & Bảo mật (Authorization & Security 401/403)",
+      "Step": "1. Khởi tạo Service với Mock Repository / Prisma Client.\n2. Kích hoạt hàm nghiệp vụ tương ứng của bubble-game.\n3. Kiểm tra giá trị trả về hoặc bắt exception.",
+      "Data": "Dữ liệu test fixture trong bubble-game.mock.ts",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
+    },
+    {
+      "TCID": "BBG-VAL-03",
+      "Test Title": "Validation: Chặn FinishGameSchema khi điểm số âm, duration âm hoặc totalPairs <= 0",
+      "Test Summary": "Kiểm thử phân quyền & Bảo mật (Authorization & Security 401/403)",
+      "Step": "1. Khởi tạo Service với Mock Repository / Prisma Client.\n2. Kích hoạt hàm nghiệp vụ tương ứng của bubble-game.\n3. Kiểm tra giá trị trả về hoặc bắt exception.",
+      "Data": "Dữ liệu test fixture trong bubble-game.mock.ts",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
     },
     {
       "TCID": "BBG-05",
       "Test Title": "Mất kết nối DB khi lưu tiến trình ném lỗi",
-      "Test Summary": "Kiểm thử đụng độ đồng thời (Concurrency / Race Condition - Update vs Delete)",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
       "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.matchPair() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
       "Data": "Args: 1, mockMatchPairInput",
       "Result Expect": "Ném ngoại lệ ApiError với status 4xx, mã lỗi 'ApiError'."
@@ -983,9 +1375,33 @@ function importAllTestCases() {
     {
       "TCID": "BBG-IT-04",
       "Test Title": "GET /api/bubble-game/start với limit < 4 trả về 422",
-      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
       "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/bubble-game/start?limit=2.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
       "Data": "Query parameters: limit=2",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "BBG-IT-VAL-01",
+      "Test Title": "GET /api/bubble-game/start với limit > 20 trả về 422",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/bubble-game/start?limit=25.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "Query parameters: limit=25",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "BBG-IT-VAL-02",
+      "Test Title": "GET /api/bubble-game/start với limit là chuỗi không hợp lệ trả về 422",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/bubble-game/start?limit=abc.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "Query parameters: limit=abc",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "BBG-IT-VAL-03",
+      "Test Title": "GET /api/bubble-game/start với lessonId <= 0 trả về 422",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/bubble-game/start?lessonId=0.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "Query parameters: lessonId=0",
       "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
     },
     {
@@ -997,9 +1413,81 @@ function importAllTestCases() {
       "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
     },
     {
+      "TCID": "BBG-IT-VAL-04",
+      "Test Title": "POST /api/bubble-game/match với currentScore âm trả về 422",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/bubble-game/match.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ ...mockMatchPairInput, currentScore: -10 }",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "BBG-IT-VAL-05",
+      "Test Title": "POST /api/bubble-game/match với matchedPairs âm trả về 422",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/bubble-game/match.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ ...mockMatchPairInput, matchedPairs: -1 }",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "BBG-IT-VAL-06",
+      "Test Title": "POST /api/bubble-game/match với totalPairs <= 0 trả về 422",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/bubble-game/match.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ ...mockMatchPairInput, totalPairs: 0 }",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "BBG-IT-VAL-07",
+      "Test Title": "POST /api/bubble-game/finish với totalScore âm trả về 422",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/bubble-game/finish.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ ...mockFinishGameInput, totalScore: -20 }",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "BBG-IT-VAL-08",
+      "Test Title": "POST /api/bubble-game/finish với duration âm trả về 422",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/bubble-game/finish.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ ...mockFinishGameInput, duration: -5 }",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "BBG-IT-VAL-09",
+      "Test Title": "POST /api/bubble-game/finish với correctPairs âm trả về 422",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/bubble-game/finish.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ ...mockFinishGameInput, correctPairs: -1 }",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "BBG-IT-VAL-10",
+      "Test Title": "POST /api/bubble-game/finish với totalPairs <= 0 trả về 422",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/bubble-game/finish.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ ...mockFinishGameInput, totalPairs: 0 }",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "BBG-IT-VAL-11",
+      "Test Title": "POST /api/bubble-game/finish với body rỗng thiếu toàn bộ trường bắt buộc trả về 422",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/bubble-game/finish.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{}",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "BBG-IT-CONF-01",
+      "Test Title": "POST /api/bubble-game/finish xử lý 2 request kết thúc game gửi đồng thời an toàn",
+      "Test Summary": "Kiểm thử đụng độ đồng thời (Concurrency / Race Condition - Update vs Delete)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/bubble-game/finish.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "mockFinishGameInput",
+      "Result Expect": "HTTP Status: 200. Response trả về success = true cùng dữ liệu hợp lệ."
+    },
+    {
       "TCID": "BBG-IT-06",
       "Test Title": "Lỗi database khi kết thúc ván trả về 500",
-      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Test Summary": "Kiểm thử đụng độ đồng thời (Concurrency / Race Condition - Update vs Delete)",
       "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/....\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
       "Data": "mockFinishGameInput",
       "Result Expect": "HTTP Status: 500. Hệ thống bắt lỗi thông qua error-handler, trả về HTTP 500 an toàn."
@@ -1047,6 +1535,102 @@ function importAllTestCases() {
       "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
     },
     {
+      "TCID": "COM-VAL-01",
+      "Test Title": "Chặn đăng bài viết khi nội dung vượt quá 5000 ký tự",
+      "Test Summary": "Kiểm thử phân quyền & Bảo mật (Authorization & Security 401/403)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.createPost() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, longContent",
+      "Result Expect": "Ném ngoại lệ ApiError với status 400, mã lỗi 'content_too_long'."
+    },
+    {
+      "TCID": "COM-VAL-02",
+      "Test Title": "Cho phép đăng bài viết với nội dung độ dài tối đa biên chuẩn (5000 ký tự)",
+      "Test Summary": "Kiểm thử mất kết nối mạng & Lỗi hệ thống (Network & System Error)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.createPost() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, boundaryContent",
+      "Result Expect": "Ném ngoại lệ lỗi kết nối hoặc Rollback Transaction, không lưu dữ liệu rác."
+    },
+    {
+      "TCID": "COM-VAL-03",
+      "Test Title": "Chặn cập nhật bài viết khi nội dung vượt quá 5000 ký tự",
+      "Test Summary": "Kiểm thử phân quyền & Bảo mật (Authorization & Security 401/403)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.updatePost() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, 1, { content: longContent }",
+      "Result Expect": "Ném ngoại lệ ApiError với status 400, mã lỗi 'content_too_long'."
+    },
+    {
+      "TCID": "COM-VAL-04",
+      "Test Title": "Chặn tạo bình luận khi nội dung vượt quá 1000 ký tự",
+      "Test Summary": "Kiểm thử phân quyền & Bảo mật (Authorization & Security 401/403)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.createComment() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, 1, longComment",
+      "Result Expect": "Ném ngoại lệ ApiError với status 400, mã lỗi 'content_too_long'."
+    },
+    {
+      "TCID": "COM-SEC-01",
+      "Test Title": "Chống SQL Injection khi đăng bài viết chứa payload phá bảng (DROP TABLE)",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.createPost() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, sqlInjectionPayload",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
+    },
+    {
+      "TCID": "COM-SEC-02",
+      "Test Title": "Chống SQL Injection boolean-based khi tạo bài viết (\\",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.createPost() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, booleanSqlPayload",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
+    },
+    {
+      "TCID": "COM-SEC-03",
+      "Test Title": "Chống SQL Injection khi bình luận chứa vector Union-based",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.createComment() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, 1, unionSqlPayload",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
+    },
+    {
+      "TCID": "COM-SEC-04",
+      "Test Title": "Chống SQL Injection qua query filter (?filter=\\",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.getPosts() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, 1, 10, \"' OR 1=1--\"",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
+    },
+    {
+      "TCID": "COM-LOG-01",
+      "Test Title": "Ghi activity log thành công khi tạo bài viết (USER_CREATE_COMMUNITY_POST_SUCCESS)",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.createPost() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, 'Học bài chăm chỉ'",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
+    },
+    {
+      "TCID": "COM-LOG-02",
+      "Test Title": "Ghi activity log thất bại khi đăng bài viết quá dài (USER_CREATE_COMMUNITY_POST_FAILED)",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.createPost() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, longContent",
+      "Result Expect": "Ném ngoại lệ ApiError với status 4xx, mã lỗi 'ApiError'."
+    },
+    {
+      "TCID": "COM-LOG-03",
+      "Test Title": "Ghi activity log thành công khi toggle like bài viết (USER_LIKE_COMMUNITY_POST_SUCCESS)",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.toggleLike() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, 1",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
+    },
+    {
+      "TCID": "COM-LOG-04",
+      "Test Title": "Ghi activity log thành công khi xóa bài viết (USER_DELETE_COMMUNITY_POST_SUCCESS)",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.deletePost() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, 1",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
+    },
+    {
       "TCID": "COM-02a",
       "Test Title": "Bình luận vào bài viết không tồn tại ném lỗi 404",
       "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
@@ -1076,6 +1660,14 @@ function importAllTestCases() {
       "Test Summary": "Kiểm thử đụng độ đồng thời (Concurrency / Race Condition - Update vs Delete)",
       "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.toggleLike() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
       "Data": "Args: 1, 1",
+      "Result Expect": "Hệ thống phân giải đụng độ an toàn: phát hiện bản ghi đã bị xóa (P2025/404) hoặc cập nhật nguyên tử, không sinh trạng thái zombie."
+    },
+    {
+      "TCID": "COM-CONF-01",
+      "Test Title": "Hai người dùng bình luận vào cùng bài viết đồng thời",
+      "Test Summary": "Kiểm thử đụng độ đồng thời (Concurrency / Race Condition - Update vs Delete)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.createComment() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, 1, 'Comment 1'",
       "Result Expect": "Hệ thống phân giải đụng độ an toàn: phát hiện bản ghi đã bị xóa (P2025/404) hoặc cập nhật nguyên tử, không sinh trạng thái zombie."
     },
     {
@@ -1119,6 +1711,54 @@ function importAllTestCases() {
       "Result Expect": "HTTP Status: 201. Response trả về success = true cùng dữ liệu hợp lệ."
     },
     {
+      "TCID": "COM-IT-VAL-01",
+      "Test Title": "POST /api/community/posts với content dài > 5000 ký tự trả về 400",
+      "Test Summary": "Kiểm thử mất kết nối mạng & Lỗi hệ thống (Network & System Error)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/community/posts.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ content: longContent }",
+      "Result Expect": "HTTP Status: 400. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "COM-IT-VAL-02",
+      "Test Title": "PUT /api/community/posts/:id với content dài > 5000 ký tự trả về 400",
+      "Test Summary": "Kiểm thử mất kết nối mạng & Lỗi hệ thống (Network & System Error)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP PUT tới endpoint /api/community/posts/:id.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ content: longContent }",
+      "Result Expect": "HTTP Status: 400. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "COM-IT-VAL-03",
+      "Test Title": "POST /api/community/posts/:id/comments với content dài > 1000 ký tự trả về 400",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/community/posts/:id/comments.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ content: longComment }",
+      "Result Expect": "HTTP Status: 400. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "COM-IT-SEC-01",
+      "Test Title": "POST /api/community/posts với payload SQL Injection được xử lý an toàn",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/community/posts.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ content: sqlPayload }",
+      "Result Expect": "HTTP Status: 201. Response trả về success = true cùng dữ liệu hợp lệ."
+    },
+    {
+      "TCID": "COM-IT-SEC-02",
+      "Test Title": "POST /api/community/posts/:id/comments với payload SQL Injection được xử lý an toàn",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/community/posts/:id/comments.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ content: sqlCommentPayload }",
+      "Result Expect": "HTTP Status: 201. Response trả về success = true cùng dữ liệu hợp lệ."
+    },
+    {
+      "TCID": "COM-IT-SEC-03",
+      "Test Title": "GET /api/community/posts?filter=\\",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/community/posts?filter=\\.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "Query parameters: filter=\\",
+      "Result Expect": "HTTP Status: 200. Response trả về success = true cùng dữ liệu hợp lệ."
+    },
+    {
       "TCID": "COM-IT-05",
       "Test Title": "POST /api/community/posts không có content và image trả về 400",
       "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
@@ -1135,9 +1775,17 @@ function importAllTestCases() {
       "Result Expect": "HTTP Status: 400. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
     },
     {
+      "TCID": "COM-IT-CONF-01",
+      "Test Title": "Hai request bình luận gửi đồng thời được xử lý an toàn",
+      "Test Summary": "Kiểm thử đụng độ đồng thời (Concurrency / Race Condition - Update vs Delete)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/community/posts/1/comments.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ content: 'Comment 1' }",
+      "Result Expect": "HTTP Status: 200. Response trả về success = true cùng dữ liệu hợp lệ."
+    },
+    {
       "TCID": "COM-IT-07",
       "Test Title": "Mất kết nối database khi lấy danh sách bài viết trả về 500",
-      "Test Summary": "Kiểm thử mất kết nối mạng & Lỗi hệ thống (Network & System Error)",
+      "Test Summary": "Kiểm thử đụng độ đồng thời (Concurrency / Race Condition - Update vs Delete)",
       "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/community/posts.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
       "Data": "Path param hoặc Payload chuẩn của community",
       "Result Expect": "HTTP Status: 500. Hệ thống bắt lỗi thông qua error-handler, trả về HTTP 500 an toàn."
@@ -1309,6 +1957,54 @@ function importAllTestCases() {
       "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
     },
     {
+      "TCID": "GAME-LOG-01",
+      "Test Title": "Ghi activity log thành công khi user bắt đầu chơi game (USER_PLAY_GAME_SUCCESS)",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.play() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 'bubble_burst', 'EASY', 'A1'",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
+    },
+    {
+      "TCID": "GAME-LOG-02",
+      "Test Title": "Ghi activity log thất bại khi chơi game không tồn tại (USER_PLAY_GAME_FAILED)",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.play() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 'invalid_code', 'EASY', 'A1'",
+      "Result Expect": "Ném ngoại lệ ApiError với status 4xx, mã lỗi 'ApiError'."
+    },
+    {
+      "TCID": "GAME-LOG-03",
+      "Test Title": "Ghi activity log thành công khi admin cập nhật cấu hình (ADMIN_UPDATE_GAME_SETTINGS_SUCCESS)",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.updateSettings() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, { settings: [{ difficulty: 'EASY', itemCount: 8, pointsPerItem: 15 }] as any, }",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
+    },
+    {
+      "TCID": "GAME-LOG-04",
+      "Test Title": "Ghi activity log thất bại khi admin cập nhật game không tồn tại (ADMIN_UPDATE_GAME_SETTINGS_FAILED)",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.updateSettings() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 999, { settings: [{ difficulty: 'EASY', itemCount: 8, pointsPerItem: 15 }] as any, }",
+      "Result Expect": "Ném ngoại lệ ApiError với status 4xx, mã lỗi 'ApiError'."
+    },
+    {
+      "TCID": "GAME-CONF-01",
+      "Test Title": "Hai admin đồng thời cập nhật cấu hình của cùng 1 game (concurrency)",
+      "Test Summary": "Kiểm thử đụng độ đồng thời (Concurrency / Race Condition - Update vs Delete)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.updateSettings() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, { settings: [{ difficulty: 'EASY', itemCount: 6, pointsPerItem: 10 }] as any }",
+      "Result Expect": "Hệ thống phân giải đụng độ an toàn: phát hiện bản ghi đã bị xóa (P2025/404) hoặc cập nhật nguyên tử, không sinh trạng thái zombie."
+    },
+    {
+      "TCID": "GAME-CONF-02",
+      "Test Title": "Client request play game đồng thời khi admin đang cập nhật cấu hình",
+      "Test Summary": "Kiểm thử đụng độ đồng thời (Concurrency / Race Condition - Update vs Delete)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.play() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 'bubble_burst', 'EASY', 'A1'",
+      "Result Expect": "Hệ thống phân giải đụng độ an toàn: phát hiện bản ghi đã bị xóa (P2025/404) hoặc cập nhật nguyên tử, không sinh trạng thái zombie."
+    },
+    {
       "TCID": "GAME-02a",
       "Test Title": "Cập nhật settings cho game không tồn tại ném lỗi 404",
       "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
@@ -1333,9 +2029,33 @@ function importAllTestCases() {
       "Result Expect": "Ném ngoại lệ ApiError với status 404, mã lỗi 'not_found'."
     },
     {
+      "TCID": "GAME-VAL-01",
+      "Test Title": "Validation: Chặn GameSettingSchema khi difficulty không thuộc EASY/NORMAL/HARD",
+      "Test Summary": "Kiểm thử phân quyền & Bảo mật (Authorization & Security 401/403)",
+      "Step": "1. Khởi tạo Service với Mock Repository / Prisma Client.\n2. Kích hoạt hàm nghiệp vụ tương ứng của game.\n3. Kiểm tra giá trị trả về hoặc bắt exception.",
+      "Data": "Dữ liệu test fixture trong game.mock.ts",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
+    },
+    {
+      "TCID": "GAME-VAL-02",
+      "Test Title": "Validation: Chặn GameSettingSchema khi itemCount <= 0 hoặc pointsPerItem < 0",
+      "Test Summary": "Kiểm thử phân quyền & Bảo mật (Authorization & Security 401/403)",
+      "Step": "1. Khởi tạo Service với Mock Repository / Prisma Client.\n2. Kích hoạt hàm nghiệp vụ tương ứng của game.\n3. Kiểm tra giá trị trả về hoặc bắt exception.",
+      "Data": "Dữ liệu test fixture trong game.mock.ts",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
+    },
+    {
+      "TCID": "GAME-VAL-03",
+      "Test Title": "Validation: Chặn UpdateGameSettingsSchema khi settings rỗng hoặc params id <= 0",
+      "Test Summary": "Kiểm thử phân quyền & Bảo mật (Authorization & Security 401/403)",
+      "Step": "1. Khởi tạo Service với Mock Repository / Prisma Client.\n2. Kích hoạt hàm nghiệp vụ tương ứng của game.\n3. Kiểm tra giá trị trả về hoặc bắt exception.",
+      "Data": "Dữ liệu test fixture trong game.mock.ts",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
+    },
+    {
       "TCID": "GAME-05",
       "Test Title": "Mất kết nối database khi truy vấn từ vựng ném lỗi",
-      "Test Summary": "Kiểm thử đụng độ đồng thời (Concurrency / Race Condition - Update vs Delete)",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
       "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.play() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
       "Data": "Args: 'bubble_burst', 'EASY', 'A1'",
       "Result Expect": "Ném ngoại lệ ApiError với status 4xx, mã lỗi 'ApiError'."
@@ -1365,17 +2085,65 @@ function importAllTestCases() {
       "Result Expect": "HTTP Status: 200. Response trả về success = true cùng dữ liệu hợp lệ."
     },
     {
+      "TCID": "GAME-IT-LOG-01",
+      "Test Title": "PUT /api/games/admin/:id/settings cập nhật cấu hình game thành công",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP PUT tới endpoint /api/games/admin/:id/settings.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ settings: [{ difficulty: 'EASY', itemCount: 8, pointsPerItem: 15 }] }",
+      "Result Expect": "HTTP Status: 200. Response trả về success = true cùng dữ liệu hợp lệ."
+    },
+    {
       "TCID": "GAME-IT-04",
       "Test Title": "PUT /api/games/admin/:id/settings với danh sách rỗng trả về 422",
-      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
       "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP PUT tới endpoint /api/games/admin/:id/settings.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
       "Data": "{ settings: [] }",
       "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
     },
     {
+      "TCID": "GAME-IT-VAL-01",
+      "Test Title": "PUT /api/games/admin/:id/settings với difficulty không hợp lệ trả về 422",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP PUT tới endpoint /api/games/admin/:id/settings.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ settings: [{ difficulty: 'IMPOSSIBLE', itemCount: 6, pointsPerItem: 10 }] }",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "GAME-IT-VAL-02",
+      "Test Title": "PUT /api/games/admin/:id/settings với itemCount <= 0 trả về 422",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP PUT tới endpoint /api/games/admin/:id/settings.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ settings: [{ difficulty: 'EASY', itemCount: 0, pointsPerItem: 10 }] }",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "GAME-IT-VAL-03",
+      "Test Title": "PUT /api/games/admin/:id/settings với pointsPerItem âm trả về 422",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP PUT tới endpoint /api/games/admin/:id/settings.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ settings: [{ difficulty: 'EASY', itemCount: 6, pointsPerItem: -5 }] }",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "GAME-IT-VAL-04",
+      "Test Title": "PUT /api/games/admin/:id/settings với param id <= 0 trả về 422",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP PUT tới endpoint /api/games/admin/:id/settings.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ settings: [{ difficulty: 'EASY', itemCount: 6, pointsPerItem: 10 }] }",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "GAME-IT-CONF-01",
+      "Test Title": "PUT /api/games/admin/:id/settings mô phỏng 2 admin cập nhật cấu hình đồng thời",
+      "Test Summary": "Kiểm thử đụng độ đồng thời (Concurrency / Race Condition - Update vs Delete)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP PUT tới endpoint /api/games/admin/:id/settings.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ settings: [{ difficulty: 'EASY', itemCount: 6, pointsPerItem: 10 }] }",
+      "Result Expect": "HTTP Status: 200. Response trả về success = true cùng dữ liệu hợp lệ."
+    },
+    {
       "TCID": "GAME-IT-05",
       "Test Title": "Mất kết nối database khi lấy history trả về 500",
-      "Test Summary": "Kiểm thử mất kết nối mạng & Lỗi hệ thống (Network & System Error)",
+      "Test Summary": "Kiểm thử đụng độ đồng thời (Concurrency / Race Condition - Update vs Delete)",
       "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/games/history.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
       "Data": "Path param hoặc Payload chuẩn của game",
       "Result Expect": "HTTP Status: 500. Hệ thống bắt lỗi thông qua error-handler, trả về HTTP 500 an toàn."
@@ -1505,6 +2273,30 @@ function importAllTestCases() {
       "Result Expect": "Ném ngoại lệ ApiError với status 4xx, mã lỗi 'ApiError'."
     },
     {
+      "TCID": "LDB-SEC-01",
+      "Test Title": "Bảo mật: Chỉ lấy học viên role user và không bị khóa (isLocked = false)",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.getLeaderboard() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, 20",
+      "Result Expect": "Ném ngoại lệ ApiError với status 4xx, mã lỗi 'ApiError'."
+    },
+    {
+      "TCID": "LDB-SEC-02",
+      "Test Title": "Bảo mật: Tài khoản bị khóa (isLocked = true) không được tính rank",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.getLeaderboard() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 5, 20",
+      "Result Expect": "Ném ngoại lệ ApiError với status 4xx, mã lỗi 'ApiError'."
+    },
+    {
+      "TCID": "LDB-SEC-03",
+      "Test Title": "Chống DoS: Giới hạn limit an toàn (min 1, max 100)",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.getLeaderboard() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, 999999",
+      "Result Expect": "Ném ngoại lệ ApiError với status 4xx, mã lỗi 'ApiError'."
+    },
+    {
       "TCID": "LDB-03",
       "Test Title": "Nhiều học viên cùng tải bảng xếp hạng song song",
       "Test Summary": "Kiểm thử đụng độ đồng thời (Concurrency / Race Condition - Update vs Delete)",
@@ -1523,6 +2315,38 @@ function importAllTestCases() {
     {
       "TCID": "LDB-IT-01",
       "Test Title": "GET /api/student/leaderboard trả về 200 kèm top học viên",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/student/leaderboard.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "Path param hoặc Payload chuẩn của leaderboard",
+      "Result Expect": "HTTP Status: 200. Response trả về success = true cùng dữ liệu hợp lệ."
+    },
+    {
+      "TCID": "LDB-IT-SEC-01",
+      "Test Title": "Chưa xác thực / không có token trả về 401 Unauthorized",
+      "Test Summary": "Kiểm thử phân quyền & Bảo mật (Authorization & Security 401/403)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/student/leaderboard.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "Path param hoặc Payload chuẩn của leaderboard",
+      "Result Expect": "HTTP Status: 401. Báo lỗi unauthorized do chưa cung cấp token xác thực."
+    },
+    {
+      "TCID": "LDB-IT-SEC-02",
+      "Test Title": "Bảng xếp hạng là Read-Only: Cố tình POST / PUT thao túng điểm số bị từ chối 404",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ xpPoints: 999999, rank: 1 }",
+      "Result Expect": "HTTP Status: 200. Response trả về success = true cùng dữ liệu hợp lệ."
+    },
+    {
+      "TCID": "LDB-IT-SEC-03",
+      "Test Title": "Thử SQL Injection qua query param limit (?limit=1; DROP TABLE users;)",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/student/leaderboard?limit=1; DROP TABLE users;.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "Query parameters: limit=1; DROP TABLE users;",
+      "Result Expect": "HTTP Status: 200. Response trả về success = true cùng dữ liệu hợp lệ."
+    },
+    {
+      "TCID": "LDB-IT-SEC-04",
+      "Test Title": "Chống rò rỉ dữ liệu nhạy cảm (Data Privacy / Exfiltration Prevention)",
       "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
       "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/student/leaderboard.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
       "Data": "Path param hoặc Payload chuẩn của leaderboard",
@@ -1563,6 +2387,70 @@ function importAllTestCases() {
       "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
     },
     {
+      "TCID": "MARIO-LOG-01",
+      "Test Title": "Ghi activity log thành công khi bắt đầu ván chơi Mario (USER_START_GAME_SUCCESS)",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.startGame() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, { limit: 4 }",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
+    },
+    {
+      "TCID": "MARIO-LOG-02",
+      "Test Title": "Ghi activity log thất bại khi không đủ từ vựng (USER_START_GAME_FAILED)",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.startGame() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, { limit: 4 }",
+      "Result Expect": "Ném ngoại lệ ApiError với status 4xx, mã lỗi 'ApiError'."
+    },
+    {
+      "TCID": "MARIO-LOG-03",
+      "Test Title": "Ghi activity log thành công khi lưu tiến trình tạm (USER_SAVE_PROCESS_GAME_SUCCESS)",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.matchPair() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, mockMarioMatchPairInput",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
+    },
+    {
+      "TCID": "MARIO-LOG-04",
+      "Test Title": "Ghi activity log thành công khi chốt điểm Mario game (USER_FINISH_GAME_SUCCESS)",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.finishGame() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, mockMarioFinishGameInput",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
+    },
+    {
+      "TCID": "MARIO-LOG-05",
+      "Test Title": "Ghi activity log thất bại khi chốt điểm bị lỗi DB (USER_FINISH_GAME_FAILED)",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.finishGame() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, mockMarioFinishGameInput",
+      "Result Expect": "Ném ngoại lệ ApiError với status 4xx, mã lỗi 'ApiError'."
+    },
+    {
+      "TCID": "MARIO-CONF-01",
+      "Test Title": "Đụng độ khi lưu tiến trình và chốt điểm Mario game diễn ra đồng thời",
+      "Test Summary": "Kiểm thử đụng độ đồng thời (Concurrency / Race Condition - Update vs Delete)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.matchPair() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, mockMarioMatchPairInput",
+      "Result Expect": "Hệ thống phân giải đụng độ an toàn: phát hiện bản ghi đã bị xóa (P2025/404) hoặc cập nhật nguyên tử, không sinh trạng thái zombie."
+    },
+    {
+      "TCID": "MARIO-CONF-02",
+      "Test Title": "Hai request chốt điểm đồng thời với dữ liệu khác nhau (chống replay attack/race condition)",
+      "Test Summary": "Kiểm thử đụng độ đồng thời (Concurrency / Race Condition - Update vs Delete)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.finishGame() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, mockMarioFinishGameInput",
+      "Result Expect": "Hệ thống phân giải đụng độ an toàn: phát hiện bản ghi đã bị xóa (P2025/404) hoặc cập nhật nguyên tử, không sinh trạng thái zombie."
+    },
+    {
+      "TCID": "MARIO-03",
+      "Test Title": "Hai request chốt điểm finishGame gửi đồng thời",
+      "Test Summary": "Kiểm thử đụng độ đồng thời (Concurrency / Race Condition - Update vs Delete)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.finishGame() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, mockMarioFinishGameInput",
+      "Result Expect": "Hệ thống phân giải đụng độ an toàn: phát hiện bản ghi đã bị xóa (P2025/404) hoặc cập nhật nguyên tử, không sinh trạng thái zombie."
+    },
+    {
       "TCID": "MARIO-02a",
       "Test Title": "Khởi tạo Mario game khi không đủ từ vựng (< 4 từ) ném 400",
       "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
@@ -1579,17 +2467,33 @@ function importAllTestCases() {
       "Result Expect": "Ném ngoại lệ ApiError với status 400, mã lỗi 'not_enough_words'."
     },
     {
-      "TCID": "MARIO-03",
-      "Test Title": "Hai request chốt điểm finishGame gửi đồng thời",
-      "Test Summary": "Kiểm thử đụng độ đồng thời (Concurrency / Race Condition - Update vs Delete)",
-      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.finishGame() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
-      "Data": "Args: 1, mockMarioFinishGameInput",
-      "Result Expect": "Hệ thống phân giải đụng độ an toàn: phát hiện bản ghi đã bị xóa (P2025/404) hoặc cập nhật nguyên tử, không sinh trạng thái zombie."
+      "TCID": "MARIO-VAL-01",
+      "Test Title": "Validation: Chặn StartGameSchema khi limit < 4 hoặc > 20 hoặc lessonId <= 0",
+      "Test Summary": "Kiểm thử phân quyền & Bảo mật (Authorization & Security 401/403)",
+      "Step": "1. Khởi tạo Service với Mock Repository / Prisma Client.\n2. Kích hoạt hàm nghiệp vụ tương ứng của mario-game.\n3. Kiểm tra giá trị trả về hoặc bắt exception.",
+      "Data": "Dữ liệu test fixture trong mario-game.mock.ts",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
+    },
+    {
+      "TCID": "MARIO-VAL-02",
+      "Test Title": "Validation: Chặn MatchPairSchema khi currentScore âm hoặc matchedPairs âm",
+      "Test Summary": "Kiểm thử phân quyền & Bảo mật (Authorization & Security 401/403)",
+      "Step": "1. Khởi tạo Service với Mock Repository / Prisma Client.\n2. Kích hoạt hàm nghiệp vụ tương ứng của mario-game.\n3. Kiểm tra giá trị trả về hoặc bắt exception.",
+      "Data": "Dữ liệu test fixture trong mario-game.mock.ts",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
+    },
+    {
+      "TCID": "MARIO-VAL-03",
+      "Test Title": "Validation: Chặn FinishGameSchema khi totalScore âm hoặc duration âm hoặc totalPairs <= 0",
+      "Test Summary": "Kiểm thử phân quyền & Bảo mật (Authorization & Security 401/403)",
+      "Step": "1. Khởi tạo Service với Mock Repository / Prisma Client.\n2. Kích hoạt hàm nghiệp vụ tương ứng của mario-game.\n3. Kiểm tra giá trị trả về hoặc bắt exception.",
+      "Data": "Dữ liệu test fixture trong mario-game.mock.ts",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
     },
     {
       "TCID": "MARIO-05",
       "Test Title": "Mất kết nối DB khi lưu tiến trình ném lỗi",
-      "Test Summary": "Kiểm thử đụng độ đồng thời (Concurrency / Race Condition - Update vs Delete)",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
       "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.matchPair() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
       "Data": "Args: 1, mockMarioMatchPairInput",
       "Result Expect": "Ném ngoại lệ ApiError với status 4xx, mã lỗi 'ApiError'."
@@ -1627,6 +2531,30 @@ function importAllTestCases() {
       "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
     },
     {
+      "TCID": "MARIO-IT-VAL-01",
+      "Test Title": "GET /api/mario-game/start với limit > 20 trả về 422",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/mario-game/start?limit=30.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "Query parameters: limit=30",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "MARIO-IT-VAL-02",
+      "Test Title": "GET /api/mario-game/start với limit không phải số trả về 422",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/mario-game/start?limit=abc.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "Query parameters: limit=abc",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "MARIO-IT-VAL-03",
+      "Test Title": "GET /api/mario-game/start với lessonId <= 0 trả về 422",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/mario-game/start?lessonId=0.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "Query parameters: lessonId=0",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
       "TCID": "MARIO-IT-05",
       "Test Title": "POST /api/mario-game/match điểm số âm trả về 422",
       "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
@@ -1635,9 +2563,81 @@ function importAllTestCases() {
       "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
     },
     {
+      "TCID": "MARIO-IT-VAL-04",
+      "Test Title": "POST /api/mario-game/match matchedPairs âm trả về 422",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/mario-game/match.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ ...mockMarioMatchPairInput, matchedPairs: -2 }",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "MARIO-IT-VAL-05",
+      "Test Title": "POST /api/mario-game/match totalPairs <= 0 trả về 422",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/mario-game/match.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ ...mockMarioMatchPairInput, totalPairs: 0 }",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "MARIO-IT-VAL-06",
+      "Test Title": "POST /api/mario-game/match thiếu currentScore trả về 422",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/mario-game/match.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ matchedPairs: 2, totalPairs: 4 }",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "MARIO-IT-VAL-07",
+      "Test Title": "POST /api/mario-game/finish totalScore âm trả về 422",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/mario-game/finish.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ ...mockMarioFinishGameInput, totalScore: -50 }",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "MARIO-IT-VAL-08",
+      "Test Title": "POST /api/mario-game/finish duration âm trả về 422",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/mario-game/finish.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ ...mockMarioFinishGameInput, duration: -10 }",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "MARIO-IT-VAL-09",
+      "Test Title": "POST /api/mario-game/finish correctPairs âm trả về 422",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/mario-game/finish.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ ...mockMarioFinishGameInput, correctPairs: -1 }",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "MARIO-IT-VAL-10",
+      "Test Title": "POST /api/mario-game/finish totalPairs <= 0 trả về 422",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/mario-game/finish.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ ...mockMarioFinishGameInput, totalPairs: 0 }",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "MARIO-IT-VAL-11",
+      "Test Title": "POST /api/mario-game/finish body rỗng thiếu trường bắt buộc trả về 422",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/mario-game/finish.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{}",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "MARIO-IT-CONF-01",
+      "Test Title": "POST /api/mario-game/finish xử lý 2 request kết thúc game gửi đồng thời an toàn",
+      "Test Summary": "Kiểm thử đụng độ đồng thời (Concurrency / Race Condition - Update vs Delete)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/mario-game/finish.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "mockMarioFinishGameInput",
+      "Result Expect": "HTTP Status: 200. Response trả về success = true cùng dữ liệu hợp lệ."
+    },
+    {
       "TCID": "MARIO-IT-06",
       "Test Title": "Lỗi database khi kết thúc ván trả về 500",
-      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Test Summary": "Kiểm thử đụng độ đồng thời (Concurrency / Race Condition - Update vs Delete)",
       "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/....\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
       "Data": "mockMarioFinishGameInput",
       "Result Expect": "HTTP Status: 500. Hệ thống bắt lỗi thông qua error-handler, trả về HTTP 500 an toàn."
@@ -1669,6 +2669,70 @@ function importAllTestCases() {
       "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
     },
     {
+      "TCID": "MEM-LOG-01",
+      "Test Title": "Ghi activity log thành công khi bắt đầu ván Memory Card (USER_START_MEMORY_GAME_SUCCESS)",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.startGame() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, { limit: 6 }",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
+    },
+    {
+      "TCID": "MEM-LOG-02",
+      "Test Title": "Ghi activity log thất bại khi không đủ từ vựng (USER_START_MEMORY_GAME_FAILED)",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.startGame() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, { limit: 6 }",
+      "Result Expect": "Ném ngoại lệ ApiError với status 4xx, mã lỗi 'ApiError'."
+    },
+    {
+      "TCID": "MEM-LOG-03",
+      "Test Title": "Ghi activity log thành công khi lưu tiến trình lật thẻ (USER_SAVE_MEMORY_GAME_PROGRESS_SUCCESS)",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.saveProgress() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, mockSaveMemoryProgressInput",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
+    },
+    {
+      "TCID": "MEM-LOG-04",
+      "Test Title": "Ghi activity log thành công khi kết thúc ván Memory Card (USER_FINISH_MEMORY_GAME_SUCCESS)",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.finishGame() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, mockFinishMemoryInput",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
+    },
+    {
+      "TCID": "MEM-LOG-05",
+      "Test Title": "Ghi activity log thất bại khi kết thúc ván chơi lỗi DB (USER_FINISH_MEMORY_GAME_FAILED)",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.finishGame() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, mockFinishMemoryInput",
+      "Result Expect": "Ném ngoại lệ ApiError với status 4xx, mã lỗi 'ApiError'."
+    },
+    {
+      "TCID": "MEM-CONF-01",
+      "Test Title": "Đụng độ khi đang lưu tiến trình lật thẻ thì request chốt kết quả gửi tới đồng thời",
+      "Test Summary": "Kiểm thử đụng độ đồng thời (Concurrency / Race Condition - Update vs Delete)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.saveProgress() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, mockSaveMemoryProgressInput",
+      "Result Expect": "Hệ thống phân giải đụng độ an toàn: phát hiện bản ghi đã bị xóa (P2025/404) hoặc cập nhật nguyên tử, không sinh trạng thái zombie."
+    },
+    {
+      "TCID": "MEM-CONF-02",
+      "Test Title": "Hai request chốt kết quả Memory Card gửi đồng thời với số turns khác nhau",
+      "Test Summary": "Kiểm thử đụng độ đồng thời (Concurrency / Race Condition - Update vs Delete)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.finishGame() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, mockFinishMemoryInput",
+      "Result Expect": "Hệ thống phân giải đụng độ an toàn: phát hiện bản ghi đã bị xóa (P2025/404) hoặc cập nhật nguyên tử, không sinh trạng thái zombie."
+    },
+    {
+      "TCID": "MEM-03",
+      "Test Title": "Hai request chốt điểm Memory Card song song",
+      "Test Summary": "Kiểm thử đụng độ đồng thời (Concurrency / Race Condition - Update vs Delete)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.finishGame() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, mockFinishMemoryInput",
+      "Result Expect": "Hệ thống phân giải đụng độ an toàn: phát hiện bản ghi đã bị xóa (P2025/404) hoặc cập nhật nguyên tử, không sinh trạng thái zombie."
+    },
+    {
       "TCID": "MEM-02a",
       "Test Title": "Khởi tạo ván chơi khi thiếu từ vựng (< limit) ném lỗi 400",
       "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
@@ -1685,17 +2749,33 @@ function importAllTestCases() {
       "Result Expect": "Ném ngoại lệ ApiError với status 400, mã lỗi 'not_enough_words'."
     },
     {
-      "TCID": "MEM-03",
-      "Test Title": "Hai request chốt điểm Memory Card song song",
-      "Test Summary": "Kiểm thử đụng độ đồng thời (Concurrency / Race Condition - Update vs Delete)",
-      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.finishGame() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
-      "Data": "Args: 1, mockFinishMemoryInput",
-      "Result Expect": "Hệ thống phân giải đụng độ an toàn: phát hiện bản ghi đã bị xóa (P2025/404) hoặc cập nhật nguyên tử, không sinh trạng thái zombie."
+      "TCID": "MEM-VAL-01",
+      "Test Title": "Validation: Chặn StartMemoryGameSchema khi limit < 2 hoặc limit > 12 hoặc lessonId <= 0",
+      "Test Summary": "Kiểm thử phân quyền & Bảo mật (Authorization & Security 401/403)",
+      "Step": "1. Khởi tạo Service với Mock Repository / Prisma Client.\n2. Kích hoạt hàm nghiệp vụ tương ứng của memory-card.\n3. Kiểm tra giá trị trả về hoặc bắt exception.",
+      "Data": "Dữ liệu test fixture trong memory-card.mock.ts",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
+    },
+    {
+      "TCID": "MEM-VAL-02",
+      "Test Title": "Validation: Chặn SaveProgressSchema khi currentScore âm, turns âm hoặc totalPairs <= 0",
+      "Test Summary": "Kiểm thử phân quyền & Bảo mật (Authorization & Security 401/403)",
+      "Step": "1. Khởi tạo Service với Mock Repository / Prisma Client.\n2. Kích hoạt hàm nghiệp vụ tương ứng của memory-card.\n3. Kiểm tra giá trị trả về hoặc bắt exception.",
+      "Data": "Dữ liệu test fixture trong memory-card.mock.ts",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
+    },
+    {
+      "TCID": "MEM-VAL-03",
+      "Test Title": "Validation: Chặn FinishMemoryGameSchema khi totalScore âm, duration âm hoặc correctPairs âm",
+      "Test Summary": "Kiểm thử phân quyền & Bảo mật (Authorization & Security 401/403)",
+      "Step": "1. Khởi tạo Service với Mock Repository / Prisma Client.\n2. Kích hoạt hàm nghiệp vụ tương ứng của memory-card.\n3. Kiểm tra giá trị trả về hoặc bắt exception.",
+      "Data": "Dữ liệu test fixture trong memory-card.mock.ts",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
     },
     {
       "TCID": "MEM-05",
       "Test Title": "Mất kết nối database khi lưu tiến trình ném lỗi",
-      "Test Summary": "Kiểm thử đụng độ đồng thời (Concurrency / Race Condition - Update vs Delete)",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
       "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.saveProgress() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
       "Data": "Args: 1, mockSaveMemoryProgressInput",
       "Result Expect": "Ném ngoại lệ ApiError với status 4xx, mã lỗi 'ApiError'."
@@ -1727,23 +2807,127 @@ function importAllTestCases() {
     {
       "TCID": "MEM-IT-04",
       "Test Title": "GET /api/memory-card/start limit không hợp lệ trả về 422",
-      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
       "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/memory-card/start?limit=1.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
       "Data": "Query parameters: limit=1",
       "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
     },
     {
+      "TCID": "MEM-IT-VAL-01",
+      "Test Title": "GET /api/memory-card/start limit > 12 trả về 422",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/memory-card/start?limit=15.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "Query parameters: limit=15",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "MEM-IT-VAL-02",
+      "Test Title": "GET /api/memory-card/start limit chuỗi chữ trả về 422",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/memory-card/start?limit=abc.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "Query parameters: limit=abc",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "MEM-IT-VAL-03",
+      "Test Title": "GET /api/memory-card/start lessonId <= 0 trả về 422",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/memory-card/start?lessonId=0.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "Query parameters: lessonId=0",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
       "TCID": "MEM-IT-05",
       "Test Title": "POST /api/memory-card/progress turns âm trả về 422",
-      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
       "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/memory-card/progress.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
       "Data": "{ ...mockSaveMemoryProgressInput, turns: -1 }",
       "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
     },
     {
-      "TCID": "MEM-IT-06",
-      "Test Title": "Lỗi database khi kết thúc ván trả về 500",
+      "TCID": "MEM-IT-VAL-04",
+      "Test Title": "POST /api/memory-card/progress currentScore âm trả về 422",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/memory-card/progress.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ ...mockSaveMemoryProgressInput, currentScore: -5 }",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "MEM-IT-VAL-05",
+      "Test Title": "POST /api/memory-card/progress matchedPairs âm trả về 422",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/memory-card/progress.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ ...mockSaveMemoryProgressInput, matchedPairs: -1 }",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "MEM-IT-VAL-06",
+      "Test Title": "POST /api/memory-card/progress totalPairs <= 0 trả về 422",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/memory-card/progress.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ ...mockSaveMemoryProgressInput, totalPairs: 0 }",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "MEM-IT-VAL-07",
+      "Test Title": "POST /api/memory-card/progress thiếu trường bắt buộc trả về 422",
       "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/memory-card/progress.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ turns: 5 }",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "MEM-IT-VAL-08",
+      "Test Title": "POST /api/memory-card/finish totalScore âm trả về 422",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/memory-card/finish.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ ...mockFinishMemoryInput, totalScore: -10 }",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "MEM-IT-VAL-09",
+      "Test Title": "POST /api/memory-card/finish duration âm trả về 422",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/memory-card/finish.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ ...mockFinishMemoryInput, duration: -2 }",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "MEM-IT-VAL-10",
+      "Test Title": "POST /api/memory-card/finish turns âm trả về 422",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/memory-card/finish.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ ...mockFinishMemoryInput, turns: -1 }",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "MEM-IT-VAL-11",
+      "Test Title": "POST /api/memory-card/finish correctPairs âm trả về 422",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/memory-card/finish.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ ...mockFinishMemoryInput, correctPairs: -1 }",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "MEM-IT-VAL-12",
+      "Test Title": "POST /api/memory-card/finish body rỗng trả về 422",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/memory-card/finish.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{}",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "MEM-IT-CONF-01",
+      "Test Title": "POST /api/memory-card/finish xử lý 2 request chốt kết quả gửi đồng thời an toàn",
+      "Test Summary": "Kiểm thử đụng độ đồng thời (Concurrency / Race Condition - Update vs Delete)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/memory-card/finish.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "mockFinishMemoryInput",
+      "Result Expect": "HTTP Status: 200. Response trả về success = true cùng dữ liệu hợp lệ."
+    },
+    {
+      "TCID": "MEM-IT-06",
+      "Test Title": "Database lỗi khi kết thúc ván trả về 500",
+      "Test Summary": "Kiểm thử đụng độ đồng thời (Concurrency / Race Condition - Update vs Delete)",
       "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/....\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
       "Data": "mockFinishMemoryInput",
       "Result Expect": "HTTP Status: 500. Hệ thống bắt lỗi thông qua error-handler, trả về HTTP 500 an toàn."
@@ -2061,6 +3245,38 @@ function importAllTestCases() {
       "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
     },
     {
+      "TCID": "STL-PER-01",
+      "Test Title": "getCoursesList tính điểm cá nhân hóa chính xác theo trình độ và sở thích của từng học viên",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.getCoursesList() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, { page: 1, limit: 10 }",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
+    },
+    {
+      "TCID": "STL-LP-01",
+      "Test Title": "getLevelsProgress trả về đúng cấu trúc nhóm và 6 cấp độ CEFR",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.getLevelsProgress() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
+    },
+    {
+      "TCID": "STL-SAL-01",
+      "Test Title": "setActiveLevel với cấp độ hợp lệ (B2) cập nhật thành công",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.setActiveLevel() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, 'B2'",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
+    },
+    {
+      "TCID": "STL-SAL-02",
+      "Test Title": "setActiveLevel với nhóm cấp độ (A1-A2) phân tách thành base cefrLevel A1",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.setActiveLevel() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, 'A1-A2'",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
+    },
+    {
       "TCID": "STL-02a",
       "Test Title": "Hoàn thành bài học không tồn tại ném lỗi 404",
       "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
@@ -2077,6 +3293,22 @@ function importAllTestCases() {
       "Result Expect": "Ném ngoại lệ ApiError với status 404, mã lỗi 'ApiError'."
     },
     {
+      "TCID": "STL-SAL-03",
+      "Test Title": "setActiveLevel với level không hợp lệ ném lỗi 400 invalid_level",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.setActiveLevel() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, 'D1'",
+      "Result Expect": "Ném ngoại lệ ApiError với status 400, mã lỗi 'invalid_level'."
+    },
+    {
+      "TCID": "STL-SAL-04",
+      "Test Title": "setActiveLevel với chuỗi rỗng hoặc giá trị bất hợp pháp ném lỗi 400",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.setActiveLevel() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, ''",
+      "Result Expect": "Ném ngoại lệ ApiError với status 400, mã lỗi 'invalid_level'."
+    },
+    {
       "TCID": "STL-03",
       "Test Title": "Chống bug farm XP: Hoàn thành lại bài học đã học trước đó nhận +0 XP",
       "Test Summary": "Kiểm thử đụng độ đồng thời (Concurrency / Race Condition - Update vs Delete)",
@@ -2085,11 +3317,35 @@ function importAllTestCases() {
       "Result Expect": "Hệ thống phân giải đụng độ an toàn: phát hiện bản ghi đã bị xóa (P2025/404) hoặc cập nhật nguyên tử, không sinh trạng thái zombie."
     },
     {
+      "TCID": "STL-SAL-CON-01",
+      "Test Title": "2 request đổi cấp độ song song không gây xung đột dữ liệu",
+      "Test Summary": "Kiểm thử đụng độ đồng thời (Concurrency / Race Condition - Update vs Delete)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.setActiveLevel() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, 'B1'",
+      "Result Expect": "Hệ thống phân giải đụng độ an toàn: phát hiện bản ghi đã bị xóa (P2025/404) hoặc cập nhật nguyên tử, không sinh trạng thái zombie."
+    },
+    {
       "TCID": "STL-05",
       "Test Title": "Mất kết nối DB khi cộng XP ném lỗi máy chủ",
       "Test Summary": "Kiểm thử toàn vẹn dữ liệu & Xung đột (Data Conflict / Rollback)",
       "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.completeLesson() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
       "Data": "Args: 1, 101",
+      "Result Expect": "Ném ngoại lệ ApiError với status 4xx, mã lỗi 'ApiError'."
+    },
+    {
+      "TCID": "STL-LP-NET-01",
+      "Test Title": "Lỗi DB findMany khi tính levels-progress ném lỗi",
+      "Test Summary": "Kiểm thử toàn vẹn dữ liệu & Xung đột (Data Conflict / Rollback)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.getLevelsProgress() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1",
+      "Result Expect": "Ném ngoại lệ ApiError với status 4xx, mã lỗi 'ApiError'."
+    },
+    {
+      "TCID": "STL-SAL-NET-01",
+      "Test Title": "Lỗi DB update khi setActiveLevel ném lỗi",
+      "Test Summary": "Kiểm thử toàn vẹn dữ liệu & Xung đột (Data Conflict / Rollback)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.setActiveLevel() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, 'C1'",
       "Result Expect": "Ném ngoại lệ ApiError với status 4xx, mã lỗi 'ApiError'."
     },
     {
@@ -2109,6 +3365,22 @@ function importAllTestCases() {
       "Result Expect": "HTTP Status: 200. Response trả về success = true cùng dữ liệu hợp lệ."
     },
     {
+      "TCID": "STL-IT-LP-01",
+      "Test Title": "GET /api/student/courses/levels-progress trả về 200 kèm tiến độ",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/student/courses/levels-progress.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "Path param hoặc Payload chuẩn của student-lesson",
+      "Result Expect": "HTTP Status: 200. Response trả về success = true cùng dữ liệu hợp lệ."
+    },
+    {
+      "TCID": "STL-IT-SAL-01",
+      "Test Title": "POST /api/student/courses/set-active-level đổi cấp độ thành công trả về 200",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/student/courses/set-active-level.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ level: 'B1-B2' }",
+      "Result Expect": "HTTP Status: 200. Response trả về success = true cùng dữ liệu hợp lệ."
+    },
+    {
       "TCID": "STL-IT-03",
       "Test Title": "GET /api/student/lessons/abc truyền param không phải số trả về 422",
       "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
@@ -2125,11 +3397,51 @@ function importAllTestCases() {
       "Result Expect": "HTTP Status: 404. Báo lỗi student_not_found do bản ghi đã bị xóa hoặc không tồn tại."
     },
     {
+      "TCID": "STL-IT-SAL-02",
+      "Test Title": "POST /api/student/courses/set-active-level cấp độ không hợp lệ trả về 400",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/student/courses/set-active-level.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ level: 'D1' }",
+      "Result Expect": "HTTP Status: 400. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "STL-IT-IDOR-01",
+      "Test Title": "Chống IDOR: User A gửi ?userId=2 để lấy khóa học gợi ý của User B",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/student/courses?userId=2.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "Query parameters: userId=2",
+      "Result Expect": "HTTP Status: 200. Response trả về success = true cùng dữ liệu hợp lệ."
+    },
+    {
+      "TCID": "STL-IT-IDOR-02",
+      "Test Title": "Chống IDOR: User A gửi payload chứa userId=2 để đổi cấp độ cho User B",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/....\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ level: 'C1', userId: 2 }",
+      "Result Expect": "HTTP Status: 200. Response trả về success = true cùng dữ liệu hợp lệ."
+    },
+    {
+      "TCID": "STL-IT-IDOR-03",
+      "Test Title": "Chống IDOR: User A cố tình đăng ký khóa học cho User B",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/....\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ userId: 2 }",
+      "Result Expect": "HTTP Status: 200. Response trả về success = true cùng dữ liệu hợp lệ."
+    },
+    {
       "TCID": "STL-IT-05",
       "Test Title": "2 request hoàn thành bài học đồng thời",
       "Test Summary": "Kiểm thử đụng độ đồng thời (Concurrency / Race Condition - Update vs Delete)",
       "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/student/lessons/101/complete.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
       "Data": "Path param hoặc Payload chuẩn của student-lesson",
+      "Result Expect": "HTTP Status: 200. Response trả về success = true cùng dữ liệu hợp lệ."
+    },
+    {
+      "TCID": "STL-IT-SAL-03",
+      "Test Title": "2 request đổi cấp độ song song qua API",
+      "Test Summary": "Kiểm thử đụng độ đồng thời (Concurrency / Race Condition - Update vs Delete)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/student/courses/set-active-level.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ level: 'A2' }",
       "Result Expect": "HTTP Status: 200. Response trả về success = true cùng dữ liệu hợp lệ."
     },
     {
@@ -2139,6 +3451,22 @@ function importAllTestCases() {
       "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/student/lessons/101/complete.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
       "Data": "Path param hoặc Payload chuẩn của student-lesson",
       "Result Expect": "HTTP Status: 500. Hệ thống bắt lỗi thông qua error-handler, trả về HTTP 500 an toàn."
+    },
+    {
+      "TCID": "STL-IT-LP-02",
+      "Test Title": "Lỗi hệ thống khi lấy levels-progress trả về 500",
+      "Test Summary": "Kiểm thử toàn vẹn dữ liệu & Xung đột (Data Conflict / Rollback)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/student/courses/levels-progress.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "Path param hoặc Payload chuẩn của student-lesson",
+      "Result Expect": "HTTP Status: 500. Hệ thống bắt lỗi thông qua error-handler, trả về HTTP 500 an toàn."
+    },
+    {
+      "TCID": "STL-IT-SAL-04",
+      "Test Title": "Lỗi hệ thống khi đổi active level trả về 500",
+      "Test Summary": "Kiểm thử toàn vẹn dữ liệu & Xung đột (Data Conflict / Rollback)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/....\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ level: 'B2' }",
+      "Result Expect": "HTTP Status: 500. Hệ thống bắt lỗi thông qua error-handler, trả về HTTP 500 an toàn."
     }
   ],
   "student-test": [
@@ -2147,7 +3475,7 @@ function importAllTestCases() {
       "Test Title": "Lấy chi tiết bài kiểm tra thành công (ẩn đáp án đúng)",
       "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
       "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.getTestDetail() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
-      "Data": "Args: 1",
+      "Data": "Args: 1, 1",
       "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
     },
     {
@@ -2164,6 +3492,62 @@ function importAllTestCases() {
       "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
       "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.submitTest() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
       "Data": "Args: 1, 1, mockTestSubmission",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
+    },
+    {
+      "TCID": "STT-01d",
+      "Test Title": "Thí sinh làm bài thi trình độ tương thích (A1 làm bài A2) thành công",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.submitTest() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, 1, mockTestSubmission",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
+    },
+    {
+      "TCID": "STT-DISC-01",
+      "Test Title": "Chặn thí sinh A1 mở xem bài kiểm tra cấp độ cao hơn (C1) ném 403 level_mismatch",
+      "Test Summary": "Kiểm thử phân quyền & Bảo mật (Authorization & Security 401/403)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.getTestDetail() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, 1",
+      "Result Expect": "Ném ngoại lệ ApiError với status 403, mã lỗi 'level_mismatch'."
+    },
+    {
+      "TCID": "STT-DISC-02",
+      "Test Title": "Chặn thí sinh A1 nộp bài thi cấp độ cao hơn (B2/C1) ném 403 level_mismatch",
+      "Test Summary": "Kiểm thử phân quyền & Bảo mật (Authorization & Security 401/403)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.submitTest() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, 1, mockTestSubmission",
+      "Result Expect": "Ném ngoại lệ ApiError với status 403, mã lỗi 'level_mismatch'."
+    },
+    {
+      "TCID": "STT-DISC-03",
+      "Test Title": "Thí sinh trình độ cao (C1) làm bài thi cấp độ thấp (A1): Hệ thống xử lý an toàn",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.submitTest() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, 1, mockTestSubmission",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
+    },
+    {
+      "TCID": "STT-TOPIC-01",
+      "Test Title": "Chặn học viên Topic 1 mở bài thi thuộc Topic 2 (khác lộ trình) ném 403 topic_access_denied",
+      "Test Summary": "Kiểm thử phân quyền & Bảo mật (Authorization & Security 401/403)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.getTestDetail() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, 1",
+      "Result Expect": "Ném ngoại lệ ApiError với status 403, mã lỗi 'topic_access_denied'."
+    },
+    {
+      "TCID": "STT-TOPIC-02",
+      "Test Title": "Chặn học viên nộp bài thi thuộc Topic khác ngoài danh sách đăng ký ném 403 topic_access_denied",
+      "Test Summary": "Kiểm thử phân quyền & Bảo mật (Authorization & Security 401/403)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.submitTest() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, 1, mockTestSubmission",
+      "Result Expect": "Ném ngoại lệ ApiError với status 403, mã lỗi 'topic_access_denied'."
+    },
+    {
+      "TCID": "STT-TOPIC-03",
+      "Test Title": "Cho phép học viên mở bài thi thuộc Topic đã đăng ký",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.getTestDetail() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, 1",
       "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
     },
     {
@@ -2223,6 +3607,38 @@ function importAllTestCases() {
       "Result Expect": "HTTP Status: 200. Response trả về success = true cùng dữ liệu hợp lệ."
     },
     {
+      "TCID": "STT-IT-DISC-01",
+      "Test Title": "GET /api/student/tests/:id chênh lệch trình độ (A1 mở bài thi C1) trả về 403 level_mismatch",
+      "Test Summary": "Kiểm thử phân quyền & Bảo mật (Authorization & Security 401/403)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/student/tests/99.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "Path param hoặc Payload chuẩn của student-test",
+      "Result Expect": "HTTP Status: 403. Báo lỗi forbidden do tài khoản không có quyền truy cập thông tin quản trị."
+    },
+    {
+      "TCID": "STT-IT-DISC-02",
+      "Test Title": "POST /api/student/tests/:id/submit nộp bài thi vượt cấp trình độ trả về 403 level_mismatch",
+      "Test Summary": "Kiểm thử phân quyền & Bảo mật (Authorization & Security 401/403)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/student/tests/:id/submit.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ submissions: mockTestSubmission }",
+      "Result Expect": "HTTP Status: 403. Báo lỗi forbidden do tài khoản không có quyền truy cập thông tin quản trị."
+    },
+    {
+      "TCID": "STT-IT-TOPIC-01",
+      "Test Title": "GET /api/student/tests/:id mở bài thi của Topic khác chưa đăng ký trả về 403 topic_access_denied",
+      "Test Summary": "Kiểm thử phân quyền & Bảo mật (Authorization & Security 401/403)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/student/tests/50.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "Path param hoặc Payload chuẩn của student-test",
+      "Result Expect": "HTTP Status: 403. Báo lỗi forbidden do tài khoản không có quyền truy cập thông tin quản trị."
+    },
+    {
+      "TCID": "STT-IT-TOPIC-02",
+      "Test Title": "POST /api/student/tests/:id/submit nộp bài thi của Topic khác trả về 403 topic_access_denied",
+      "Test Summary": "Kiểm thử phân quyền & Bảo mật (Authorization & Security 401/403)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/student/tests/:id/submit.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ submissions: mockTestSubmission }",
+      "Result Expect": "HTTP Status: 403. Báo lỗi forbidden do tài khoản không có quyền truy cập thông tin quản trị."
+    },
+    {
       "TCID": "STT-IT-03",
       "Test Title": "POST /api/student/tests/:id/submit submissions không phải array trả về 400",
       "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
@@ -2273,12 +3689,60 @@ function importAllTestCases() {
       "Result Expect": "Ném ngoại lệ ApiError với status 4xx, mã lỗi 'ApiError'."
     },
     {
+      "TCID": "STV-TOG-01",
+      "Test Title": "Bookmark Toggle: Lưu từ vựng mới vào danh sách học viên (isSaved = true)",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.toggleVocabulary() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, 10",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
+    },
+    {
+      "TCID": "STV-TOG-02",
+      "Test Title": "Bookmark Toggle: Bỏ lưu từ vựng đã có sẵn trong danh sách (isSaved = false)",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.toggleVocabulary() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, 10",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
+    },
+    {
+      "TCID": "STV-REV-01",
+      "Test Title": "Lấy danh sách từ vựng đến hạn ôn tập (Spaced Repetition)",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.getDueReviews() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
+    },
+    {
+      "TCID": "STV-PER-01",
+      "Test Title": "Cá nhân hóa: Danh sách từ vựng và lịch ôn tập của User A hoàn toàn độc lập với User B",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.getVocabularyList() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, { limit: 10 }",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
+    },
+    {
       "TCID": "STV-02a",
       "Test Title": "Xem chi tiết từ vựng không tồn tại hoặc của học viên khác (IDOR) ném lỗi 404",
       "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
       "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.getVocabularyDetail() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
       "Data": "Args: 1, 999",
       "Result Expect": "Ném ngoại lệ ApiError với status 404, mã lỗi 'ApiError'."
+    },
+    {
+      "TCID": "STV-IDOR-02",
+      "Test Title": "Chống IDOR: User A cố tình cập nhật từ vựng của User B ném lỗi 404 vocabulary_not_found",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.updateVocabulary() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, 99, { status: 'mastered', memoryLevel: 5 }",
+      "Result Expect": "Ném ngoại lệ ApiError với status 404, mã lỗi 'vocabulary_not_found'."
+    },
+    {
+      "TCID": "STV-IDOR-03",
+      "Test Title": "Chống IDOR: User A cố tình xóa từ vựng trong sổ tay của User B ném lỗi 404 vocabulary_not_found",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.deleteVocabulary() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, 99",
+      "Result Expect": "Ném ngoại lệ ApiError với status 404, mã lỗi 'vocabulary_not_found'."
     },
     {
       "TCID": "STV-02b",
@@ -2289,11 +3753,35 @@ function importAllTestCases() {
       "Result Expect": "Ném ngoại lệ ApiError với status 404, mã lỗi 'ApiError'."
     },
     {
+      "TCID": "STV-TOG-03",
+      "Test Title": "Toggle từ vựng khi wordId không tồn tại trong hệ thống ném 404 word_not_found",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.toggleVocabulary() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, 9999",
+      "Result Expect": "Ném ngoại lệ ApiError với status 404, mã lỗi 'word_not_found'."
+    },
+    {
+      "TCID": "STV-REV-02",
+      "Test Title": "Ôn tập từ vựng không tìm thấy tiến trình ném lỗi 404",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.submitReview() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, 999, true",
+      "Result Expect": "Ném ngoại lệ ApiError với status 404, mã lỗi 'ApiError'."
+    },
+    {
       "TCID": "STV-03",
       "Test Title": "Nộp ôn tập song song nhiều từ vựng được thực thi an toàn",
       "Test Summary": "Kiểm thử đụng độ đồng thời (Concurrency / Race Condition - Update vs Delete)",
       "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.submitReview() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
       "Data": "Args: 1, 10, true",
+      "Result Expect": "Hệ thống phân giải đụng độ an toàn: phát hiện bản ghi đã bị xóa (P2025/404) hoặc cập nhật nguyên tử, không sinh trạng thái zombie."
+    },
+    {
+      "TCID": "STV-TOG-CONF-01",
+      "Test Title": "Xung đột: Hai request toggle cùng một từ đồng thời xử lý an toàn",
+      "Test Summary": "Kiểm thử đụng độ đồng thời (Concurrency / Race Condition - Update vs Delete)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.toggleVocabulary() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, 10",
       "Result Expect": "Hệ thống phân giải đụng độ an toàn: phát hiện bản ghi đã bị xóa (P2025/404) hoặc cập nhật nguyên tử, không sinh trạng thái zombie."
     },
     {
@@ -2310,6 +3798,14 @@ function importAllTestCases() {
       "Test Summary": "Kiểm thử toàn vẹn dữ liệu & Xung đột (Data Conflict / Rollback)",
       "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.submitReview() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
       "Data": "Args: 1, 10, true",
+      "Result Expect": "Ném ngoại lệ ApiError với status 4xx, mã lỗi 'ApiError'."
+    },
+    {
+      "TCID": "STV-REV-04",
+      "Test Title": "Mất kết nối DB khi lấy danh sách từ đến hạn ôn tập ném lỗi",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.getDueReviews() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1",
       "Result Expect": "Ném ngoại lệ ApiError với status 4xx, mã lỗi 'ApiError'."
     },
     {
@@ -2337,12 +3833,52 @@ function importAllTestCases() {
       "Result Expect": "HTTP Status: 200. Response trả về success = true cùng dữ liệu hợp lệ."
     },
     {
+      "TCID": "STV-IT-03B",
+      "Test Title": "GET /api/student/vocabulary/reviews/due lấy danh sách từ cần ôn tập thành công",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/student/vocabulary/reviews/due.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "Path param hoặc Payload chuẩn của student-vocabulary",
+      "Result Expect": "HTTP Status: 200. Response trả về success = true cùng dữ liệu hợp lệ."
+    },
+    {
+      "TCID": "STV-IT-TOG-01",
+      "Test Title": "POST /api/student/vocabulary/toggle lưu từ vựng thành công (isSaved = true)",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/student/vocabulary/toggle.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ wordId: 10 }",
+      "Result Expect": "HTTP Status: 200. Response trả về success = true cùng dữ liệu hợp lệ."
+    },
+    {
+      "TCID": "STV-IT-TOG-02",
+      "Test Title": "POST /api/student/vocabulary/toggle bỏ lưu từ vựng thành công (isSaved = false)",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/student/vocabulary/toggle.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ wordId: 10 }",
+      "Result Expect": "HTTP Status: 200. Response trả về success = true cùng dữ liệu hợp lệ."
+    },
+    {
       "TCID": "STV-IT-04",
       "Test Title": "POST /api/student/vocabulary/reviews thiếu wordId trả về 400",
       "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
       "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/student/vocabulary/reviews.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
       "Data": "{ isCorrect: true }",
       "Result Expect": "HTTP Status: 400. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "STV-IT-04B",
+      "Test Title": "POST /api/student/vocabulary/toggle thiếu wordId trả về 400",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/student/vocabulary/toggle.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{}",
+      "Result Expect": "HTTP Status: 400. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "STV-IT-04C",
+      "Test Title": "POST /api/student/vocabulary/toggle từ vựng không tồn tại trả về 404",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/student/vocabulary/toggle.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ wordId: 99999 }",
+      "Result Expect": "HTTP Status: 404. Báo lỗi student_not_found do bản ghi đã bị xóa hoặc không tồn tại."
     },
     {
       "TCID": "STV-IT-05",
@@ -2353,11 +3889,51 @@ function importAllTestCases() {
       "Result Expect": "HTTP Status: 404. Báo lỗi student_not_found do bản ghi đã bị xóa hoặc không tồn tại."
     },
     {
+      "TCID": "STV-IT-IDOR-01",
+      "Test Title": "Chống IDOR: User A cố tình sửa từ vựng thuộc sổ tay của User B trả về 404",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/....\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ status: 'mastered', memoryLevel: 5 }",
+      "Result Expect": "HTTP Status: 404. Báo lỗi student_not_found do bản ghi đã bị xóa hoặc không tồn tại."
+    },
+    {
+      "TCID": "STV-IT-IDOR-02",
+      "Test Title": "Chống IDOR: User A cố tình xóa từ vựng thuộc sổ tay của User B trả về 404",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP DELETE tới endpoint /api/student/vocabulary/99.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "Path param hoặc Payload chuẩn của student-vocabulary",
+      "Result Expect": "HTTP Status: 404. Báo lỗi student_not_found do bản ghi đã bị xóa hoặc không tồn tại."
+    },
+    {
+      "TCID": "STV-IT-IDOR-03",
+      "Test Title": "Chống IDOR: User A gửi payload chứa userId=2 để toggle bookmark cho User B",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/....\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ wordId: 10, userId: 2 }",
+      "Result Expect": "HTTP Status: 200. Response trả về success = true cùng dữ liệu hợp lệ."
+    },
+    {
+      "TCID": "STV-IT-IDOR-04",
+      "Test Title": "Chống IDOR: User A gửi ?userId=2 để xem trộm sổ tay từ vựng của User B",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/student/vocabulary?userId=2.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "Query parameters: userId=2",
+      "Result Expect": "HTTP Status: 200. Response trả về success = true cùng dữ liệu hợp lệ."
+    },
+    {
       "TCID": "STV-IT-06",
       "Test Title": "Gửi 2 request ôn tập song song",
       "Test Summary": "Kiểm thử đụng độ đồng thời (Concurrency / Race Condition - Update vs Delete)",
       "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/student/vocabulary/reviews.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
       "Data": "{ wordId: 10, isCorrect: true }",
+      "Result Expect": "HTTP Status: 200. Response trả về success = true cùng dữ liệu hợp lệ."
+    },
+    {
+      "TCID": "STV-IT-CON-02",
+      "Test Title": "Gửi 2 request toggle song song cùng wordId",
+      "Test Summary": "Kiểm thử đụng độ đồng thời (Concurrency / Race Condition - Update vs Delete)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/student/vocabulary/toggle.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ wordId: 10 }",
       "Result Expect": "HTTP Status: 200. Response trả về success = true cùng dữ liệu hợp lệ."
     },
     {
@@ -2374,6 +3950,22 @@ function importAllTestCases() {
       "Test Summary": "Kiểm thử toàn vẹn dữ liệu & Xung đột (Data Conflict / Rollback)",
       "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/student/vocabulary.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
       "Data": "Path param hoặc Payload chuẩn của student-vocabulary",
+      "Result Expect": "HTTP Status: 500. Hệ thống bắt lỗi thông qua error-handler, trả về HTTP 500 an toàn."
+    },
+    {
+      "TCID": "STV-IT-NET-01",
+      "Test Title": "Mất kết nối DB khi lấy reviews/due trả về 500",
+      "Test Summary": "Kiểm thử toàn vẹn dữ liệu & Xung đột (Data Conflict / Rollback)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/student/vocabulary/reviews/due.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "Path param hoặc Payload chuẩn của student-vocabulary",
+      "Result Expect": "HTTP Status: 500. Hệ thống bắt lỗi thông qua error-handler, trả về HTTP 500 an toàn."
+    },
+    {
+      "TCID": "STV-IT-NET-02",
+      "Test Title": "Lỗi hệ thống khi toggle từ vựng trả về 500",
+      "Test Summary": "Kiểm thử toàn vẹn dữ liệu & Xung đột (Data Conflict / Rollback)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/....\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ wordId: 10 }",
       "Result Expect": "HTTP Status: 500. Hệ thống bắt lỗi thông qua error-handler, trả về HTTP 500 an toàn."
     }
   ],
@@ -2408,6 +4000,38 @@ function importAllTestCases() {
       "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
       "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.deleteTest() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
       "Data": "Args: 1",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
+    },
+    {
+      "TCID": "TST-DISC-01",
+      "Test Title": "Chặn tạo bài thi có trình độ C2 cho bài học A1 ném 400 level_mismatch",
+      "Test Summary": "Kiểm thử phân quyền & Bảo mật (Authorization & Security 401/403)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.createTest() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: { ...mockCreateTestInput, lessonId: 10, ceftLevel: 'C2' }",
+      "Result Expect": "Ném ngoại lệ ApiError với status 400, mã lỗi 'level_mismatch'."
+    },
+    {
+      "TCID": "TST-DISC-02",
+      "Test Title": "Cho phép tạo bài thi có trình độ tương thích với bài học",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.createTest() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: { ...mockCreateTestInput, lessonId: 10, ceftLevel: 'B2' }",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
+    },
+    {
+      "TCID": "TST-DISC-03",
+      "Test Title": "Chặn thêm câu hỏi có độ khó Elo quá cao (1800) vào bài thi A1 ném 400 difficulty_mismatch",
+      "Test Summary": "Kiểm thử phân quyền & Bảo mật (Authorization & Security 401/403)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.addQuestion() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, { ...mockCreateQuestionInput, difficultyElo: 1800 }",
+      "Result Expect": "Ném ngoại lệ ApiError với status 400, mã lỗi 'difficulty_mismatch'."
+    },
+    {
+      "TCID": "TST-DISC-04",
+      "Test Title": "Cho phép thêm câu hỏi có độ khó Elo phù hợp (1100) vào bài thi A1",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.addQuestion() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, { ...mockCreateQuestionInput, difficultyElo: 1100 }",
       "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
     },
     {
@@ -2489,6 +4113,22 @@ function importAllTestCases() {
       "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP DELETE tới endpoint /api/admin/tests/1.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
       "Data": "Path param hoặc Payload chuẩn của test",
       "Result Expect": "HTTP Status: 200. Response trả về success = true cùng dữ liệu hợp lệ."
+    },
+    {
+      "TCID": "TST-IT-DISC-01",
+      "Test Title": "POST /api/admin/tests tạo bài thi chênh lệch trình độ với bài học trả về 400",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/admin/tests.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ ...mockCreateTestInput, ceftLevel: 'C2' }",
+      "Result Expect": "HTTP Status: 400. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "TST-IT-DISC-02",
+      "Test Title": "POST /api/admin/tests/:testId/questions thêm câu hỏi Elo quá cao trả về 400",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/admin/tests/:testId/questions.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "mockCreateQuestionInput",
+      "Result Expect": "HTTP Status: 400. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
     },
     {
       "TCID": "TST-IT-05",
@@ -2597,6 +4237,38 @@ function importAllTestCases() {
       "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
     },
     {
+      "TCID": "TOP-IT-SEC-01",
+      "Test Title": "Học viên thường (role user) cố tình tạo chủ đề bị từ chối 403 Forbidden",
+      "Test Summary": "Kiểm thử phân quyền & Bảo mật (Authorization & Security 401/403)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/....\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ title: 'Topic Hacked', cefrLevel: 'A1' }",
+      "Result Expect": "HTTP Status: 403. Báo lỗi forbidden do tài khoản không có quyền truy cập thông tin quản trị."
+    },
+    {
+      "TCID": "TOP-IT-SEC-02",
+      "Test Title": "Học viên thường cố tình xóa chủ đề bị từ chối 403 Forbidden",
+      "Test Summary": "Kiểm thử phân quyền & Bảo mật (Authorization & Security 401/403)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP DELETE tới endpoint /api/admin/topics/1.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "Path param hoặc Payload chuẩn của topic",
+      "Result Expect": "HTTP Status: 403. Báo lỗi forbidden do tài khoản không có quyền truy cập thông tin quản trị."
+    },
+    {
+      "TCID": "TOP-IT-SEC-03",
+      "Test Title": "Chưa đăng nhập truy cập quản trị chủ đề trả về 401 Unauthorized",
+      "Test Summary": "Kiểm thử phân quyền & Bảo mật (Authorization & Security 401/403)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/admin/topics.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "Path param hoặc Payload chuẩn của topic",
+      "Result Expect": "HTTP Status: 401. Báo lỗi unauthorized do chưa cung cấp token xác thực."
+    },
+    {
+      "TCID": "TOP-IT-SEC-04",
+      "Test Title": "Thử SQL Injection qua query param cefrLevel (?cefrLevel=\\",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/....\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "Path param hoặc Payload chuẩn của topic",
+      "Result Expect": "HTTP Status: 200. Response trả về success = true cùng dữ liệu hợp lệ."
+    },
+    {
       "TCID": "TOP-IT-05",
       "Test Title": "Mất kết nối DB khi lấy danh sách trả về 500",
       "Test Summary": "Kiểm thử mất kết nối mạng & Lỗi hệ thống (Network & System Error)",
@@ -2671,6 +4343,38 @@ function importAllTestCases() {
       "Result Expect": "HTTP Status: 400. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
     },
     {
+      "TCID": "WRD-IT-SEC-01",
+      "Test Title": "Học viên role user cố tình tạo từ vựng bị từ chối 403 Forbidden",
+      "Test Summary": "Kiểm thử phân quyền & Bảo mật (Authorization & Security 401/403)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/....\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ headword: 'hackedword', partOfSpeech: 'noun' }",
+      "Result Expect": "HTTP Status: 403. Báo lỗi forbidden do tài khoản không có quyền truy cập thông tin quản trị."
+    },
+    {
+      "TCID": "WRD-IT-SEC-02",
+      "Test Title": "Học viên role user cố tình xóa từ vựng bị từ chối 403 Forbidden",
+      "Test Summary": "Kiểm thử phân quyền & Bảo mật (Authorization & Security 401/403)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP DELETE tới endpoint /api/admin/word/1.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "Path param hoặc Payload chuẩn của word",
+      "Result Expect": "HTTP Status: 403. Báo lỗi forbidden do tài khoản không có quyền truy cập thông tin quản trị."
+    },
+    {
+      "TCID": "WRD-IT-SEC-03",
+      "Test Title": "Chưa đăng nhập truy cập quản trị từ vựng trả về 401 Unauthorized",
+      "Test Summary": "Kiểm thử phân quyền & Bảo mật (Authorization & Security 401/403)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/admin/word.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "Path param hoặc Payload chuẩn của word",
+      "Result Expect": "HTTP Status: 401. Báo lỗi unauthorized do chưa cung cấp token xác thực."
+    },
+    {
+      "TCID": "WRD-IT-SEC-04",
+      "Test Title": "Thử SQL Injection qua query param search (?search=\\",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/....\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "Path param hoặc Payload chuẩn của word",
+      "Result Expect": "HTTP Status: 200. Response trả về success = true cùng dữ liệu hợp lệ."
+    },
+    {
       "TCID": "WRD-IT-04",
       "Test Title": "Mất kết nối DB khi lấy danh sách từ trả về 500",
       "Test Summary": "Kiểm thử mất kết nối mạng & Lỗi hệ thống (Network & System Error)",
@@ -2705,6 +4409,70 @@ function importAllTestCases() {
       "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
     },
     {
+      "TCID": "WM-LOG-01",
+      "Test Title": "Ghi activity log thành công khi bắt đầu ván nối từ (USER_START_WORD_MATCHING_SUCCESS)",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.startGame() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, { limit: 4 }",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
+    },
+    {
+      "TCID": "WM-LOG-02",
+      "Test Title": "Ghi activity log thất bại khi không đủ từ vựng (USER_START_WORD_MATCHING_FAILED)",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.startGame() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, { limit: 4 }",
+      "Result Expect": "Ném ngoại lệ ApiError với status 4xx, mã lỗi 'ApiError'."
+    },
+    {
+      "TCID": "WM-LOG-03",
+      "Test Title": "Ghi activity log thành công khi nộp bài nối từ (USER_SUBMIT_WORD_MATCHING_SUCCESS)",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.submitAnswers() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, mockSubmitWordMatchingInput",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
+    },
+    {
+      "TCID": "WM-LOG-04",
+      "Test Title": "Ghi activity log thành công khi lưu tiến trình nối từ tạm thời (USER_SAVE_WORD_MATCHING_PROGRESS_SUCCESS)",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.saveProgress() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, mockSaveWordMatchingProgressInput",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
+    },
+    {
+      "TCID": "WM-LOG-05",
+      "Test Title": "Ghi activity log thất bại khi nộp bài bị lỗi CSDL (USER_SUBMIT_WORD_MATCHING_FAILED)",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.submitAnswers() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, mockSubmitWordMatchingInput",
+      "Result Expect": "Ném ngoại lệ ApiError với status 4xx, mã lỗi 'ApiError'."
+    },
+    {
+      "TCID": "WM-CONF-01",
+      "Test Title": "Đụng độ khi đang lưu tiến trình tạm thì request submit nộp bài gửi tới đồng thời",
+      "Test Summary": "Kiểm thử đụng độ đồng thời (Concurrency / Race Condition - Update vs Delete)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.saveProgress() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, mockSaveWordMatchingProgressInput",
+      "Result Expect": "Hệ thống phân giải đụng độ an toàn: phát hiện bản ghi đã bị xóa (P2025/404) hoặc cập nhật nguyên tử, không sinh trạng thái zombie."
+    },
+    {
+      "TCID": "WM-CONF-02",
+      "Test Title": "Hai request nộp bài submit gửi đồng thời với các đáp án khác nhau",
+      "Test Summary": "Kiểm thử đụng độ đồng thời (Concurrency / Race Condition - Update vs Delete)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.submitAnswers() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, mockSubmitWordMatchingInput",
+      "Result Expect": "Hệ thống phân giải đụng độ an toàn: phát hiện bản ghi đã bị xóa (P2025/404) hoặc cập nhật nguyên tử, không sinh trạng thái zombie."
+    },
+    {
+      "TCID": "WM-03",
+      "Test Title": "Hai yêu cầu nộp bài submit song song",
+      "Test Summary": "Kiểm thử đụng độ đồng thời (Concurrency / Race Condition - Update vs Delete)",
+      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.submitAnswers() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
+      "Data": "Args: 1, mockSubmitWordMatchingInput",
+      "Result Expect": "Hệ thống phân giải đụng độ an toàn: phát hiện bản ghi đã bị xóa (P2025/404) hoặc cập nhật nguyên tử, không sinh trạng thái zombie."
+    },
+    {
       "TCID": "WM-02a",
       "Test Title": "Bắt đầu ván chơi khi thiếu từ vựng (< 4 từ) ném lỗi 400",
       "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
@@ -2721,24 +4489,40 @@ function importAllTestCases() {
       "Result Expect": "Ném ngoại lệ ApiError với status 400, mã lỗi 'not_enough_words'."
     },
     {
-      "TCID": "WM-03",
-      "Test Title": "Hai yêu cầu nộp bài submit song song",
-      "Test Summary": "Kiểm thử đụng độ đồng thời (Concurrency / Race Condition - Update vs Delete)",
-      "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.submitAnswers() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
-      "Data": "Args: 1, mockSubmitWordMatchingInput",
-      "Result Expect": "Hệ thống phân giải đụng độ an toàn: phát hiện bản ghi đã bị xóa (P2025/404) hoặc cập nhật nguyên tử, không sinh trạng thái zombie."
+      "TCID": "WM-VAL-01",
+      "Test Title": "Validation: Chặn StartWordMatchingSchema khi limit < 4 hoặc > 20 hoặc lessonId <= 0",
+      "Test Summary": "Kiểm thử phân quyền & Bảo mật (Authorization & Security 401/403)",
+      "Step": "1. Khởi tạo Service với Mock Repository / Prisma Client.\n2. Kích hoạt hàm nghiệp vụ tương ứng của word-matching.\n3. Kiểm tra giá trị trả về hoặc bắt exception.",
+      "Data": "Dữ liệu test fixture trong word-matching.mock.ts",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
+    },
+    {
+      "TCID": "WM-VAL-02",
+      "Test Title": "Validation: Chặn SubmitWordMatchingSchema khi duration âm hoặc answers rỗng []",
+      "Test Summary": "Kiểm thử phân quyền & Bảo mật (Authorization & Security 401/403)",
+      "Step": "1. Khởi tạo Service với Mock Repository / Prisma Client.\n2. Kích hoạt hàm nghiệp vụ tương ứng của word-matching.\n3. Kiểm tra giá trị trả về hoặc bắt exception.",
+      "Data": "Dữ liệu test fixture trong word-matching.mock.ts",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
+    },
+    {
+      "TCID": "WM-VAL-03",
+      "Test Title": "Validation: Chặn SaveWordMatchingProgressSchema khi currentMatchedPairs âm hoặc totalPairs < 1",
+      "Test Summary": "Kiểm thử phân quyền & Bảo mật (Authorization & Security 401/403)",
+      "Step": "1. Khởi tạo Service với Mock Repository / Prisma Client.\n2. Kích hoạt hàm nghiệp vụ tương ứng của word-matching.\n3. Kiểm tra giá trị trả về hoặc bắt exception.",
+      "Data": "Dữ liệu test fixture trong word-matching.mock.ts",
+      "Result Expect": "Hàm thực thi thành công, trả về đúng kiểu dữ liệu, các phương thức mock được gọi đúng tham số."
     },
     {
       "TCID": "WM-05",
       "Test Title": "Mất kết nối database khi nộp bài ném lỗi",
-      "Test Summary": "Kiểm thử đụng độ đồng thời (Concurrency / Race Condition - Update vs Delete)",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
       "Step": "1. Thiết lập Mock Repository / Database cho Service.\n2. Gọi method service.submitAnswers() với tham số kiểm thử.\n3. Đối soát kết quả hoặc mã lỗi phát sinh.",
       "Data": "Args: 1, mockSubmitWordMatchingInput",
       "Result Expect": "Ném ngoại lệ ApiError với status 4xx, mã lỗi 'ApiError'."
     },
     {
       "TCID": "WM-IT-01",
-      "Test Title": "GET /api/word-matching/start khởi tạo bàn chơi nối từ",
+      "Test Title": "GET /api/word-matching/start bắt đầu ván chơi nối từ",
       "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
       "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/word-matching/start?limit=4.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
       "Data": "Query parameters: limit=4",
@@ -2762,24 +4546,96 @@ function importAllTestCases() {
     },
     {
       "TCID": "WM-IT-04",
-      "Test Title": "POST /api/word-matching/submit answers rỗng trả về 422",
-      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
-      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/word-matching/submit.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
-      "Data": "{ duration: 10, answers: [] }",
-      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
-    },
-    {
-      "TCID": "WM-IT-05",
       "Test Title": "GET /api/word-matching/start limit < 4 trả về 422",
-      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
       "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/word-matching/start?limit=2.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
       "Data": "Query parameters: limit=2",
       "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
     },
     {
+      "TCID": "WM-IT-VAL-01",
+      "Test Title": "GET /api/word-matching/start limit > 20 trả về 422",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/word-matching/start?limit=25.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "Query parameters: limit=25",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "WM-IT-VAL-02",
+      "Test Title": "GET /api/word-matching/start limit chữ trả về 422",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/word-matching/start?limit=xyz.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "Query parameters: limit=xyz",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "WM-IT-VAL-03",
+      "Test Title": "GET /api/word-matching/start lessonId <= 0 trả về 422",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/word-matching/start?lessonId=-1.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "Query parameters: lessonId=-1",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "WM-IT-05",
+      "Test Title": "POST /api/word-matching/submit answers rỗng trả về 422",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/word-matching/submit.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ duration: 30, answers: [] }",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "WM-IT-VAL-04",
+      "Test Title": "POST /api/word-matching/submit duration âm trả về 422",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/word-matching/submit.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ ...mockSubmitWordMatchingInput, duration: -10 }",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "WM-IT-VAL-05",
+      "Test Title": "POST /api/word-matching/submit answers thiếu selectedMeaningId trả về 422",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/word-matching/submit.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ duration: 30, answers: [{ wordId: 1 }] }",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "WM-IT-VAL-06",
+      "Test Title": "POST /api/word-matching/submit body rỗng thiếu trường bắt buộc trả về 422",
+      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/word-matching/submit.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{}",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "WM-IT-VAL-07",
+      "Test Title": "POST /api/word-matching/progress currentMatchedPairs âm trả về 422",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/word-matching/progress.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ currentMatchedPairs: -1 }",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "WM-IT-VAL-08",
+      "Test Title": "POST /api/word-matching/progress totalPairs < 1 trả về 422",
+      "Test Summary": "Kiểm thử chức năng chuẩn (Happy Path)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/word-matching/progress.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "{ totalPairs: 0 }",
+      "Result Expect": "HTTP Status: 422. Báo lỗi validation hoặc bad request rõ ràng, không làm crash server."
+    },
+    {
+      "TCID": "WM-IT-CONF-01",
+      "Test Title": "POST /api/word-matching/submit xử lý 2 request nộp bài gửi đồng thời an toàn",
+      "Test Summary": "Kiểm thử đụng độ đồng thời (Concurrency / Race Condition - Update vs Delete)",
+      "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP POST tới endpoint /api/word-matching/submit.\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
+      "Data": "mockSubmitWordMatchingInput",
+      "Result Expect": "HTTP Status: 200. Response trả về success = true cùng dữ liệu hợp lệ."
+    },
+    {
       "TCID": "WM-IT-06",
       "Test Title": "Lỗi database khi nộp bài trả về 500",
-      "Test Summary": "Kiểm thử trường hợp biên & Ngoại lệ (Negative / Bad Case)",
+      "Test Summary": "Kiểm thử đụng độ đồng thời (Concurrency / Race Condition - Update vs Delete)",
       "Step": "1. Thiết lập phiên đăng nhập / Mock quyền truy cập tương ứng.\n2. Gửi request HTTP GET tới endpoint /api/....\n3. Xác thực mã trạng thái HTTP và cấu trúc JSON trả về.",
       "Data": "mockSubmitWordMatchingInput",
       "Result Expect": "HTTP Status: 500. Hệ thống bắt lỗi thông qua error-handler, trả về HTTP 500 an toàn."

@@ -1,7 +1,17 @@
 import { ApiError } from "../../shared/http/api-error.js";
 import { testRepository, TestRepository } from "./test.repository.js";
+import { prisma } from "../../config/prisma.js";
 import xlsx from "xlsx";
 import * as fs from "fs";
+
+export const CEFR_ORDER: Record<string, number> = {
+  A1: 1,
+  A2: 2,
+  B1: 3,
+  B2: 4,
+  C1: 5,
+  C2: 6,
+};
 
 export class TestService {
   constructor(private testRepo: TestRepository = testRepository) {}
@@ -11,6 +21,20 @@ export class TestService {
   }
 
   async createTest(data: any) {
+    if (data.lessonId && data.ceftLevel) {
+      const lesson = await prisma.lesson.findUnique({ where: { id: data.lessonId } });
+      if (lesson && lesson.cefrLevel) {
+        const lessonRank = CEFR_ORDER[lesson.cefrLevel.toUpperCase()] || 1;
+        const testRank = CEFR_ORDER[data.ceftLevel.toUpperCase()] || 1;
+        if (Math.abs(testRank - lessonRank) > 1) {
+          throw new ApiError(
+            400,
+            "level_mismatch",
+            `Trình độ bài thi (${data.ceftLevel}) không tương thích với trình độ bài học (${lesson.cefrLevel})`
+          );
+        }
+      }
+    }
     return await this.testRepo.createTest(data);
   }
 
@@ -35,6 +59,19 @@ export class TestService {
   async addQuestion(testId: number, data: any) {
     const existing = await this.testRepo.findTestById(testId);
     if (!existing) throw new ApiError(404, "not_found", "Bài thi không tồn tại");
+
+    if (existing.ceftLevel && data.difficultyElo) {
+      const elo = Number(data.difficultyElo);
+      const testLevel = existing.ceftLevel.toUpperCase();
+      if ((testLevel === 'A1' || testLevel === 'A2') && elo > 1600) {
+        throw new ApiError(
+          400,
+          "difficulty_mismatch",
+          `Câu hỏi có độ khó Elo ${elo} quá cao so với bài thi cấp độ ${testLevel}`
+        );
+      }
+    }
+
     return await this.testRepo.createQuestionWithAnswers(testId, data, data.answers);
   }
 

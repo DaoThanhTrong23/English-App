@@ -1,7 +1,13 @@
 import { prisma } from '../../config/prisma.js';
 import { ApiError } from '../../shared/http/api-error.js';
+import { logExecution } from '../../shared/decorators/log.decorator.js';
+import { recordActivity } from '../../shared/decorators/activity.decorator.js';
+
+export const MAX_POST_LENGTH = 5000;
+export const MAX_COMMENT_LENGTH = 1000;
 
 export class CommunityService {
+  @logExecution()
   async getPosts(userId: number, page: number = 1, limit: number = 10, filter?: string) {
     const pageNum = Math.max(1, Number(page) || 1);
     const take = Math.max(1, Math.min(50, Number(limit) || 10));
@@ -68,7 +74,13 @@ export class CommunityService {
     };
   }
 
+  @logExecution()
+  @recordActivity("USER_CREATE_COMMUNITY_POST", (_res, userId) => `Người dùng ${userId} đăng bài viết mới`)
   async createPost(userId: number, content: string, imageUrl?: string, isPublic: boolean = true) {
+    if (content && content.length > MAX_POST_LENGTH) {
+      throw new ApiError(400, "content_too_long", `Nội dung bài viết vượt quá độ dài tối đa ${MAX_POST_LENGTH} ký tự`);
+    }
+
     const post = await prisma.communityPost.create({
       data: {
         userId,
@@ -87,6 +99,8 @@ export class CommunityService {
     return { ...post, hasLiked: false, likesCount: 0, commentsCount: 0 };
   }
 
+  @logExecution()
+  @recordActivity("USER_LIKE_COMMUNITY_POST", (res, userId, postId) => `Người dùng ${userId} ${res.hasLiked ? 'thích' : 'bỏ thích'} bài viết ${postId}`)
   async toggleLike(userId: number, postId: number) {
     const existing = await prisma.postLike.findUnique({
       where: { postId_userId: { postId, userId } }
@@ -101,6 +115,7 @@ export class CommunityService {
     }
   }
 
+  @logExecution()
   async getComments(postId: number) {
     return prisma.communityComment.findMany({
       where: { postId },
@@ -111,7 +126,13 @@ export class CommunityService {
     });
   }
 
+  @logExecution()
+  @recordActivity("USER_COMMENT_COMMUNITY_POST", (_res, userId, postId) => `Người dùng ${userId} bình luận vào bài viết ${postId}`)
   async createComment(userId: number, postId: number, content: string) {
+    if (content && content.length > MAX_COMMENT_LENGTH) {
+      throw new ApiError(400, "content_too_long", `Nội dung bình luận vượt quá độ dài tối đa ${MAX_COMMENT_LENGTH} ký tự`);
+    }
+
     const post = await prisma.communityPost.findUnique({ where: { id: postId } });
     if (!post) throw new ApiError(404, "not_found", "Không tìm thấy bài viết");
 
@@ -123,11 +144,17 @@ export class CommunityService {
     });
   }
 
+  @logExecution()
+  @recordActivity("USER_UPDATE_COMMUNITY_POST", (_res, userId, postId) => `Người dùng ${userId} chỉnh sửa bài viết ${postId}`)
   async updatePost(
     userId: number,
     postId: number,
     data: { content?: string; isPublic?: boolean; imageUrl?: string | null }
   ) {
+    if (data.content && data.content.length > MAX_POST_LENGTH) {
+      throw new ApiError(400, "content_too_long", `Nội dung bài viết vượt quá độ dài tối đa ${MAX_POST_LENGTH} ký tự`);
+    }
+
     const post = await prisma.communityPost.findUnique({
       where: { id: postId },
       include: { images: true }
@@ -170,10 +197,13 @@ export class CommunityService {
     };
   }
 
+  @logExecution()
   async updatePostPrivacy(userId: number, postId: number, isPublic: boolean) {
     return this.updatePost(userId, postId, { isPublic });
   }
 
+  @logExecution()
+  @recordActivity("USER_DELETE_COMMUNITY_POST", (_res, userId, postId) => `Người dùng ${userId} xóa bài viết ${postId}`)
   async deletePost(userId: number, postId: number) {
     const post = await prisma.communityPost.findUnique({ where: { id: postId } });
     if (!post) throw new ApiError(404, "not_found", "Không tìm thấy bài viết");

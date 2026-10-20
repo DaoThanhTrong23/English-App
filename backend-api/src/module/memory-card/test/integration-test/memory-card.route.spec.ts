@@ -83,10 +83,24 @@ describe('Memory Card Routes - Integration Tests (QC 10-Year Standard)', () => {
     });
   });
 
-  describe('2. Bad End Cases', () => {
+  describe('2. Validation & Invalid Input Cases', () => {
     it('[MEM-IT-04] GET /api/memory-card/start limit không hợp lệ trả về 422', async () => {
       const res = await request(app).get('/api/memory-card/start?limit=1');
+      expect(res.status).toBe(422);
+    });
 
+    it('[MEM-IT-VAL-01] GET /api/memory-card/start limit > 12 trả về 422', async () => {
+      const res = await request(app).get('/api/memory-card/start?limit=15');
+      expect(res.status).toBe(422);
+    });
+
+    it('[MEM-IT-VAL-02] GET /api/memory-card/start limit chuỗi chữ trả về 422', async () => {
+      const res = await request(app).get('/api/memory-card/start?limit=abc');
+      expect(res.status).toBe(422);
+    });
+
+    it('[MEM-IT-VAL-03] GET /api/memory-card/start lessonId <= 0 trả về 422', async () => {
+      const res = await request(app).get('/api/memory-card/start?lessonId=0');
       expect(res.status).toBe(422);
     });
 
@@ -94,13 +108,97 @@ describe('Memory Card Routes - Integration Tests (QC 10-Year Standard)', () => {
       const res = await request(app)
         .post('/api/memory-card/progress')
         .send({ ...mockSaveMemoryProgressInput, turns: -1 });
+      expect(res.status).toBe(422);
+    });
 
+    it('[MEM-IT-VAL-04] POST /api/memory-card/progress currentScore âm trả về 422', async () => {
+      const res = await request(app)
+        .post('/api/memory-card/progress')
+        .send({ ...mockSaveMemoryProgressInput, currentScore: -5 });
+      expect(res.status).toBe(422);
+    });
+
+    it('[MEM-IT-VAL-05] POST /api/memory-card/progress matchedPairs âm trả về 422', async () => {
+      const res = await request(app)
+        .post('/api/memory-card/progress')
+        .send({ ...mockSaveMemoryProgressInput, matchedPairs: -1 });
+      expect(res.status).toBe(422);
+    });
+
+    it('[MEM-IT-VAL-06] POST /api/memory-card/progress totalPairs <= 0 trả về 422', async () => {
+      const res = await request(app)
+        .post('/api/memory-card/progress')
+        .send({ ...mockSaveMemoryProgressInput, totalPairs: 0 });
+      expect(res.status).toBe(422);
+    });
+
+    it('[MEM-IT-VAL-07] POST /api/memory-card/progress thiếu trường bắt buộc trả về 422', async () => {
+      const res = await request(app)
+        .post('/api/memory-card/progress')
+        .send({ turns: 5 });
+      expect(res.status).toBe(422);
+    });
+
+    it('[MEM-IT-VAL-08] POST /api/memory-card/finish totalScore âm trả về 422', async () => {
+      const res = await request(app)
+        .post('/api/memory-card/finish')
+        .send({ ...mockFinishMemoryInput, totalScore: -10 });
+      expect(res.status).toBe(422);
+    });
+
+    it('[MEM-IT-VAL-09] POST /api/memory-card/finish duration âm trả về 422', async () => {
+      const res = await request(app)
+        .post('/api/memory-card/finish')
+        .send({ ...mockFinishMemoryInput, duration: -2 });
+      expect(res.status).toBe(422);
+    });
+
+    it('[MEM-IT-VAL-10] POST /api/memory-card/finish turns âm trả về 422', async () => {
+      const res = await request(app)
+        .post('/api/memory-card/finish')
+        .send({ ...mockFinishMemoryInput, turns: -1 });
+      expect(res.status).toBe(422);
+    });
+
+    it('[MEM-IT-VAL-11] POST /api/memory-card/finish correctPairs âm trả về 422', async () => {
+      const res = await request(app)
+        .post('/api/memory-card/finish')
+        .send({ ...mockFinishMemoryInput, correctPairs: -1 });
+      expect(res.status).toBe(422);
+    });
+
+    it('[MEM-IT-VAL-12] POST /api/memory-card/finish body rỗng trả về 422', async () => {
+      const res = await request(app)
+        .post('/api/memory-card/finish')
+        .send({});
       expect(res.status).toBe(422);
     });
   });
 
-  describe('3. Network Failures', () => {
-    it('[MEM-IT-06] Lỗi database khi kết thúc ván trả về 500', async () => {
+  describe('3. Concurrency & Network Failures', () => {
+    it('[MEM-IT-CONF-01] POST /api/memory-card/finish xử lý 2 request chốt kết quả gửi đồng thời an toàn', async () => {
+      vi.spyOn(memoryCardService, 'finishGame')
+        .mockResolvedValueOnce({
+          message: 'Hoàn tất ván Memory Card thành công!',
+          result: { totalScore: 60, durationSeconds: 45 },
+        } as any)
+        .mockResolvedValueOnce({
+          message: 'Hoàn tất ván Memory Card thành công!',
+          result: { totalScore: 60, durationSeconds: 45 },
+        } as any);
+
+      const [res1, res2] = await Promise.all([
+        request(app).post('/api/memory-card/finish').send(mockFinishMemoryInput),
+        request(app).post('/api/memory-card/finish').send(mockFinishMemoryInput),
+      ]);
+
+      expect(res1.status).toBe(200);
+      expect(res2.status).toBe(200);
+      expect(res1.body.data.result.totalScore).toBe(60);
+      expect(res2.body.data.result.totalScore).toBe(60);
+    });
+
+    it('[MEM-IT-06] Database lỗi khi kết thúc ván trả về 500', async () => {
       vi.spyOn(memoryCardService, 'finishGame').mockRejectedValue(
         new Error('Connection lost (P1001)')
       );

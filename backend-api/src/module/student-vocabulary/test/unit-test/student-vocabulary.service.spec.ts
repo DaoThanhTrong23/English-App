@@ -6,10 +6,15 @@ import { prisma } from '../../../../config/prisma.js';
 
 vi.mock('../../../../config/prisma.js', () => ({
   prisma: {
+    word: {
+      findUnique: vi.fn(),
+    },
     userProgress: {
       findMany: vi.fn(),
       findUnique: vi.fn(),
       update: vi.fn(),
+      create: vi.fn(),
+      delete: vi.fn(),
     },
     user: {
       update: vi.fn(),
@@ -89,6 +94,59 @@ describe('StudentVocabularyService - Unit Tests (QC 10-Year Standard)', () => {
         })
       );
     });
+
+    it('[STV-TOG-01] Bookmark Toggle: Lưu từ vựng mới vào danh sách học viên (isSaved = true)', async () => {
+      vi.mocked(prisma.word.findUnique).mockResolvedValue(mockWord as any);
+      vi.mocked(prisma.userProgress.findUnique).mockResolvedValue(null); // chưa lưu
+      vi.mocked(prisma.userProgress.create).mockResolvedValue(mockUserProgress as any);
+
+      const res = await service.toggleVocabulary(1, 10);
+
+      expect(res.isSaved).toBe(true);
+      expect(res.wordId).toBe(10);
+      expect(prisma.userProgress.create).toHaveBeenCalled();
+    });
+
+    it('[STV-TOG-02] Bookmark Toggle: Bỏ lưu từ vựng đã có sẵn trong danh sách (isSaved = false)', async () => {
+      vi.mocked(prisma.word.findUnique).mockResolvedValue(mockWord as any);
+      vi.mocked(prisma.userProgress.findUnique).mockResolvedValue(mockUserProgress as any); // đã lưu
+      vi.mocked(prisma.userProgress.delete).mockResolvedValue(mockUserProgress as any);
+
+      const res = await service.toggleVocabulary(1, 10);
+
+      expect(res.isSaved).toBe(false);
+      expect(res.wordId).toBe(10);
+      expect(prisma.userProgress.delete).toHaveBeenCalledWith({ where: { id: mockUserProgress.id } });
+    });
+
+    it('[STV-REV-01] Lấy danh sách từ vựng đến hạn ôn tập (Spaced Repetition)', async () => {
+      vi.mocked(prisma.userProgress.findMany).mockResolvedValue([mockUserProgress as any]);
+
+      const res = await service.getDueReviews(1);
+
+      expect(res).toHaveLength(1);
+      expect(res[0].wordId).toBe(10);
+      expect(prisma.userProgress.findMany).toHaveBeenCalled();
+    });
+
+    it('[STV-PER-01] Cá nhân hóa: Danh sách từ vựng và lịch ôn tập của User A hoàn toàn độc lập với User B', async () => {
+      mockRepo.findWithLazyLoading.mockResolvedValueOnce({
+        items: [{ id: 1, userId: 1, wordId: 10, memoryLevel: 3, status: 'learning' }],
+        pagination: { limit: 10, nextCursor: null, hasMore: false, totalItems: 1 },
+      }).mockResolvedValueOnce({
+        items: [{ id: 2, userId: 2, wordId: 20, memoryLevel: 1, status: 'new' }],
+        pagination: { limit: 10, nextCursor: null, hasMore: false, totalItems: 1 },
+      });
+
+      const resUserA = await service.getVocabularyList(1, { limit: 10 });
+      const resUserB = await service.getVocabularyList(2, { limit: 10 });
+
+      expect(resUserA.items[0].userId).toBe(1);
+      expect(resUserB.items[0].userId).toBe(2);
+      expect(resUserA.items[0].wordId).not.toBe(resUserB.items[0].wordId);
+      expect(mockRepo.findWithLazyLoading).toHaveBeenCalledWith(1, 10, undefined, undefined);
+      expect(mockRepo.findWithLazyLoading).toHaveBeenCalledWith(2, 10, undefined, undefined);
+    });
   });
 
   describe('2. Bad End Cases', () => {
@@ -100,6 +158,28 @@ describe('StudentVocabularyService - Unit Tests (QC 10-Year Standard)', () => {
       );
     });
 
+    it('[STV-IDOR-02] Chống IDOR: User A cố tình cập nhật từ vựng của User B ném lỗi 404 vocabulary_not_found', async () => {
+      // User A (userId = 1) cố tình update record ID 99 (thuộc User B)
+      mockRepo.findById.mockResolvedValue(null); // findById(99, 1) trả về null
+
+      await expect(
+        service.updateVocabulary(1, 99, { status: 'mastered', memoryLevel: 5 })
+      ).rejects.toThrowError(
+        expect.objectContaining({ statuscode: 404, code: 'vocabulary_not_found' })
+      );
+      expect(mockRepo.findById).toHaveBeenCalledWith(99, 1);
+    });
+
+    it('[STV-IDOR-03] Chống IDOR: User A cố tình xóa từ vựng trong sổ tay của User B ném lỗi 404 vocabulary_not_found', async () => {
+      // User A (userId = 1) cố tình delete record ID 99 (thuộc User B)
+      mockRepo.findById.mockResolvedValue(null);
+
+      await expect(service.deleteVocabulary(1, 99)).rejects.toThrowError(
+        expect.objectContaining({ statuscode: 404, code: 'vocabulary_not_found' })
+      );
+      expect(mockRepo.findById).toHaveBeenCalledWith(99, 1);
+    });
+
     it('[STV-02b] Thêm từ vựng với wordId không tồn tại ném lỗi 404', async () => {
       mockRepo.findWordById.mockResolvedValue(null);
 
@@ -107,9 +187,25 @@ describe('StudentVocabularyService - Unit Tests (QC 10-Year Standard)', () => {
         expect.objectContaining({ statuscode: 404 })
       );
     });
+
+    it('[STV-TOG-03] Toggle từ vựng khi wordId không tồn tại trong hệ thống ném 404 word_not_found', async () => {
+      vi.mocked(prisma.word.findUnique).mockResolvedValue(null);
+
+      await expect(service.toggleVocabulary(1, 9999)).rejects.toThrowError(
+        expect.objectContaining({ statuscode: 404, code: 'word_not_found' })
+      );
+    });
+
+    it('[STV-REV-02] Ôn tập từ vựng không tìm thấy tiến trình ném lỗi 404', async () => {
+      vi.mocked(prisma.userProgress.findUnique).mockResolvedValue(null);
+
+      await expect(service.submitReview(1, 999, true)).rejects.toThrowError(
+        expect.objectContaining({ statuscode: 404 })
+      );
+    });
   });
 
-  describe('3. Concurrency Cases', () => {
+  describe('3. Concurrency & Race Cases', () => {
     it('[STV-03] Nộp ôn tập song song nhiều từ vựng được thực thi an toàn', async () => {
       vi.mocked(prisma.userProgress.findUnique).mockResolvedValue(mockUserProgress as any);
 
@@ -118,6 +214,23 @@ describe('StudentVocabularyService - Unit Tests (QC 10-Year Standard)', () => {
 
       await Promise.all([p1, p2]);
       expect(prisma.$transaction).toHaveBeenCalledTimes(2);
+    });
+
+    it('[STV-TOG-CONF-01] Xung đột: Hai request toggle cùng một từ đồng thời xử lý an toàn', async () => {
+      vi.mocked(prisma.word.findUnique).mockResolvedValue(mockWord as any);
+      vi.mocked(prisma.userProgress.findUnique)
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(mockUserProgress as any);
+      vi.mocked(prisma.userProgress.create).mockResolvedValue(mockUserProgress as any);
+      vi.mocked(prisma.userProgress.delete).mockResolvedValue(mockUserProgress as any);
+
+      const [res1, res2] = await Promise.all([
+        service.toggleVocabulary(1, 10),
+        service.toggleVocabulary(1, 10),
+      ]);
+
+      expect(res1.isSaved).toBe(true);
+      expect(res2.isSaved).toBe(false);
     });
   });
 
@@ -138,6 +251,12 @@ describe('StudentVocabularyService - Unit Tests (QC 10-Year Standard)', () => {
       vi.mocked(prisma.$transaction).mockRejectedValue(new Error('Connection terminated (P1001)'));
 
       await expect(service.submitReview(1, 10, true)).rejects.toThrow('Connection terminated');
+    });
+
+    it('[STV-REV-04] Mất kết nối DB khi lấy danh sách từ đến hạn ôn tập ném lỗi', async () => {
+      vi.mocked(prisma.userProgress.findMany).mockRejectedValue(new Error('Connection lost (P1001)'));
+
+      await expect(service.getDueReviews(1)).rejects.toThrow('Connection lost');
     });
   });
 });

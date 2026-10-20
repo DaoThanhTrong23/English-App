@@ -9,9 +9,10 @@ studentTestRouter.use(Authenticate);
 
 studentTestRouter.get(
   "/:id",
-  asyncHandler(async (req, res) => {
+  asyncHandler(async (req: any, res) => {
+    const userId = Number(req.user?.userId);
     const testId = Number(req.params.id);
-    const result = await studentTestService.getTestDetail(testId);
+    const result = await studentTestService.getTestDetail(testId, userId);
     res.status(200).json({
       success: true,
       message: "Lấy chi tiết bài kiểm tra thành công",

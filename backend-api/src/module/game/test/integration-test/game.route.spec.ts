@@ -65,9 +65,23 @@ describe('Game Routes - Integration Tests (QC 10-Year Standard)', () => {
       expect(res.body.success).toBe(true);
       expect(res.body.data).toHaveLength(1);
     });
+
+    it('[GAME-IT-LOG-01] PUT /api/games/admin/:id/settings cập nhật cấu hình game thành công', async () => {
+      vi.spyOn(gameService, 'updateSettings').mockResolvedValue([
+        { id: 1, gameId: 1, difficulty: 'EASY', itemCount: 8, pointsPerItem: 15, timeLimit: null, createdAt: new Date(), updatedAt: new Date() }
+      ] as any);
+
+      const res = await request(app)
+        .put('/api/games/admin/1/settings')
+        .send({ settings: [{ difficulty: 'EASY', itemCount: 8, pointsPerItem: 15 }] });
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.message).toContain('Cập nhật cấu hình');
+    });
   });
 
-  describe('2. Bad End Cases', () => {
+  describe('2. Validation & Invalid Input Cases', () => {
     it('[GAME-IT-04] PUT /api/games/admin/:id/settings với danh sách rỗng trả về 422', async () => {
       const res = await request(app)
         .put('/api/games/admin/1/settings')
@@ -75,9 +89,61 @@ describe('Game Routes - Integration Tests (QC 10-Year Standard)', () => {
 
       expect(res.status).toBe(422);
     });
+
+    it('[GAME-IT-VAL-01] PUT /api/games/admin/:id/settings với difficulty không hợp lệ trả về 422', async () => {
+      const res = await request(app)
+        .put('/api/games/admin/1/settings')
+        .send({ settings: [{ difficulty: 'IMPOSSIBLE', itemCount: 6, pointsPerItem: 10 }] });
+
+      expect(res.status).toBe(422);
+    });
+
+    it('[GAME-IT-VAL-02] PUT /api/games/admin/:id/settings với itemCount <= 0 trả về 422', async () => {
+      const res = await request(app)
+        .put('/api/games/admin/1/settings')
+        .send({ settings: [{ difficulty: 'EASY', itemCount: 0, pointsPerItem: 10 }] });
+
+      expect(res.status).toBe(422);
+    });
+
+    it('[GAME-IT-VAL-03] PUT /api/games/admin/:id/settings với pointsPerItem âm trả về 422', async () => {
+      const res = await request(app)
+        .put('/api/games/admin/1/settings')
+        .send({ settings: [{ difficulty: 'EASY', itemCount: 6, pointsPerItem: -5 }] });
+
+      expect(res.status).toBe(422);
+    });
+
+    it('[GAME-IT-VAL-04] PUT /api/games/admin/:id/settings với param id <= 0 trả về 422', async () => {
+      const res = await request(app)
+        .put('/api/games/admin/0/settings')
+        .send({ settings: [{ difficulty: 'EASY', itemCount: 6, pointsPerItem: 10 }] });
+
+      expect(res.status).toBe(422);
+    });
   });
 
-  describe('3. Network Failures', () => {
+  describe('3. Concurrency & Network Failures', () => {
+    it('[GAME-IT-CONF-01] PUT /api/games/admin/:id/settings mô phỏng 2 admin cập nhật cấu hình đồng thời', async () => {
+      vi.spyOn(gameService, 'updateSettings')
+        .mockResolvedValueOnce([{ id: 1, difficulty: 'EASY', itemCount: 6 }] as any)
+        .mockResolvedValueOnce([{ id: 1, difficulty: 'EASY', itemCount: 8 }] as any);
+
+      const [res1, res2] = await Promise.all([
+        request(app)
+          .put('/api/games/admin/1/settings')
+          .send({ settings: [{ difficulty: 'EASY', itemCount: 6, pointsPerItem: 10 }] }),
+        request(app)
+          .put('/api/games/admin/1/settings')
+          .send({ settings: [{ difficulty: 'EASY', itemCount: 8, pointsPerItem: 15 }] }),
+      ]);
+
+      expect(res1.status).toBe(200);
+      expect(res2.status).toBe(200);
+      expect(res1.body.success).toBe(true);
+      expect(res2.body.success).toBe(true);
+    });
+
     it('[GAME-IT-05] Mất kết nối database khi lấy history trả về 500', async () => {
       vi.spyOn(gameService, 'getHistory').mockRejectedValue(new Error('Connection lost (P1001)'));
 

@@ -146,30 +146,154 @@ describe('Auth Routes - Integration Tests (QC 10-Year Standard)', () => {
     });
   });
 
-  describe('2. Bad End / Validation Failures', () => {
-    it('[AUTH-IT-03] POST /api/auth/login thiếu mật khẩu trả về 422 Validation Error', async () => {
-      const res = await request(app)
-        .post('/api/auth/login')
-        .send({
-          identifier: 'valid@example.com',
-        });
-
-      expect(res.status).toBe(422);
-    });
-
-    it('[AUTH-IT-04] POST /api/auth/register email không đúng định dạng trả về 422', async () => {
+  describe('2. Bad End / Validation Failures (Nhập sai thông tin vào các trường quy định)', () => {
+    it('[AUTH-IT-VAL-01] POST /api/auth/register: Nhập username ngắn hơn 3 ký tự trả về 422', async () => {
       const res = await request(app)
         .post('/api/auth/register')
-        .send({
-          username: 'invalidmail',
-          email: 'not-an-email',
-          password: 'Password123@',
-        });
+        .send({ username: 'ab', email: 'valid@example.com', password: 'Password123@' });
 
       expect(res.status).toBe(422);
+      expect(res.body.error.code).toBe('validation_error');
     });
 
-    it('[AUTH-IT-04b] POST /api/auth/logout không gửi header Authorization trả về 401', async () => {
+    it('[AUTH-IT-VAL-02] POST /api/auth/register: Nhập username chứa ký tự đặc biệt hoặc khoảng trắng trả về 422', async () => {
+      const res = await request(app)
+        .post('/api/auth/register')
+        .send({ username: 'user name!@#', email: 'valid@example.com', password: 'Password123@' });
+
+      expect(res.status).toBe(422);
+      expect(res.body.error.code).toBe('validation_error');
+    });
+
+    it('[AUTH-IT-VAL-03] POST /api/auth/register: Nhập username dài vượt quá 50 ký tự trả về 422', async () => {
+      const res = await request(app)
+        .post('/api/auth/register')
+        .send({ username: 'a'.repeat(51), email: 'valid@example.com', password: 'Password123@' });
+
+      expect(res.status).toBe(422);
+      expect(res.body.error.code).toBe('validation_error');
+    });
+
+    it('[AUTH-IT-VAL-04] POST /api/auth/register: Nhập email sai định dạng (thiếu @ hoặc domain) trả về 422', async () => {
+      const res = await request(app)
+        .post('/api/auth/register')
+        .send({ username: 'validuser', email: 'not-an-email', password: 'Password123@' });
+
+      expect(res.status).toBe(422);
+      expect(res.body.error.code).toBe('validation_error');
+    });
+
+    it('[AUTH-IT-VAL-05] POST /api/auth/register: Nhập password ngắn hơn 8 ký tự trả về 422', async () => {
+      const res = await request(app)
+        .post('/api/auth/register')
+        .send({ username: 'validuser', email: 'valid@example.com', password: 'Pass1!' });
+
+      expect(res.status).toBe(422);
+      expect(res.body.error.code).toBe('validation_error');
+    });
+
+    it('[AUTH-IT-VAL-06] POST /api/auth/register: Nhập password thiếu chữ in hoa trả về 422', async () => {
+      const res = await request(app)
+        .post('/api/auth/register')
+        .send({ username: 'validuser', email: 'valid@example.com', password: 'password123@' });
+
+      expect(res.status).toBe(422);
+      expect(res.body.error.code).toBe('validation_error');
+    });
+
+    it('[AUTH-IT-VAL-07] POST /api/auth/register: Nhập password thiếu chữ in thường trả về 422', async () => {
+      const res = await request(app)
+        .post('/api/auth/register')
+        .send({ username: 'validuser', email: 'valid@example.com', password: 'PASSWORD123@' });
+
+      expect(res.status).toBe(422);
+      expect(res.body.error.code).toBe('validation_error');
+    });
+
+    it('[AUTH-IT-VAL-08] POST /api/auth/register: Nhập password thiếu số trả về 422', async () => {
+      const res = await request(app)
+        .post('/api/auth/register')
+        .send({ username: 'validuser', email: 'valid@example.com', password: 'Password@@@' });
+
+      expect(res.status).toBe(422);
+      expect(res.body.error.code).toBe('validation_error');
+    });
+
+    it('[AUTH-IT-VAL-09] POST /api/auth/register: Nhập password thiếu ký tự đặc biệt trả về 422', async () => {
+      const res = await request(app)
+        .post('/api/auth/register')
+        .send({ username: 'validuser', email: 'valid@example.com', password: 'Password123' });
+
+      expect(res.status).toBe(422);
+      expect(res.body.error.code).toBe('validation_error');
+    });
+
+    it('[AUTH-IT-VAL-10] POST /api/auth/login: Để trống hoặc thiếu trường identifier trả về 422', async () => {
+      const res = await request(app)
+        .post('/api/auth/login')
+        .send({ identifier: '', password: 'Password123@' });
+
+      expect(res.status).toBe(422);
+      expect(res.body.error.code).toBe('validation_error');
+    });
+
+    it('[AUTH-IT-VAL-11] POST /api/auth/login: Để trống hoặc thiếu trường password trả về 422', async () => {
+      const res = await request(app)
+        .post('/api/auth/login')
+        .send({ identifier: 'valid@example.com' });
+
+      expect(res.status).toBe(422);
+      expect(res.body.error.code).toBe('validation_error');
+    });
+
+    it('[AUTH-IT-VAL-12] POST /api/auth/refresh: Gửi body rỗng hoặc thiếu refreshToken trả về 422', async () => {
+      const res = await request(app)
+        .post('/api/auth/refresh')
+        .send({});
+
+      expect(res.status).toBe(422);
+      expect(res.body.error.code).toBe('validation_error');
+    });
+
+    it('[AUTH-IT-VAL-13] POST /api/auth/logout: Gửi body thiếu refreshToken trả về 422', async () => {
+      const res = await request(app)
+        .post('/api/auth/logout')
+        .set('Authorization', 'Bearer valid_access_token')
+        .send({});
+
+      expect(res.status).toBe(422);
+      expect(res.body.error.code).toBe('validation_error');
+    });
+
+    it('[AUTH-IT-VAL-14] POST /api/auth/change-password: Nhập newPassword vi phạm chính sách mật khẩu mạnh trả về 422', async () => {
+      const res = await request(app)
+        .post('/api/auth/change-password')
+        .set('Authorization', 'Bearer valid_access_token')
+        .send({ oldPassword: 'Password123@', newPassword: 'simple' });
+
+      expect(res.status).toBe(422);
+      expect(res.body.error.code).toBe('validation_error');
+    });
+
+    it('[AUTH-IT-VAL-15] POST /api/auth/google: Gửi body thiếu trường idToken trả về 422', async () => {
+      const res = await request(app)
+        .post('/api/auth/google')
+        .send({});
+
+      expect(res.status).toBe(422);
+      expect(res.body.error.code).toBe('validation_error');
+    });
+
+    it('[AUTH-IT-VAL-16] POST /api/auth/facebook: Gửi body thiếu trường accessToken trả về 422', async () => {
+      const res = await request(app)
+        .post('/api/auth/facebook')
+        .send({});
+
+      expect(res.status).toBe(422);
+      expect(res.body.error.code).toBe('validation_error');
+    });
+
+    it('[AUTH-IT-04b] POST /api/auth/logout: Không gửi header Authorization trả về 401', async () => {
       const res = await request(app)
         .post('/api/auth/logout')
         .send({ refreshToken: 'some_refresh_token' });

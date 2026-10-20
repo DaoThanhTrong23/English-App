@@ -4,16 +4,27 @@ import express from 'express';
 import { wordRouter } from '../../word.route.js';
 import { errorHandler } from '../../../../shared/http/error-handler.js';
 import { wordService } from '../../word.service.js';
+import { ApiError } from '../../../../shared/http/api-error.js';
+
+let mockUser: { userId: number; role: string } | null = { userId: 1, role: 'admin' };
 
 vi.mock('../../../../middleware/authenticate.middleware.js', () => ({
-  Authenticate: (req: any, _res: any, next: any) => {
-    req.user = { userId: 1, role: 'admin' };
+  Authenticate: (req: any, res: any, next: any) => {
+    if (!mockUser) {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+    req.user = mockUser;
     next();
   },
 }));
 
 vi.mock('../../../../middleware/authorize.middleware.js', () => ({
-  authorize: () => (_req: any, _res: any, next: any) => next(),
+  authorize: (allowedRoles: string[]) => (req: any, _res: any, next: any) => {
+    if (!allowedRoles.includes(req.user?.role)) {
+      return next(new ApiError(403, 'forbidden', 'Bạn không có quyền thực hiện hành động này'));
+    }
+    next();
+  },
 }));
 
 describe('Word Routes - Integration Tests (QC 10-Year Standard)', () => {
@@ -21,6 +32,7 @@ describe('Word Routes - Integration Tests (QC 10-Year Standard)', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockUser = { userId: 1, role: 'admin' };
     app = express();
     app.use(express.json());
     app.use('/api/admin/word', wordRouter);
@@ -70,6 +82,47 @@ describe('Word Routes - Integration Tests (QC 10-Year Standard)', () => {
 
       expect(res.status).toBe(400);
       expect(res.body.error.code).toBe('word_exists');
+    });
+
+    it('[WRD-IT-SEC-01] Học viên role user cố tình tạo từ vựng bị từ chối 403 Forbidden', async () => {
+      mockUser = { userId: 5, role: 'user' };
+
+      const res = await request(app)
+        .post('/api/admin/word')
+        .send({ headword: 'hackedword', partOfSpeech: 'noun' });
+
+      expect(res.status).toBe(403);
+      expect(res.body.error.code).toBe('forbidden');
+    });
+
+    it('[WRD-IT-SEC-02] Học viên role user cố tình xóa từ vựng bị từ chối 403 Forbidden', async () => {
+      mockUser = { userId: 5, role: 'user' };
+
+      const res = await request(app).delete('/api/admin/word/1');
+
+      expect(res.status).toBe(403);
+      expect(res.body.error.code).toBe('forbidden');
+    });
+
+    it('[WRD-IT-SEC-03] Chưa đăng nhập truy cập quản trị từ vựng trả về 401 Unauthorized', async () => {
+      mockUser = null;
+
+      const res = await request(app).get('/api/admin/word');
+
+      expect(res.status).toBe(401);
+      expect(res.body.message).toContain('Unauthorized');
+    });
+
+    it('[WRD-IT-SEC-04] Thử SQL Injection qua query param search (?search=\' OR 1=1 --)', async () => {
+      const spy = vi.spyOn(wordService, 'fetchWords').mockResolvedValue({
+        data: [],
+        meta: { currentPage: 1, totalPages: 0, totalItems: 0 },
+      });
+
+      const res = await request(app).get('/api/admin/word?search=\' OR 1=1 --');
+
+      expect(res.status).toBe(200);
+      expect(spy).toHaveBeenCalledWith(1, 20, undefined, "' OR 1=1 --");
     });
   });
 

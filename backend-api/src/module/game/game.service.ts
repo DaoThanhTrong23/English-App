@@ -3,14 +3,19 @@ import { prisma } from "../../config/prisma.js";
 import { ApiError } from "../../shared/http/api-error.js";
 import { UpdateGameSettingsInput } from "./game.schema.js";
 import { Prisma } from "../../generated/prisma/index.js";
+import { logExecution } from "../../shared/decorators/log.decorator.js";
+import { recordActivity } from "../../shared/decorators/activity.decorator.js";
 
 export class GameService {
   constructor(private gameRepo: GameRepository) {}
 
+  @logExecution()
   async getAllGames() {
     return await this.gameRepo.findAll();
   }
 
+  @logExecution()
+  @recordActivity("ADMIN_UPDATE_GAME_SETTINGS", (_result, id) => `Admin cập nhật cấu hình cho game ID ${id}`)
   async updateSettings(id: number, data: UpdateGameSettingsInput) {
     const game = await prisma.game.findUnique({ where: { id } });
     if (!game) throw new ApiError(404, "not_found", "Game không tồn tại");
@@ -18,7 +23,7 @@ export class GameService {
     return await this.gameRepo.updateSettings(id, data.settings);
   }
 
-  
+  @logExecution()
   async getHistory(userId: number) {
     const history = await prisma.gameHistory.findMany({
       where: { userId },
@@ -37,6 +42,8 @@ export class GameService {
     return { history, stats };
   }
 
+  @logExecution()
+  @recordActivity("USER_PLAY_GAME", (_result, code, difficulty) => `Người dùng tham gia chơi game ${code} độ khó ${difficulty}`)
   async play(code: string, difficulty: string, userCefrLevel: string) {
     const game = await this.gameRepo.findByCode(code);
     if (!game) throw new ApiError(404, "not_found", "Game không tồn tại");

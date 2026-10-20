@@ -10,6 +10,29 @@ vi.mock('ollama', () => ({
   },
 }));
 
+vi.mock('@xenova/transformers', () => ({
+  pipeline: vi.fn().mockResolvedValue(
+    vi.fn().mockImplementation(async () => ({ text: 'apple' }))
+  ),
+  env: { allowLocalModels: false },
+}));
+
+const mockGetSamples = vi.fn().mockReturnValue(new Float32Array(3200));
+
+vi.mock('wavefile', () => {
+  class MockWaveFile {
+    toSampleRate = vi.fn();
+    toBitDepth = vi.fn();
+    getSamples = mockGetSamples;
+  }
+  return {
+    default: {
+      WaveFile: MockWaveFile,
+    },
+    WaveFile: MockWaveFile,
+  };
+});
+
 vi.mock('../../../../config/prisma.js', () => ({
   prisma: {
     aiChatSession: {
@@ -20,6 +43,9 @@ vi.mock('../../../../config/prisma.js', () => ({
     aiChatMessage: {
       create: vi.fn(),
       findMany: vi.fn(),
+    },
+    word: {
+      findFirst: vi.fn(),
     },
   },
 }));
@@ -60,6 +86,54 @@ describe('AIService - Unit Tests (QC 10-Year Standard)', () => {
       expect(res.response).toContain('Hello!');
       expect(prisma.aiChatSession.create).toHaveBeenCalled();
     });
+
+    it('[AI-GOP-01] evaluatePronunciationGOP với targetIpa rõ ràng', async () => {
+      const mockAudio = Buffer.alloc(6400);
+      const res = await aiService.evaluatePronunciationGOP(mockAudio, 'apple', '/ˈæp.əl/');
+
+      expect(res.targetWord).toBe('apple');
+      expect(res.targetIpa).toBe('/ˈæp.əl/');
+      expect(res.overallScore).toBeGreaterThan(0);
+      expect(res.phonemeScores.length).toBeGreaterThan(0);
+    });
+
+    it('[AI-GOP-02] evaluatePronunciationGOP tự động phân giải IPA từ COMMON_IPA_DICT khi targetIpa để trống', async () => {
+      const mockAudio = Buffer.alloc(6400);
+      const res = await aiService.evaluatePronunciationGOP(mockAudio, 'apple');
+
+      expect(res.targetWord).toBe('apple');
+      expect(res.targetIpa).toBe('/ˈæp.əl/');
+      expect(res.overallScore).toBeGreaterThan(0);
+    });
+
+    it('[AI-GOP-03] evaluatePronunciationGOP tự động tra cứu IPA từ DB Word khi không có trong dict', async () => {
+      vi.mocked(prisma.word.findFirst).mockResolvedValue({
+        id: 10,
+        headword: 'cucumber',
+        phonetic: '/ˈkjuː.kʌm.bər/',
+      } as any);
+
+      const mockAudio = Buffer.alloc(6400);
+      const res = await aiService.evaluatePronunciationGOP(mockAudio, 'cucumber');
+
+      expect(res.targetWord).toBe('cucumber');
+      expect(res.targetIpa).toBe('/ˈkjuː.kʌm.bər/');
+      expect(prisma.word.findFirst).toHaveBeenCalledWith({
+        where: { headword: 'cucumber' },
+        select: { phonetic: true },
+      });
+    });
+
+    it('[AI-GOP-04] evaluatePronunciationGOP tự sinh IPA qua Rule-based G2P khi từ không có trong DB', async () => {
+      vi.mocked(prisma.word.findFirst).mockResolvedValue(null);
+
+      const mockAudio = Buffer.alloc(6400);
+      const res = await aiService.evaluatePronunciationGOP(mockAudio, 'unprecedentedxyz');
+
+      expect(res.targetWord).toBe('unprecedentedxyz');
+      expect(res.targetIpa).toBeDefined();
+      expect(res.phonemeScores.length).toBeGreaterThan(0);
+    });
   });
 
   describe('2. Bad End Cases', () => {
@@ -81,6 +155,16 @@ describe('AIService - Unit Tests (QC 10-Year Standard)', () => {
       await expect(
         aiService.chatWithBot(1, 'Hello', 999)
       ).rejects.toThrow();
+    });
+
+    it('[AI-GOP-05] evaluatePronunciationGOP khi âm thanh im lặng (< 1600 samples) trả về score 0', async () => {
+      mockGetSamples.mockReturnValueOnce(new Float32Array(500)); // < 1600 mẫu
+
+      const res = await aiService.evaluatePronunciationGOP(Buffer.alloc(100), 'apple');
+
+      expect(res.overallScore).toBe(0);
+      expect(res.spokenText).toBe('(Không có âm thanh)');
+      expect(res.explanation).toContain('Không phát hiện âm thanh');
     });
   });
 
@@ -106,6 +190,27 @@ describe('AIService - Unit Tests (QC 10-Year Standard)', () => {
       await expect(
         aiService.gradeEssay({ text: 'Another essay sample' })
       ).rejects.toThrow('ECONNREFUSED');
+    });
+
+    it('[AI-GOP-CON-01] 2 request chấm phát âm GOP song song không xung đột bộ nhớ', async () => {
+      const mockAudio = Buffer.alloc(6400);
+      const [r1, r2] = await Promise.all([
+        aiService.evaluatePronunciationGOP(mockAudio, 'apple'),
+        aiService.evaluatePronunciationGOP(mockAudio, 'banana'),
+      ]);
+
+      expect(r1.targetWord).toBe('apple');
+      expect(r2.targetWord).toBe('banana');
+    });
+
+    it('[AI-GOP-NET-01] Lỗi DB khi tra cứu IPA tự động fallback sang G2P rule', async () => {
+      vi.mocked(prisma.word.findFirst).mockRejectedValue(new Error('DB connection timed out'));
+
+      const mockAudio = Buffer.alloc(6400);
+      const res = await aiService.evaluatePronunciationGOP(mockAudio, 'uniqueword');
+
+      expect(res.targetWord).toBe('uniqueword');
+      expect(res.overallScore).toBeGreaterThan(0);
     });
   });
 });

@@ -64,6 +64,10 @@ communityRouter.post(
       return res.status(400).json({ success: false, message: "Bài viết phải có nội dung văn bản hoặc hình ảnh" });
     }
 
+    if (content.length > 5000) {
+      return res.status(400).json({ success: false, message: "Nội dung bài viết vượt quá độ dài tối đa 5000 ký tự" });
+    }
+
     const result = await communityService.createPost(userId, content.trim(), imageUrl, isPublic);
     res.status(201).json({ success: true, data: result });
   })
@@ -95,6 +99,7 @@ communityRouter.post(
     const postId = Number(req.params.id);
     const { content } = req.body;
     if (!content) return res.status(400).json({ success: false, message: "Nội dung trống" });
+    if (content.length > 1000) return res.status(400).json({ success: false, message: "Nội dung bình luận vượt quá độ dài tối đa 1000 ký tự" });
     const result = await communityService.createComment(userId, postId, content);
     res.status(201).json({ success: true, data: result });
   })
@@ -108,6 +113,10 @@ communityRouter.put(
     const postId = Number(req.params.id);
     const content = req.body?.content;
     
+    if (content && content.length > 5000) {
+      return res.status(400).json({ success: false, message: "Nội dung bài viết vượt quá độ dài tối đa 5000 ký tự" });
+    }
+
     let isPublic: boolean | undefined = undefined;
     if (req.body?.isPublic !== undefined) {
       isPublic = req.body.isPublic === "true" || req.body.isPublic === true;

@@ -11,7 +11,7 @@ leaderboardRouter.get(
   "/",
   asyncHandler(async (req: any, res) => {
     const userId = Number(req.user?.userId);
-    const limit = Number(req.query.limit) || 20;
+    const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 20));
     const result = await leaderboardService.getLeaderboard(userId, limit);
     res.status(200).json({
       success: true,

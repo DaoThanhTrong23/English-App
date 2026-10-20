@@ -54,8 +54,9 @@ describe('StudentTestService - Unit Tests (QC 10-Year Standard)', () => {
   describe('1. Happy Cases', () => {
     it('[STT-01a] Lấy chi tiết bài kiểm tra thành công (ẩn đáp án đúng)', async () => {
       (prisma.test.findUnique as any).mockResolvedValue(mockStudentTest);
+      (prisma.user.findUnique as any).mockResolvedValue(mockTestUser);
 
-      const res = await service.getTestDetail(1);
+      const res = await service.getTestDetail(1, 1);
 
       expect(res.id).toBe(1);
       expect(res.questions).toHaveLength(2);
@@ -91,9 +92,105 @@ describe('StudentTestService - Unit Tests (QC 10-Year Standard)', () => {
       expect(res.isRetake).toBe(true);
       expect(res.xpGained).toBe(0);
     });
+
+    it('[STT-01d] Thí sinh làm bài thi trình độ tương thích (A1 làm bài A2) thành công', async () => {
+      const compatibleTest = { ...mockStudentTest, ceftLevel: 'A2' };
+      (prisma.test.findUnique as any).mockResolvedValue(compatibleTest);
+      (prisma.user.findUnique as any).mockResolvedValue({ ...mockTestUser, cefrLevel: 'A1' });
+      (prisma.userTestResult.findFirst as any).mockResolvedValue(null);
+
+      const res = await service.submitTest(1, 1, mockTestSubmission);
+
+      expect(res.totalScore).toBe(20);
+      expect(res.isRetake).toBe(false);
+    });
   });
 
-  describe('2. Bad End Cases', () => {
+  describe('2. Candidate Level Discrepancy (Chênh Lệch Trình Độ Thí Sinh & Bài Thi)', () => {
+    it('[STT-DISC-01] Chặn thí sinh A1 mở xem bài kiểm tra cấp độ cao hơn (C1) ném 403 level_mismatch', async () => {
+      const advancedTest = { ...mockStudentTest, ceftLevel: 'C1' };
+      (prisma.test.findUnique as any).mockResolvedValue(advancedTest);
+      (prisma.user.findUnique as any).mockResolvedValue({ ...mockTestUser, cefrLevel: 'A1' });
+
+      await expect(service.getTestDetail(1, 1)).rejects.toThrowError(
+        expect.objectContaining({ statuscode: 403, code: 'level_mismatch' })
+      );
+    });
+
+    it('[STT-DISC-02] Chặn thí sinh A1 nộp bài thi cấp độ cao hơn (B2/C1) ném 403 level_mismatch', async () => {
+      const advancedTest = { ...mockStudentTest, ceftLevel: 'B2' };
+      (prisma.test.findUnique as any).mockResolvedValue(advancedTest);
+      (prisma.user.findUnique as any).mockResolvedValue({ ...mockTestUser, cefrLevel: 'A1' });
+
+      await expect(service.submitTest(1, 1, mockTestSubmission)).rejects.toThrowError(
+        expect.objectContaining({ statuscode: 403, code: 'level_mismatch' })
+      );
+    });
+
+    it('[STT-DISC-03] Thí sinh trình độ cao (C1) làm bài thi cấp độ thấp (A1): Hệ thống xử lý an toàn', async () => {
+      const beginnerTest = { ...mockStudentTest, ceftLevel: 'A1' };
+      (prisma.test.findUnique as any).mockResolvedValue(beginnerTest);
+      (prisma.user.findUnique as any).mockResolvedValue({ ...mockTestUser, cefrLevel: 'C1', grammarElo: 1800, vocabElo: 1800, readingElo: 1800, listeningElo: 1800 });
+      (prisma.userTestResult.findFirst as any).mockResolvedValue(null);
+
+      const res = await service.submitTest(1, 1, mockTestSubmission);
+
+      expect(res.totalScore).toBe(20);
+      expect(res.isRetake).toBe(false);
+    });
+  });
+
+  describe('3. Cross-Topic Access Control (Chặn Truy Cập Bài Thi Của Topic Khác)', () => {
+    it('[STT-TOPIC-01] Chặn học viên Topic 1 mở bài thi thuộc Topic 2 (khác lộ trình) ném 403 topic_access_denied', async () => {
+      const otherTopicTest = {
+        ...mockStudentTest,
+        lesson: { id: 20, topicId: 2, cefrLevel: 'A1' },
+      };
+      (prisma.test.findUnique as any).mockResolvedValue(otherTopicTest);
+      (prisma.user.findUnique as any).mockResolvedValue({
+        ...mockTestUser,
+        preferredTopics: '1', // Chỉ đăng ký topic 1
+      });
+
+      await expect(service.getTestDetail(1, 1)).rejects.toThrowError(
+        expect.objectContaining({ statuscode: 403, code: 'topic_access_denied' })
+      );
+    });
+
+    it('[STT-TOPIC-02] Chặn học viên nộp bài thi thuộc Topic khác ngoài danh sách đăng ký ném 403 topic_access_denied', async () => {
+      const otherTopicTest = {
+        ...mockStudentTest,
+        lesson: { id: 20, topicId: 5, cefrLevel: 'A1' },
+      };
+      (prisma.test.findUnique as any).mockResolvedValue(otherTopicTest);
+      (prisma.user.findUnique as any).mockResolvedValue({
+        ...mockTestUser,
+        preferredTopics: '1,2,3', // Không có topic 5
+      });
+
+      await expect(service.submitTest(1, 1, mockTestSubmission)).rejects.toThrowError(
+        expect.objectContaining({ statuscode: 403, code: 'topic_access_denied' })
+      );
+    });
+
+    it('[STT-TOPIC-03] Cho phép học viên mở bài thi thuộc Topic đã đăng ký', async () => {
+      const validTopicTest = {
+        ...mockStudentTest,
+        lesson: { id: 10, topicId: 1, cefrLevel: 'A1' },
+      };
+      (prisma.test.findUnique as any).mockResolvedValue(validTopicTest);
+      (prisma.user.findUnique as any).mockResolvedValue({
+        ...mockTestUser,
+        preferredTopics: '1,2',
+      });
+
+      const res = await service.getTestDetail(1, 1);
+
+      expect(res.id).toBe(1);
+    });
+  });
+
+  describe('4. Bad End Cases', () => {
     it('[STT-02a] Nộp bài kiểm tra không tồn tại ném lỗi 404', async () => {
       (prisma.test.findUnique as any).mockResolvedValue(null);
 
@@ -120,7 +217,7 @@ describe('StudentTestService - Unit Tests (QC 10-Year Standard)', () => {
     });
   });
 
-  describe('3. Concurrency & Network Failures', () => {
+  describe('5. Concurrency & Network Failures', () => {
     it('[STT-03] Hai yêu cầu nộp bài đồng thời cùng lúc', async () => {
       (prisma.test.findUnique as any).mockResolvedValue(mockStudentTest);
       (prisma.user.findUnique as any).mockResolvedValue(mockTestUser);

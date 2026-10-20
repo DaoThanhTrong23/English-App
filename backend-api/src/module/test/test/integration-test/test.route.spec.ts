@@ -4,7 +4,8 @@ import express from 'express';
 import { testRouter } from '../../test.route.js';
 import { errorHandler } from '../../../../shared/http/error-handler.js';
 import { testService } from '../../test.service.js';
-import { mockTestItem, mockQuestionItem, mockCreateTestInput } from '../data-mock/test.mock.js';
+import { mockTestItem, mockQuestionItem, mockCreateTestInput, mockCreateQuestionInput } from '../data-mock/test.mock.js';
+import { ApiError } from '../../../../shared/http/api-error.js';
 
 vi.mock('../../../../middleware/authenticate.middleware.js', () => ({
   Authenticate: (req: any, _res: any, next: any) => {
@@ -72,7 +73,35 @@ describe('Admin Test Routes - Integration Tests (QC 10-Year Standard)', () => {
     });
   });
 
-  describe('2. Bad End Cases', () => {
+  describe('2. Level & Difficulty Discrepancy (Chênh Lệch Trình Độ)', () => {
+    it('[TST-IT-DISC-01] POST /api/admin/tests tạo bài thi chênh lệch trình độ với bài học trả về 400', async () => {
+      vi.spyOn(testService, 'createTest').mockRejectedValue(
+        new ApiError(400, 'level_mismatch', 'Trình độ bài thi không tương thích với bài học')
+      );
+
+      const res = await request(app)
+        .post('/api/admin/tests')
+        .send({ ...mockCreateTestInput, ceftLevel: 'C2' });
+
+      expect(res.status).toBe(400);
+      expect(res.body.error.code).toBe('level_mismatch');
+    });
+
+    it('[TST-IT-DISC-02] POST /api/admin/tests/:testId/questions thêm câu hỏi Elo quá cao trả về 400', async () => {
+      vi.spyOn(testService, 'addQuestion').mockRejectedValue(
+        new ApiError(400, 'difficulty_mismatch', 'Câu hỏi có độ khó Elo quá cao so với bài thi')
+      );
+
+      const res = await request(app)
+        .post('/api/admin/tests/1/questions')
+        .send(mockCreateQuestionInput);
+
+      expect(res.status).toBe(400);
+      expect(res.body.error.code).toBe('difficulty_mismatch');
+    });
+  });
+
+  describe('3. Bad End Cases', () => {
     it('[TST-IT-05] POST /api/admin/tests thiếu title trả về 422', async () => {
       const res = await request(app)
         .post('/api/admin/tests')
@@ -89,7 +118,7 @@ describe('Admin Test Routes - Integration Tests (QC 10-Year Standard)', () => {
     });
   });
 
-  describe('3. Network & System Failures', () => {
+  describe('4. Network & System Failures', () => {
     it('[TST-IT-07] Mất kết nối database khi gọi danh sách trả về 500', async () => {
       vi.spyOn(testService, 'getAllTests').mockRejectedValue(new Error('Connection lost (P1001)'));
 

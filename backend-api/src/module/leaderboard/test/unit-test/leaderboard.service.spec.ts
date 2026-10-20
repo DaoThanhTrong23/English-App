@@ -44,6 +44,58 @@ describe('LeaderboardService - Unit Tests (QC 10-Year Standard)', () => {
       expect(res.topUsers).toHaveLength(0);
       expect(res.currentUser.rank).toBe(0);
     });
+
+    it('[LDB-SEC-01] Bảo mật: Chỉ lấy học viên role user và không bị khóa (isLocked = false)', async () => {
+      vi.mocked(prisma.user.findMany).mockResolvedValue([]);
+      vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: 1, xpPoints: 100, isLocked: false } as any);
+      vi.mocked(prisma.user.count).mockResolvedValue(0);
+
+      await service.getLeaderboard(1, 20);
+
+      expect(prisma.user.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { role: 'user', isLocked: false },
+        })
+      );
+      expect(prisma.user.count).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { role: 'user', isLocked: false, xpPoints: { gt: 100 } },
+        })
+      );
+    });
+
+    it('[LDB-SEC-02] Bảo mật: Tài khoản bị khóa (isLocked = true) không được tính rank', async () => {
+      vi.mocked(prisma.user.findMany).mockResolvedValue([]);
+      vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: 5, xpPoints: 9999, isLocked: true } as any);
+
+      const res = await service.getLeaderboard(5, 20);
+
+      expect(res.currentUser.rank).toBe(0);
+      expect(prisma.user.count).not.toHaveBeenCalled();
+    });
+
+    it('[LDB-SEC-03] Chống DoS: Giới hạn limit an toàn (min 1, max 100)', async () => {
+      vi.mocked(prisma.user.findMany).mockResolvedValue([]);
+      vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: 1, xpPoints: 50, isLocked: false } as any);
+
+      // Thử limit cực lớn
+      await service.getLeaderboard(1, 999999);
+      expect(prisma.user.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ take: 100 })
+      );
+
+      // Thử limit âm -> clamp về min 1
+      await service.getLeaderboard(1, -50);
+      expect(prisma.user.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ take: 1 })
+      );
+
+      // Thử limit NaN -> fallback về 20
+      await service.getLeaderboard(1, NaN);
+      expect(prisma.user.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ take: 20 })
+      );
+    });
   });
 
   describe('3. Concurrency Cases', () => {

@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { AuthService } from '../../auth.service.js';
 import { mockValidUser, mockLockedUser, mockRegisterInput, mockLoginInput } from '../data-mock/auth.mock.js';
 import { ApiError } from '../../../../shared/http/api-error.js';
+import { RegisterSchema, LoginSchema, ChangePasswordSchema, RefreshTokenSChema } from '../../auth.schema.js';
 
 vi.mock('../../../../utils/hash.js', () => ({
   BcryptCompare: vi.fn(),
@@ -142,6 +143,79 @@ describe('AuthService - Unit Tests (QC 10-Year Standard)', () => {
       await expect(authService.refreshToken('some_token')).rejects.toThrowError(
         expect.objectContaining({ statuscode: 403 })
       );
+    });
+
+    it('[AUTH-VAL-01] Validation: Chặn đăng ký khi username < 3 ký tự hoặc chứa ký tự đặc biệt', () => {
+      const shortUser = RegisterSchema.safeParse({
+        body: { username: 'ab', email: 'test@example.com', password: 'Password123@' },
+        query: {},
+        params: {}
+      });
+      expect(shortUser.success).toBe(false);
+
+      const invalidCharUser = RegisterSchema.safeParse({
+        body: { username: 'user@name!', email: 'test@example.com', password: 'Password123@' },
+        query: {},
+        params: {}
+      });
+      expect(invalidCharUser.success).toBe(false);
+    });
+
+    it('[AUTH-VAL-02] Validation: Chặn đăng ký khi email sai định dạng hoặc vượt quá 100 ký tự', () => {
+      const invalidEmail = RegisterSchema.safeParse({
+        body: { username: 'validuser', email: 'not-an-email', password: 'Password123@' },
+        query: {},
+        params: {}
+      });
+      expect(invalidEmail.success).toBe(false);
+
+      const longEmail = RegisterSchema.safeParse({
+        body: { username: 'validuser', email: 'a'.repeat(95) + '@example.com', password: 'Password123@' },
+        query: {},
+        params: {}
+      });
+      expect(longEmail.success).toBe(false);
+    });
+
+    it('[AUTH-VAL-03] Validation: Chặn đăng ký khi mật khẩu yếu (thiếu chữ hoa, thường, số hoặc ký tự đặc biệt)', () => {
+      const noUpper = RegisterSchema.safeParse({
+        body: { username: 'validuser', email: 'test@example.com', password: 'password123@' },
+        query: {},
+        params: {}
+      });
+      expect(noUpper.success).toBe(false);
+
+      const noSpecial = RegisterSchema.safeParse({
+        body: { username: 'validuser', email: 'test@example.com', password: 'Password1234' },
+        query: {},
+        params: {}
+      });
+      expect(noSpecial.success).toBe(false);
+
+      const shortPass = RegisterSchema.safeParse({
+        body: { username: 'validuser', email: 'test@example.com', password: 'Pass1!' },
+        query: {},
+        params: {}
+      });
+      expect(shortPass.success).toBe(false);
+    });
+
+    it('[AUTH-VAL-04] Validation: Chặn đăng nhập khi để trống identifier hoặc password', () => {
+      const emptyLogin = LoginSchema.safeParse({
+        body: { identifier: '', password: '' },
+        query: {},
+        params: {}
+      });
+      expect(emptyLogin.success).toBe(false);
+    });
+
+    it('[AUTH-VAL-05] Validation: Chặn đổi mật khẩu khi mật khẩu mới không đạt chuẩn bảo mật', () => {
+      const weakNewPass = ChangePasswordSchema.safeParse({
+        body: { oldPassword: 'Password123@', newPassword: 'simplepassword' },
+        query: {},
+        params: {}
+      });
+      expect(weakNewPass.success).toBe(false);
     });
   });
 
