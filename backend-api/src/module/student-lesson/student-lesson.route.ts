@@ -35,6 +35,39 @@ studentCourseRouter.get(
 );
 
 /**
+ * GET /api/student/courses/levels-progress - Tiến độ tổng hợp từng cấp độ CEFR và chứng chỉ
+ */
+studentCourseRouter.get(
+  "/levels-progress",
+  asyncHandler(async (req: AuthenticateRequest, res) => {
+    const userId = Number(req.user?.userId);
+    const result = await studentLessonService.getLevelsProgress(userId);
+    res.status(200).json({
+      success: true,
+      message: "Lấy tiến độ các cấp độ thành công",
+      data: result,
+    });
+  })
+);
+
+/**
+ * POST /api/student/courses/set-active-level - Đổi cấp độ học tập chính
+ */
+studentCourseRouter.post(
+  "/set-active-level",
+  asyncHandler(async (req: AuthenticateRequest, res) => {
+    const userId = Number(req.user?.userId);
+    const { level } = req.body;
+    const result = await studentLessonService.setActiveLevel(userId, level);
+    res.status(200).json({
+      success: true,
+      message: result.message,
+      data: result,
+    });
+  })
+);
+
+/**
  * GET /api/student/courses/:courseId - Xem chi tiết khóa học kèm danh sách bài học
  */
 studentCourseRouter.get(

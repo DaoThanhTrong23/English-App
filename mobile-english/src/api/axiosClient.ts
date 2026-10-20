@@ -75,7 +75,7 @@ axiosClient.interceptors.response.use(
           'Tài khoản của bạn đã bị Quản trị viên khóa. Bạn đã bị đăng xuất khỏi ứng dụng!';
 
         Alert.alert(
-          'Tài khoản bị khóa 🔒',
+          'Tài khoản bị khóa',
           lockMessage,
           [
             {

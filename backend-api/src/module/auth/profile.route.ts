@@ -54,8 +54,10 @@ profileRouter.get("/me", asyncHandler(async (req: AuthenticateRequest, res) => {
     return res.status(404).json({ success: false, message: "User not found" });
   }
 
-  const [masteredWordsCount, completedTestsCount, achievementsCount, streak] = await Promise.all([
+  const [masteredWordsCount, learningWordsCount, totalSavedWordsCount, completedTestsCount, achievementsCount, streak] = await Promise.all([
     prisma.userProgress.count({ where: { userId, status: 'mastered' } }),
+    prisma.userProgress.count({ where: { userId, status: 'learning' } }),
+    prisma.userProgress.count({ where: { userId } }),
     prisma.userTestResult.count({ where: { userId, totalScore: { gt: 0 } } }),
     prisma.userAchievement.count({ where: { userId } }),
     studentLessonRepository.calculateUserStreak(userId)
@@ -66,6 +68,8 @@ profileRouter.get("/me", asyncHandler(async (req: AuthenticateRequest, res) => {
     data: {
       ...user,
       masteredWordsCount,
+      learningWordsCount,
+      totalSavedWordsCount,
       completedTestsCount,
       achievementsCount,
       streak
@@ -194,7 +198,7 @@ profileRouter.get("/achievements", asyncHandler(async (req: any, res) => {
 profileRouter.get("/saved-words", asyncHandler(async (req: any, res) => {
   const userId = req.user?.userId;
   const savedWords = await prisma.userProgress.findMany({
-    where: { userId, status: 'mastered' },
+    where: { userId },
     include: {
       word: true
     },

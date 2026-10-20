@@ -105,8 +105,8 @@ export default function NotificationModal({
   const handleTestLocalNotification = async () => {
     setTesting(true);
     await notificationService.triggerImmediateNotification(
-      'Đã đến giờ học tiếng Anh! ⏰',
-      'Đừng quên hoàn thành bài học hôm nay để duy trì chuỗi streak nhé! 🔥'
+      'Đã đến giờ học tiếng Anh!',
+      'Đừng quên hoàn thành bài học hôm nay để duy trì chuỗi streak nhé!'
     );
     setTesting(false);
     Alert.alert('Thành công', 'Đã bắn thông báo nhắc nhở ra thanh thông báo / màn hình khóa!');

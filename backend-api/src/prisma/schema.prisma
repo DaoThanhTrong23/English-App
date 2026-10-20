@@ -207,7 +207,7 @@ model UserProgress {
 
   @@unique([userId, wordId], map: "unique_user_word")
   @@index([wordId], map: "word_id")
-  @@map("user_propress")
+  @@map("user_progress")
 }
 
 // Nhóm bài kiểm tra 
@@ -308,7 +308,6 @@ model AiChatSession {
   userId    Int       @map("user_id")
   title     String?   @default("New Conversation") @db.VarChar(255)
   startedAt DateTime  @default(now()) @map("started_at")
-  endedAt   DateTime? @map("ended_at")
 
   user     User            @relation(fields: [userId], references: [id])
   messages AiChatMessage[]
@@ -397,7 +396,6 @@ model CommunityPost {
   userId    Int      @map("user_id")
   content   String   @db.Text
   imageUrl  String?  @map("image_url") @db.Text
-  likes     Int      @default(0)
   isPublic  Boolean  @default(true) @map("is_public")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at")

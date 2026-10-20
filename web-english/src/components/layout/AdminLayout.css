@@ -1,5 +1,5 @@
 :root {
-  --admin-sidebar-width: 250px;
+  --admin-sidebar-width: 280px;
   --admin-topbar-height: 60px;
   --admin-primary: #2563eb;
   --admin-primary-hover: #1d4ed8;
@@ -94,13 +94,14 @@ body {
 }
 
 .brand-badge {
-  font-size: 0.7rem;
-  font-weight: 600;
+  font-size: 0.8rem;
+  font-weight: 700;
   background: var(--admin-primary-light);
   color: var(--admin-primary);
-  padding: 2px 7px;
-  border-radius: 4px;
+  padding: 7px 7px;
+  border-radius: 5px;
   letter-spacing: 0.2px;
+  width: 100%;
 }
 
 /* Navigation Links */

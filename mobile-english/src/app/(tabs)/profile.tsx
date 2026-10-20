@@ -318,6 +318,19 @@ export default function ProfileScreen() {
         <View style={[styles.menuContainer, { backgroundColor: theme.card }]}>
           <Text style={[styles.sectionTitle, { color: theme.text }]}>Học tập & Tiến trình</Text>
           
+          <TouchableOpacity style={[styles.menuItem, { borderBottomColor: theme.border }]} onPress={() => { /* @ts-ignore */ router.push('/saved-words')}}>
+            <View style={[styles.menuIcon, { backgroundColor: isDark ? '#451a03' : '#fef3c7' }]}>
+              <Ionicons name="bookmark" size={20} color={isDark ? '#fbbf24' : '#d97706'} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.menuText, { color: theme.text }]}>Lịch sử từ vựng đã lưu</Text>
+              <Text style={{ fontSize: 12, color: theme.subtext, marginTop: 2 }}>
+                {userInfo?.totalSavedWordsCount || 0} từ đã lưu • Xem lại danh sách từ vựng
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={theme.subtext} />
+          </TouchableOpacity>
+
           <TouchableOpacity style={[styles.menuItem, { borderBottomColor: theme.border }]} onPress={() => { /* @ts-ignore */ router.push('/history')}}>
             <View style={[styles.menuIcon, { backgroundColor: isDark ? '#27272a' : '#f0fdf4' }]}>
               <Ionicons name="time-outline" size={20} color={isDark ? '#4ade80' : '#16a34a'} />

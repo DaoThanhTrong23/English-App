@@ -98,9 +98,21 @@ export default function AchievementsScreen() {
                     {item.title || item.name}
                   </Text>
                   <Text style={[styles.desc, { color: theme.subtext }]}>{item.description}</Text>
-                  <Text style={[styles.reqText, { color: theme.subtext }]}>
-                    🎯 {item.requireXp} XP {item.requireStreak > 1 ? `• 🔥 ${item.requireStreak} ngày streak` : ''}
-                  </Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 }}>
+                    <Ionicons name="trophy-outline" size={12} color={theme.subtext} />
+                    <Text style={[styles.reqText, { color: theme.subtext, marginTop: 0 }]}>
+                      {item.requireXp} XP
+                    </Text>
+                    {item.requireStreak > 1 && (
+                      <>
+                        <Text style={[styles.reqText, { color: theme.subtext, marginTop: 0, marginHorizontal: 2 }]}>•</Text>
+                        <Ionicons name="flame" size={12} color="#ea580c" />
+                        <Text style={[styles.reqText, { color: theme.subtext, marginTop: 0 }]}>
+                          {item.requireStreak} ngày streak
+                        </Text>
+                      </>
+                    )}
+                  </View>
                 </View>
                 {unlocked ? (
                   <View style={[styles.badge, { backgroundColor: isDark ? '#052e16' : '#dcfce7' }]}>

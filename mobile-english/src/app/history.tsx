@@ -131,9 +131,12 @@ export default function HistoryScreen() {
                       {item.test?.title || 'Bài kiểm tra kiến thức'}
                     </Text>
                     {item.test?.lesson?.title && (
-                      <Text style={[styles.lessonName, { color: theme.subtext }]} numberOfLines={1}>
-                        📖 {item.test.lesson.title}
-                      </Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 }}>
+                        <Ionicons name="book-outline" size={13} color={theme.subtext} />
+                        <Text style={[styles.lessonName, { color: theme.subtext, marginTop: 0 }]} numberOfLines={1}>
+                          {item.test.lesson.title}
+                        </Text>
+                      </View>
                     )}
                   </View>
                   <View style={[styles.scoreContainer, { backgroundColor: isDark ? '#052e16' : '#f0fdf4', borderColor: isDark ? '#166534' : '#bbf7d0' }]}>

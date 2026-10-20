@@ -91,15 +91,15 @@ router.post(
     }
 
     const { targetWord, targetIpa } = req.body;
-    if (!targetWord || !targetIpa) {
-      throw new ApiError(400, "missing_params", "Vui lòng cung cấp targetWord và targetIpa");
+    if (!targetWord || typeof targetWord !== "string" || targetWord.trim() === "") {
+      throw new ApiError(400, "missing_params", "Vui lòng cung cấp targetWord");
     }
 
     console.log("Received audio buffer of length:", uploadedFile.buffer.length);
     const result = await aiService.evaluatePronunciationGOP(
       uploadedFile.buffer,
-      targetWord,
-      targetIpa
+      targetWord.trim(),
+      typeof targetIpa === "string" ? targetIpa.trim() : ""
     );
 
     res.status(200).json({

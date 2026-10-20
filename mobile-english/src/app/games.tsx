@@ -78,8 +78,18 @@ export default function GamesHubScreen() {
                 <Text style={[styles.gameDesc, { color: theme.subtext }]}>{game.desc}</Text>
                 {gameStat ? (
                   <View style={styles.statRow}>
-                    <Text style={[styles.statText, { backgroundColor: theme.cardSecondary, color: theme.subtext }]}>🏆 Kỷ lục: <Text style={{color: '#f59e0b', fontWeight: 'bold'}}>{gameStat._max.score}</Text> điểm</Text>
-                    <Text style={[styles.statText, { backgroundColor: theme.cardSecondary, color: theme.subtext }]}>🎮 Đã chơi: <Text style={{fontWeight: 'bold', color: theme.text}}>{gameStat._count.id}</Text> lần</Text>
+                    <View style={[styles.statBadge, { backgroundColor: theme.cardSecondary }]}>
+                      <Ionicons name="trophy" size={12} color="#f59e0b" style={{ marginRight: 3 }} />
+                      <Text style={[styles.statBadgeText, { color: theme.subtext }]}>
+                        Kỷ lục: <Text style={{ color: '#f59e0b', fontWeight: 'bold' }}>{gameStat._max.score}</Text> điểm
+                      </Text>
+                    </View>
+                    <View style={[styles.statBadge, { backgroundColor: theme.cardSecondary }]}>
+                      <Ionicons name="game-controller" size={12} color={theme.subtext} style={{ marginRight: 3 }} />
+                      <Text style={[styles.statBadgeText, { color: theme.subtext }]}>
+                        Đã chơi: <Text style={{ fontWeight: 'bold', color: theme.text }}>{gameStat._count.id}</Text> lần
+                      </Text>
+                    </View>
                   </View>
                 ) : (
                   <Text style={[styles.statTextEmpty, { color: theme.subtext }]}>Chưa chơi lần nào</Text>
@@ -110,6 +120,8 @@ const styles = StyleSheet.create({
   gameName: { fontSize: 16, fontWeight: 'bold', marginBottom: 2 },
   gameDesc: { fontSize: 12, marginBottom: 6 },
   statRow: { flexDirection: 'row', gap: 10 },
+  statBadge: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 6, paddingVertical: 3, borderRadius: 6 },
+  statBadgeText: { fontSize: 11 },
   statText: { fontSize: 11, paddingHorizontal: 6, paddingVertical: 3, borderRadius: 6, overflow: 'hidden' },
   statTextEmpty: { fontSize: 11, fontStyle: 'italic' }
 });

@@ -183,9 +183,10 @@ export default function MarioVoiceRunScreen() {
 
       // Axios sometimes needs the file:// prefix stripped on iOS, or sometimes it needs it. 
       // uri is usually file:///... which is fine, but let's be safe.
-      // Pass the exact uri which includes file://
       const cleanUri = uri;
       const currentWord = words[currentIndex];
+      const rawIpa = currentWord.phonetic ? currentWord.phonetic.replace(/[\/\[\]]/g, '').trim() : '';
+
       // Use expo-file-system for reliable multipart uploads
       const token = await SecureStore.getItemAsync('accessToken');
       const response = await FileSystem.uploadAsync(`${API_URL}/ai/evaluate-pronunciation`, uri, {
@@ -195,7 +196,7 @@ export default function MarioVoiceRunScreen() {
         mimeType: 'audio/m4a',
         parameters: {
           targetWord: currentWord.headword,
-          targetIpa: currentWord.phonetic || ''
+          targetIpa: rawIpa
         },
         headers: {
           'Authorization': `Bearer ${token}`
@@ -203,7 +204,20 @@ export default function MarioVoiceRunScreen() {
       });
 
       const responseData = JSON.parse(response.body);
-      const pScore = responseData?.data?.overallScore || 0;
+
+      // Cập nhật phiên âm vào từ nếu trước đó từ bị thiếu phiên âm
+      if (responseData?.data?.targetIpa && (!currentWord.phonetic || !currentWord.phonetic.trim())) {
+        const resolvedIpa = responseData.data.targetIpa.replace(/[\/\[\]]/g, '').trim();
+        setWords(prevWords => {
+          const next = [...prevWords];
+          if (next[currentIndex]) {
+            next[currentIndex] = { ...next[currentIndex], phonetic: resolvedIpa };
+          }
+          return next;
+        });
+      }
+
+      const pScore = responseData?.data?.overallScore ?? responseData?.data?.pronunciationScore ?? 0;
       if (pScore >= 60) {
         setScore(prev => prev + 10);
         Alert.alert('Tuyệt vời!', 'Điểm: ' + Math.round(pScore) + '%', [
@@ -293,7 +307,13 @@ export default function MarioVoiceRunScreen() {
           <View style={styles.popupOverlay}>
             <View style={[styles.popup, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1 }]}>
               <Text style={[styles.wordText, { color: theme.text }]}>{words[currentIndex].headword}</Text>
-              <Text style={[styles.phoneticText, { color: theme.primary }]}>/{words[currentIndex].phonetic}/</Text>
+              {words[currentIndex].phonetic ? (
+                <Text style={[styles.phoneticText, { color: theme.primary }]}>
+                  {words[currentIndex].phonetic.startsWith('/')
+                    ? words[currentIndex].phonetic
+                    : `/${words[currentIndex].phonetic.replace(/[\/\[\]]/g, '').trim()}/`}
+                </Text>
+              ) : null}
               
               <TouchableOpacity onPress={handlePlayAudio} style={{ marginBottom: 10, backgroundColor: theme.cardSecondary, padding: 8, borderRadius: 20 }}>
                   <Ionicons name="volume-high" size={24} color={theme.primary} />

@@ -65,8 +65,8 @@ export const notificationService = {
 
       await Notifications.scheduleNotificationAsync({
         content: {
-          title: 'Đã đến giờ học tiếng Anh! ⏰',
-          body: 'Dành ra 15 phút mỗi ngày để nâng cao kỹ năng và duy trì chuỗi streak nhé! 🔥',
+          title: 'Đã đến giờ học tiếng Anh!',
+          body: 'Dành ra 15 phút mỗi ngày để nâng cao kỹ năng và duy trì chuỗi streak nhé!',
           sound: true,
         },
         trigger: {

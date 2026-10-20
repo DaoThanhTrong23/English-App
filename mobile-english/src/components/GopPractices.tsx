@@ -8,6 +8,7 @@ import {
   Platform,
   Alert,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import {
   useAudioRecorder,
   RecordingPresets,
@@ -137,9 +138,12 @@ export default function GopPractice({ word, ipa }: Props) {
         {loading ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.btnText}>
-            {isRecording ? "⏹️ Dừng đọc" : "🎙️ Bấm để đọc"}
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+            <Ionicons name={isRecording ? "stop-circle" : "mic"} size={20} color="#fff" />
+            <Text style={styles.btnText}>
+              {isRecording ? "Dừng đọc" : "Bấm để đọc"}
+            </Text>
+          </View>
         )}
       </TouchableOpacity>
 
@@ -188,24 +192,34 @@ export default function GopPractice({ word, ipa }: Props) {
           {result.silentLetterErrors?.length > 0 && (
             <View style={styles.silentCard}>
               {result.silentLetterErrors.map((err, i) => (
-                <Text key={i} style={styles.silentText}>
-                  ⚠️ {err}
-                </Text>
+                <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Ionicons name="warning" size={14} color="#dc2626" />
+                  <Text style={styles.silentText}>{err}</Text>
+                </View>
               ))}
             </View>
           )}
 
           {/* Giải thích & Hướng dẫn khẩu hình */}
           <View style={styles.feedbackCard}>
-            <Text style={styles.feedbackTitle}>🔍 Phân tích ngữ âm:</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+              <Ionicons name="search" size={15} color="#2563eb" />
+              <Text style={styles.feedbackTitle}>Phân tích ngữ âm:</Text>
+            </View>
             <Text style={styles.feedbackDesc}>{result.explanation}</Text>
 
             {result.improvement?.mouthShape ? (
               <View style={styles.tipBox}>
-                <Text style={styles.tipTitle}>👄 Khẩu hình & Vị trí lưỡi:</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                  <Ionicons name="megaphone-outline" size={15} color="#d97706" />
+                  <Text style={styles.tipTitle}>Khẩu hình & Vị trí lưỡi:</Text>
+                </View>
                 <Text style={styles.tipDesc}>{result.improvement.mouthShape}</Text>
                 {result.improvement.practiceTip ? (
-                  <Text style={styles.practiceDesc}>💡 {result.improvement.practiceTip}</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 6, marginTop: 4 }}>
+                    <Ionicons name="bulb-outline" size={14} color="#f59e0b" style={{ marginTop: 2 }} />
+                    <Text style={styles.practiceDesc}>{result.improvement.practiceTip}</Text>
+                  </View>
                 ) : null}
               </View>
             ) : null}

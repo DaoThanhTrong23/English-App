@@ -71,7 +71,7 @@ export default function DailyQuestModal({
 
       if (res.data?.success) {
         Alert.alert(
-          'Thành Công 🎉',
+          'Thành công',
           `Bạn đã nhận được +${res.data.data.xpAwarded} XP thưởng! Tổng XP hiện tại: ${res.data.data.totalXp} XP`
         );
         if (onXpClaimed) {

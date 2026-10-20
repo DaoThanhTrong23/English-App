@@ -152,7 +152,7 @@ const AchievementList: React.FC = () => {
                             style={{ width: '40px', height: '40px', objectFit: 'contain' }} 
                             onError={(e) => {
                               e.currentTarget.onerror = null;
-                              e.currentTarget.src = 'https://placehold.co/40x40?text=🏆';
+                              e.currentTarget.src = 'https://placehold.co/40x40?text=Badge';
                             }}
                           />
                         ) : (

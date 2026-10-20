@@ -44,10 +44,10 @@ export class StudentLessonService {
       ? user.preferredTopics.split(',').map((id: string) => parseInt(id.trim(), 10)).filter((id: number) => !isNaN(id))
       : [];
 
-    // 1. Lọc theo targetLevelGroup do người dùng chọn lúc Onboarding (ngoại trừ các khóa đã chủ động đăng ký)
+    // 1. Lọc theo targetLevelGroup do người dùng chọn lúc Onboarding hoặc chọn trên giao diện
     if (query.targetLevelGroup) {
-      const allowedLevels = query.targetLevelGroup.split('-'); // VD: 'A1-A2' -> ['A1', 'A2']
-      courses = courses.filter(c => preferredCourseIds.includes(c.id) || (c.cefrLevel && allowedLevels.includes(c.cefrLevel)));
+      const allowedLevels = query.targetLevelGroup.split('-'); // VD: 'A1-A2' -> ['A1', 'A2'], 'A1' -> ['A1']
+      courses = courses.filter(c => c.cefrLevel && allowedLevels.includes(c.cefrLevel));
     }
 
     // 2. Chấm điểm cá nhân hóa
@@ -526,6 +526,225 @@ export class StudentLessonService {
       message: alreadyCompleted
         ? "Bạn đã hoàn thành bài học này trước đó!"
         : `Chúc mừng bạn đã hoàn tất bài học và nhận được +${xpBonus} XP!`,
+    };
+  }
+
+  /**
+   * 7. Tổng hợp tiến độ hoàn thành theo từng cấp độ CEFR (A1 - C2) và cấp chứng chỉ
+   */
+  @logExecution()
+  async getLevelsProgress(userId: number) {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, username: true, cefrLevel: true, xpPoints: true }
+    });
+
+    const LEVEL_GROUPS = [
+      { id: 'A1-A2', name: 'Dễ', title: 'Dễ (A1 - A2)', desc: 'Dành cho người mới bắt đầu', levels: ['A1', 'A2'], nextGroupId: 'B1-B2' },
+      { id: 'B1-B2', name: 'Trung bình', title: 'Trung bình (B1 - B2)', desc: 'Giao tiếp cơ bản đến khá', levels: ['B1', 'B2'], nextGroupId: 'C1-C2' },
+      { id: 'C1-C2', name: 'Khó', title: 'Khó (C1 - C2)', desc: 'Thành thạo và chuyên sâu', levels: ['C1', 'C2'], nextGroupId: null },
+    ];
+
+    const CEFR_LEVELS = [
+      { level: 'A1', title: 'Cơ bản (A1)', desc: 'Chào hỏi, thói quen, đồ ăn thức uống hàng ngày' },
+      { level: 'A2', title: 'Sơ cấp (A2)', desc: 'Du lịch, mua sắm, sức khỏe và đời sống' },
+      { level: 'B1', title: 'Trung cấp (B1)', desc: 'Giáo dục, môi trường, công nghệ ứng dụng' },
+      { level: 'B2', title: 'Trung cấp cao (B2)', desc: 'Truyền thông, kinh doanh và văn hóa xã hội' },
+      { level: 'C1', title: 'Cao cấp (C1)', desc: 'Nghệ thuật, khoa học và các vấn đề toàn cầu' },
+      { level: 'C2', title: 'Thành thạo (C2)', desc: 'Triết học, ngôn ngữ học và ngoại giao quốc tế' },
+    ];
+
+    const topics: any[] = await prisma.topic.findMany({
+      include: {
+        lessons: {
+          where: { deletedAt: null },
+          include: {
+            tests: { select: { id: true } },
+            lessonWords: { select: { wordId: true } }
+          }
+        }
+      }
+    });
+
+    const userResults = await prisma.userTestResult.findMany({
+      where: { userId, totalScore: { gt: 0 } },
+      select: { testId: true }
+    });
+    const completedTestIds = new Set(userResults.map((r: any) => r.testId));
+
+    // 1. Tiến độ cho 3 nhóm trình độ chính (Dễ, Trung bình, Khó)
+    const levelGroupsProgress = LEVEL_GROUPS.map(grp => {
+      const groupTopics = topics.filter((t: any) => grp.levels.includes(t.cefrLevel));
+      const totalTopics = groupTopics.length;
+
+      let totalLessons = 0;
+      let completedLessons = 0;
+      let totalTests = 0;
+      let completedTests = 0;
+      let totalWords = 0;
+      let completedTopics = 0;
+
+      for (const topic of groupTopics) {
+        let topicCompletedLessons = 0;
+        const topicLessons = topic.lessons || [];
+        for (const lesson of topicLessons) {
+          totalLessons++;
+          totalWords += (lesson.lessonWords || []).length;
+          const lessonTestIds = (lesson.tests || []).map((t: any) => t.id);
+          totalTests += lessonTestIds.length;
+
+          const isLessonDone = lessonTestIds.length > 0 && lessonTestIds.every((tid: number) => completedTestIds.has(tid));
+          if (isLessonDone) {
+            completedLessons++;
+            topicCompletedLessons++;
+          }
+          lessonTestIds.forEach((tid: number) => {
+            if (completedTestIds.has(tid)) completedTests++;
+          });
+        }
+
+        if (topicLessons.length > 0 && topicCompletedLessons === topicLessons.length) {
+          completedTopics++;
+        }
+      }
+
+      const progressPercentage = totalTests > 0
+        ? Math.min(100, Math.round((completedTests / totalTests) * 100))
+        : (totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0);
+
+      const isCompleted = progressPercentage >= 100 && totalTopics > 0;
+
+      return {
+        id: grp.id,
+        level: grp.id,
+        name: grp.name,
+        title: grp.title,
+        description: grp.desc,
+        levels: grp.levels,
+        nextGroupId: grp.nextGroupId,
+        totalTopics,
+        completedTopics,
+        totalLessons,
+        completedLessons,
+        totalTests,
+        completedTests,
+        totalWords,
+        progressPercentage,
+        isCompleted,
+        certificate: isCompleted ? {
+          certificateId: `ENG-${grp.id}-${user?.id ? user.id.toString().padStart(4, '0') : '0001'}`,
+          recipientName: user?.username || 'Học viên EngMaster',
+          level: grp.id,
+          levelName: grp.name,
+          levelTitle: grp.title,
+          totalLessons,
+          totalWords,
+          issuedDate: new Date().toLocaleDateString('vi-VN'),
+          nextLevel: grp.nextGroupId
+        } : null
+      };
+    });
+
+    const levelsProgress = CEFR_LEVELS.map(lvl => {
+      const levelTopics = topics.filter((t: any) => t.cefrLevel === lvl.level);
+      const totalTopics = levelTopics.length;
+
+      let totalLessons = 0;
+      let completedLessons = 0;
+      let totalTests = 0;
+      let completedTests = 0;
+      let totalWords = 0;
+      let completedTopics = 0;
+
+      for (const topic of levelTopics) {
+        let topicCompletedLessons = 0;
+        const topicLessons = topic.lessons || [];
+        for (const lesson of topicLessons) {
+          totalLessons++;
+          totalWords += (lesson.lessonWords || []).length;
+          const lessonTestIds = (lesson.tests || []).map((t: any) => t.id);
+          totalTests += lessonTestIds.length;
+
+          const isLessonDone = lessonTestIds.length > 0 && lessonTestIds.every((tid: number) => completedTestIds.has(tid));
+          if (isLessonDone) {
+            completedLessons++;
+            topicCompletedLessons++;
+          }
+          lessonTestIds.forEach((tid: number) => {
+            if (completedTestIds.has(tid)) completedTests++;
+          });
+        }
+
+        if (topicLessons.length > 0 && topicCompletedLessons === topicLessons.length) {
+          completedTopics++;
+        }
+      }
+
+      const progressPercentage = totalTests > 0
+        ? Math.min(100, Math.round((completedTests / totalTests) * 100))
+        : (totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0);
+
+      const isCompleted = progressPercentage >= 100 && totalTopics > 0;
+
+      return {
+        level: lvl.level,
+        title: lvl.title,
+        description: lvl.desc,
+        totalTopics,
+        completedTopics,
+        totalLessons,
+        completedLessons,
+        totalTests,
+        completedTests,
+        totalWords,
+        progressPercentage,
+        isCompleted,
+        certificate: isCompleted ? {
+          certificateId: `ENG-${lvl.level}-${user?.id ? user.id.toString().padStart(4, '0') : '0001'}`,
+          recipientName: user?.username || 'Học viên EngMaster',
+          level: lvl.level,
+          levelTitle: lvl.title,
+          totalLessons,
+          totalWords,
+          issuedDate: new Date().toLocaleDateString('vi-VN')
+        } : null
+      };
+    });
+
+    return {
+      user: {
+        id: user?.id,
+        username: user?.username,
+        cefrLevel: user?.cefrLevel || 'A1',
+        xpPoints: user?.xpPoints || 0
+      },
+      groups: levelGroupsProgress,
+      levels: levelsProgress
+    };
+  }
+
+  /**
+   * 8. Đổi cấp độ học tập chính của học viên (hỗ trợ cả nhóm 'A1-A2', 'B1-B2', 'C1-C2')
+   */
+  @logExecution()
+  async setActiveLevel(userId: number, level: string) {
+    const validLevels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'A1-A2', 'B1-B2', 'C1-C2'];
+    if (!validLevels.includes(level)) {
+      throw new ApiError(400, "invalid_level", "Cấp độ không hợp lệ");
+    }
+
+    const baseCefr = level.includes('-') ? level.split('-')[0] : level;
+
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: { cefrLevel: baseCefr },
+      select: { id: true, username: true, cefrLevel: true, xpPoints: true }
+    });
+
+    return {
+      user: updatedUser,
+      targetLevelGroup: level,
+      message: `Đã chuyển sang cấp độ học tập ${level} thành công!`
     };
   }
 }

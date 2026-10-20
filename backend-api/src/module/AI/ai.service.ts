@@ -165,6 +165,26 @@ function wordToIpaPhonemes(word: string): string[] {
   return phonemes.length > 0 ? phonemes : [lower];
 }
 
+/**
+ * Chuẩn hóa hoặc tự động sinh phiên âm IPA cho một từ tiếng Anh
+ */
+export function resolveIpaForWord(word: string, existingIpa?: string | null): string {
+  const clean = (existingIpa || "").replace(/[\/\[\]ˈˌ\.]/g, "").trim();
+  if (clean) {
+    const rawClean = (existingIpa || "").replace(/[\/\[\]]/g, "").trim();
+    return `/${rawClean}/`;
+  }
+
+  const lower = word.toLowerCase().trim();
+  if (COMMON_IPA_DICT[lower]) {
+    const dictClean = COMMON_IPA_DICT[lower].replace(/[\/\[\]]/g, "").trim();
+    return `/${dictClean}/`;
+  }
+
+  const generated = wordToIpaPhonemes(lower).join("");
+  return generated ? `/${generated}/` : `/${lower}/`;
+}
+
 // ============================================================================
 // 3. MA TRẬN ĐẶC TRƯNG NGỮ ÂM SINH HỌC & ĐO ĐỘ TƯƠNG ĐỒNG (PHONETIC MATRIX & ALLOPHONES)
 // ============================================================================
@@ -767,17 +787,48 @@ Yêu cầu trả về kết quả theo đúng cấu trúc JSON sau (toàn bộ g
   async evaluatePronunciationGOP(
     audioBuffer: Buffer,
     targetWord: string,
-    targetIpa: string
+    targetIpa?: string
   ): Promise<PronunciationEvaluationResponse> {
     const transcriber = await getWhisperPipeline();
-    const expectedPhonemes = splitIpaPhonemes(targetIpa);
+
+    // Tự động phân giải hoặc dự đoán IPA nếu client không truyền hoặc truyền rỗng / chỉ có dấu gạch
+    let resolvedIpa = (targetIpa || "").replace(/[\/\[\]]/g, "").trim();
+    if (!resolvedIpa) {
+      const lower = targetWord.toLowerCase().trim();
+      if (COMMON_IPA_DICT[lower]) {
+        resolvedIpa = COMMON_IPA_DICT[lower].replace(/[\/\[\]]/g, "").trim();
+      } else {
+        try {
+          const dbWord = await prisma.word.findFirst({
+            where: { headword: targetWord.trim() },
+            select: { phonetic: true },
+          });
+          if (dbWord?.phonetic) {
+            resolvedIpa = dbWord.phonetic.replace(/[\/\[\]]/g, "").trim();
+          }
+        } catch (err: any) {
+          loggers.warn(`[Whisper ASR] Lỗi tra cứu IPA từ DB cho từ "${targetWord}": ${err?.message || err}`);
+        }
+      }
+
+      // Nếu DB cũng không có hoặc không tìm thấy, dùng bộ sinh âm vị theo luật (Rule-based G2P)
+      if (!resolvedIpa) {
+        resolvedIpa = wordToIpaPhonemes(targetWord).join("");
+      }
+    }
+
+    const formattedTargetIpa = resolvedIpa ? (resolvedIpa.startsWith("/") ? resolvedIpa : `/${resolvedIpa}/`) : `/${targetWord.toLowerCase().trim()}/`;
+    let expectedPhonemes = splitIpaPhonemes(resolvedIpa);
+    if (expectedPhonemes.length === 0) {
+      expectedPhonemes = wordToIpaPhonemes(targetWord);
+    }
 
     // 1. Chuẩn hóa Audio sang Float32 PCM 16kHz
     const audioFloat32 = await audioBufferToFloat32Array(audioBuffer);
     if (audioFloat32.length < 1600) {
       return {
         targetWord,
-        targetIpa,
+        targetIpa: formattedTargetIpa,
         spokenText: "(Không có âm thanh)",
         overallScore: 0,
         cefrLevel: "A1",
@@ -804,7 +855,7 @@ Yêu cầu trả về kết quả theo đúng cấu trúc JSON sau (toàn bộ g
     const cleanSpoken = rawTranscript.replace(/[^a-zA-Z0-9\s]/g, "").toLowerCase().trim();
     const targetClean = targetWord.toLowerCase().trim();
 
-    loggers.info(`[Whisper ASR] Target: "${targetWord}" (${targetIpa}) | Whisper nghe thấy: "${rawTranscript}" (clean: "${cleanSpoken}")`);
+    loggers.info(`[Whisper ASR] Target: "${targetWord}" (${formattedTargetIpa}) | Whisper nghe thấy: "${rawTranscript}" (clean: "${cleanSpoken}")`);
 
     // 3. Chuyển chuỗi nghe được sang âm vị IPA thực tế
     const spokenPhonemes = wordToIpaPhonemes(cleanSpoken || rawTranscript);
@@ -933,7 +984,7 @@ Yêu cầu trả về kết quả theo đúng cấu trúc JSON sau (toàn bộ g
 
     return {
       targetWord,
-      targetIpa,
+      targetIpa: formattedTargetIpa,
       spokenText,
       overallScore,
       cefrLevel: overallScore >= 85 ? "B2" : overallScore >= 70 ? "B1" : overallScore >= 50 ? "A2" : "A1",

@@ -194,6 +194,49 @@ export class StudentVocabularyService {
     };
   }
 
+  /**
+   * Lưu hoặc Hủy lưu từ vựng vào danh sách của học viên (Bookmark Toggle)
+   */
+  @logExecution()
+  async toggleVocabulary(userId: number, wordId: number) {
+    const word = await prisma.word.findUnique({ where: { id: wordId } });
+    if (!word) {
+      throw new ApiError(404, "word_not_found", "Không tìm thấy từ vựng trong hệ thống");
+    }
+
+    const existing = await prisma.userProgress.findUnique({
+      where: { userId_wordId: { userId, wordId } }
+    });
+
+    if (existing) {
+      await prisma.userProgress.delete({
+        where: { id: existing.id }
+      });
+      return {
+        isSaved: false,
+        wordId,
+        message: `Đã bỏ lưu từ "${word.headword}" khỏi danh sách học`
+      };
+    } else {
+      const created = await prisma.userProgress.create({
+        data: {
+          userId,
+          wordId,
+          status: LearningStatus.learning,
+          memoryLevel: 0,
+          nextReviewDate: new Date()
+        },
+        include: { word: true }
+      });
+      return {
+        isSaved: true,
+        wordId,
+        message: `Đã lưu từ "${word.headword}" vào danh sách học`,
+        data: created
+      };
+    }
+  }
+
   async getDueReviews(userId: number) {
     const now = new Date();
     const dueProgress = await prisma.userProgress.findMany({

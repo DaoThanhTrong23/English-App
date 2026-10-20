@@ -33,20 +33,31 @@ router.get(
 );
 
 /**
- * GET /:id - Xem chi tiết một từ vựng trong danh sách của học viên
+ * GET /reviews/due - Lấy danh sách từ vựng đến hạn ôn tập (Spaced Repetition)
+ * Đặt trước /:id để tránh Express coi 'reviews' là :id
  */
 router.get(
-  "/:id",
-  validate(StudentVocabularyIdParamSchema),
+  "/reviews/due",
   asyncHandler(async (req: AuthenticateRequest, res) => {
     const userId = Number(req.user?.userId);
-    const id = Number(req.params.id);
-    const result = await studentVocabularyService.getVocabularyDetail(userId, id);
-    res.status(200).json({
-      success: true,
-      message: "Lấy chi tiết từ vựng thành công",
-      data: result,
-    });
+    const result = await studentVocabularyService.getDueReviews(userId);
+    res.status(200).json({ success: true, data: result });
+  })
+);
+
+/**
+ * POST /reviews - Nộp kết quả ôn tập từ vựng
+ */
+router.post(
+  "/reviews",
+  asyncHandler(async (req: AuthenticateRequest, res) => {
+    const userId = Number(req.user?.userId);
+    const { wordId, isCorrect } = req.body;
+    if (!wordId || isCorrect === undefined) {
+      return res.status(400).json({ success: false, message: "Thiếu wordId hoặc isCorrect" });
+    }
+    const result = await studentVocabularyService.submitReview(userId, Number(wordId), Boolean(isCorrect));
+    res.status(200).json({ success: true, data: result });
   })
 );
 
@@ -62,6 +73,44 @@ router.post(
     res.status(201).json({
       success: true,
       message: "Thêm từ vựng vào danh sách thành công",
+      data: result,
+    });
+  })
+);
+
+/**
+ * POST /toggle - Lưu hoặc Bỏ lưu từ vựng theo wordId (Bookmark)
+ */
+router.post(
+  "/toggle",
+  asyncHandler(async (req: AuthenticateRequest, res) => {
+    const userId = Number(req.user?.userId);
+    const wordId = Number(req.body.wordId);
+    if (!wordId) {
+      return res.status(400).json({ success: false, message: "Vui lòng cung cấp wordId" });
+    }
+    const result = await studentVocabularyService.toggleVocabulary(userId, wordId);
+    res.status(200).json({
+      success: true,
+      message: result.message,
+      data: result,
+    });
+  })
+);
+
+/**
+ * GET /:id - Xem chi tiết một từ vựng trong danh sách của học viên
+ */
+router.get(
+  "/:id",
+  validate(StudentVocabularyIdParamSchema),
+  asyncHandler(async (req: AuthenticateRequest, res) => {
+    const userId = Number(req.user?.userId);
+    const id = Number(req.params.id);
+    const result = await studentVocabularyService.getVocabularyDetail(userId, id);
+    res.status(200).json({
+      success: true,
+      message: "Lấy chi tiết từ vựng thành công",
       data: result,
     });
   })
@@ -104,33 +153,6 @@ router.delete(
 );
 
 
-/**
- * GET /due-reviews - Lấy danh sách từ vựng đến hạn ôn tập (Spaced Repetition)
- */
-router.get(
-  "/reviews/due",
-  asyncHandler(async (req: AuthenticateRequest, res) => {
-    const userId = Number(req.user?.userId);
-    const result = await studentVocabularyService.getDueReviews(userId);
-    res.status(200).json({ success: true, data: result });
-  })
-);
-
-/**
- * POST /reviews - Nộp kết quả ôn tập từ vựng
- */
-router.post(
-  "/reviews",
-  asyncHandler(async (req: AuthenticateRequest, res) => {
-    const userId = Number(req.user?.userId);
-    const { wordId, isCorrect } = req.body;
-    if (!wordId || isCorrect === undefined) {
-      return res.status(400).json({ success: false, message: "Thiếu wordId hoặc isCorrect" });
-    }
-    const result = await studentVocabularyService.submitReview(userId, Number(wordId), Boolean(isCorrect));
-    res.status(200).json({ success: true, data: result });
-  })
-);
 
 export const studentVocabularyRouter = router;
 export default router;

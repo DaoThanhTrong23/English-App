@@ -358,7 +358,7 @@ export default function CommunityScreen() {
     const nextStatus = !post.isPublic;
     Alert.alert(
       'Thay đổi trạng thái',
-      `Bạn có muốn chuyển bài viết sang chế độ ${nextStatus ? '🌐 Công khai (Mọi người đều xem được)' : '🔒 Riêng tư (Chỉ mình tôi)'}?`,
+      `Bạn có muốn chuyển bài viết sang chế độ ${nextStatus ? 'Công khai (Mọi người đều xem được)' : 'Riêng tư (Chỉ mình tôi)'}?`,
       [
         { text: 'Hủy', style: 'cancel' },
         {

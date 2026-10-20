@@ -149,7 +149,10 @@ export default function OnboardingScreen() {
       {/* BƯỚC 1: LẤY THÔNG TIN CÁ NHÂN */}
       {step === 1 && (
         <ScrollView contentContainerStyle={styles.content}>
-          <Text style={[styles.title, { color: theme.text }]}>Chào mừng bạn mới! 👋</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+            <Ionicons name="sparkles" size={24} color={theme.primary} />
+            <Text style={[styles.title, { color: theme.text, marginBottom: 0 }]}>Chào mừng bạn mới!</Text>
+          </View>
           <Text style={[styles.subtitle, { color: theme.subtext }]}>Hãy cho chúng tôi biết một chút về bạn để xây dựng lộ trình học phù hợp nhất nhé.</Text>
           
           <View style={styles.inputGroup}>
@@ -234,7 +237,7 @@ export default function OnboardingScreen() {
               onPress={() => playAudio(questions[currentQIndex].audioText || questions[currentQIndex].question)}
             >
               <Ionicons name="volume-high" size={24} color="#fff" />
-              <Text style={styles.audioPlayText}>Bấm để nghe âm thanh 🔊</Text>
+              <Text style={styles.audioPlayText}>Bấm để nghe âm thanh</Text>
             </TouchableOpacity>
           )}
 
@@ -261,7 +264,7 @@ export default function OnboardingScreen() {
       {step === 3 && result && (
         <ScrollView contentContainerStyle={styles.content}>
           <Ionicons name="trophy" size={80} color="#f59e0b" style={{alignSelf: 'center', marginBottom: 20}} />
-          <Text style={[styles.title, { color: theme.text }]}>Hoàn tất đánh giá năng lực! 🎓</Text>
+          <Text style={[styles.title, { color: theme.text }]}>Hoàn tất đánh giá năng lực!</Text>
           
           <View style={[styles.resultCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
             <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12}}>
@@ -274,9 +277,10 @@ export default function OnboardingScreen() {
             </View>
 
             {result.stoppedEarly && (
-              <View style={{backgroundColor: isDark ? '#1e293b' : '#dbeafe', padding: 12, borderRadius: 10, marginBottom: 12}}>
-                <Text style={{color: isDark ? '#93c5fd' : '#1e40af', fontSize: 13, fontWeight: '500', lineHeight: 18}}>
-                  ⚡ Tính năng Tự động dừng (Auto-stop): Thuật toán thông minh FAME-KT đã phân tích xong trình độ của bạn chỉ sau {result.questionsUsed} câu hỏi mà không cần làm hết bài!
+              <View style={{backgroundColor: isDark ? '#1e293b' : '#dbeafe', padding: 12, borderRadius: 10, marginBottom: 12, flexDirection: 'row', alignItems: 'center', gap: 8}}>
+                <Ionicons name="flash" size={18} color={isDark ? '#93c5fd' : '#1e40af'} />
+                <Text style={{color: isDark ? '#93c5fd' : '#1e40af', fontSize: 13, fontWeight: '500', lineHeight: 18, flex: 1}}>
+                  Tính năng Tự động dừng (Auto-stop): Thuật toán thông minh FAME-KT đã phân tích xong trình độ của bạn chỉ sau {result.questionsUsed} câu hỏi mà không cần làm hết bài!
                 </Text>
               </View>
             )}
@@ -286,22 +290,22 @@ export default function OnboardingScreen() {
                 <Text style={[styles.resultLabel, { color: theme.subtext, marginBottom: 10 }]}>Báo cáo năng lực đa chiều (FAME-KT Elo):</Text>
                 <View style={styles.skillsGrid}>
                   <View style={[styles.skillBox, { backgroundColor: isDark ? theme.cardSecondary : '#f8fafc', borderColor: theme.border }]}>
-                    <Text style={styles.skillIcon}>✏️</Text>
+                    <Ionicons name="create-outline" size={24} color={theme.primary} style={{ marginBottom: 4 }} />
                     <Text style={[styles.skillName, { color: theme.subtext }]}>Ngữ pháp</Text>
                     <Text style={[styles.skillElo, { color: theme.text }]}>{result.eloProfile.Grammar}</Text>
                   </View>
                   <View style={[styles.skillBox, { backgroundColor: isDark ? theme.cardSecondary : '#f8fafc', borderColor: theme.border }]}>
-                    <Text style={styles.skillIcon}>📚</Text>
+                    <Ionicons name="library-outline" size={24} color={theme.primary} style={{ marginBottom: 4 }} />
                     <Text style={[styles.skillName, { color: theme.subtext }]}>Từ vựng</Text>
                     <Text style={[styles.skillElo, { color: theme.text }]}>{result.eloProfile.Vocabulary}</Text>
                   </View>
                   <View style={[styles.skillBox, { backgroundColor: isDark ? theme.cardSecondary : '#f8fafc', borderColor: theme.border }]}>
-                    <Text style={styles.skillIcon}>🎧</Text>
+                    <Ionicons name="headset-outline" size={24} color={theme.primary} style={{ marginBottom: 4 }} />
                     <Text style={[styles.skillName, { color: theme.subtext }]}>Nghe hiểu</Text>
                     <Text style={[styles.skillElo, { color: theme.text }]}>{result.eloProfile.Listening}</Text>
                   </View>
                   <View style={[styles.skillBox, { backgroundColor: isDark ? theme.cardSecondary : '#f8fafc', borderColor: theme.border }]}>
-                    <Text style={styles.skillIcon}>📖</Text>
+                    <Ionicons name="book-outline" size={24} color={theme.primary} style={{ marginBottom: 4 }} />
                     <Text style={[styles.skillName, { color: theme.subtext }]}>Đọc hiểu</Text>
                     <Text style={[styles.skillElo, { color: theme.text }]}>{result.eloProfile.Reading}</Text>
                   </View>
@@ -331,9 +335,19 @@ export default function OnboardingScreen() {
                   router.replace('/(tabs)');
                 }}
               >
-                <Text style={[styles.courseTitle, { color: theme.text }, isRecommended && { color: isDark ? '#34d399' : '#047857' }]}>
-                  {group.title} {isRecommended && '✨ (Phù hợp với bạn)'}
-                </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Text style={[styles.courseTitle, { color: theme.text, marginBottom: 0 }, isRecommended && { color: isDark ? '#34d399' : '#047857' }]}>
+                    {group.title}
+                  </Text>
+                  {isRecommended && (
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                      <Ionicons name="sparkles" size={13} color="#f59e0b" />
+                      <Text style={{ fontSize: 13, color: isDark ? '#34d399' : '#047857', fontWeight: 'bold' }}>
+                        (Phù hợp với bạn)
+                      </Text>
+                    </View>
+                  )}
+                </View>
                 <Text style={[styles.courseDesc, { color: theme.subtext }]}>{group.desc}</Text>
               </TouchableOpacity>
             );

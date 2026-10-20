@@ -3,6 +3,7 @@ import { StartGameQuery, MatchPairBody, FinishGameBody } from "./mario-game.sche
 import { ApiError } from "../../shared/http/api-error.js";
 import { logExecution } from "../../shared/decorators/log.decorator.js";
 import { recordActivity } from "../../shared/decorators/activity.decorator.js";
+import { resolveIpaForWord } from "../AI/ai.service.js";
 
 export class MarioGameService {
   private repository: MarioGameRepository;
@@ -21,9 +22,9 @@ export class MarioGameService {
     return list;
   }
 
-  // 1. Khởi tạo Game: Chỉ lấy từ vựng và xáo trộn bong bóng gửi FE
+  // 1. Khởi tạo Game: Chỉ lấy từ vựng và gửi FE
   @logExecution()
-  @recordActivity("USER_START_GAME", (_result, userId) => `Người dùng ${userId} bắt đầu bubble game mới, nhận danh sách từ vựng`)
+  @recordActivity("USER_START_GAME", (_result, userId) => `Người dùng ${userId} bắt đầu mario game mới, nhận danh sách từ vựng`)
   async startGame(userId: number, query: StartGameQuery) {
     const words = await this.repository.getWordsForGame(userId, query.limit || 6, query.lessonId);
 
@@ -37,7 +38,7 @@ export class MarioGameService {
         id: w.id,
         headword: w.headword,
         meaning: w.meaning,
-        phonetic: w.phonetic,
+        phonetic: resolveIpaForWord(w.headword, w.phonetic),
         audioUrl: w.audioUrl
       }))
     };

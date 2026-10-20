@@ -85,8 +85,9 @@ export default function CourseDetailScreen() {
         <View style={styles.heroCard}>
           <View style={styles.heroTop}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-              <View style={styles.heroTag}>
-                <Text style={styles.heroTagText}>👋 CHỦ ĐỀ ({courseData.cefrLevel})</Text>
+              <View style={[styles.heroTag, { flexDirection: 'row', alignItems: 'center', gap: 4 }]}>
+                <Ionicons name="book" size={13} color="#ffffff" />
+                <Text style={styles.heroTagText}>CHỦ ĐỀ ({courseData.cefrLevel})</Text>
               </View>
               {(() => {
                 const topicImg = getFullMediaUrl(courseData.imageUrl);
@@ -154,9 +155,9 @@ export default function CourseDetailScreen() {
               : (isCompleted ? 100 : 0);
 
             if (isCompleted) {
-              badgeText = "Hoàn thành";
-              badgeBg = isDark ? '#064e3b' : "#d1fae5";
-              badgeColor = isDark ? '#34d399' : "#059669";
+              badgeText = "Học lại";
+              badgeBg = isDark ? '#064e3b' : "#ecfdf5";
+              badgeColor = "#10b981";
               barColor = "#10b981";
               barWidth = "100%";
               circleBg = isDark ? '#1e3a8a' : "#dbeafe";
@@ -219,7 +220,10 @@ export default function CourseDetailScreen() {
                   </View>
 
                   <View style={[styles.lessonBadge, { backgroundColor: badgeBg }]}>
-                    <Text style={[styles.lessonBadgeText, { color: badgeColor }]}>{badgeText}</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                      {isCompleted && <Ionicons name="refresh" size={11} color={badgeColor} />}
+                      <Text style={[styles.lessonBadgeText, { color: badgeColor }]}>{badgeText}</Text>
+                    </View>
                   </View>
                 </View>
                 

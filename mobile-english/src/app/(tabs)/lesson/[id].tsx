@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Image, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { useCallback } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import * as Speech from 'expo-speech';
 import { axiosClient } from '../../../api/axiosClient';
 import { useAppTheme } from '../../../context/ThemeContext';
 
@@ -93,7 +94,43 @@ export default function LessonScreen() {
   }
 
   const words = lesson.words || [];
-  const maxWordsToShow = 5;
+  const [showAllWords, setShowAllWords] = useState(false);
+  const [savingWordId, setSavingWordId] = useState<number | null>(null);
+
+  const handleToggleBookmark = async (wordId: number) => {
+    try {
+      setSavingWordId(wordId);
+      const res = await axiosClient.post('/student/vocabulary/toggle', { wordId });
+      if (res.data?.success) {
+        const isSaved = res.data.data.isSaved;
+        setLesson((prev: any) => {
+          if (!prev || !prev.words) return prev;
+          const updatedWords = prev.words.map((w: any) => {
+            if (w.id === wordId) {
+              return {
+                ...w,
+                userProgress: {
+                  ...w.userProgress,
+                  isSaved
+                }
+              };
+            }
+            return w;
+          });
+          return { ...prev, words: updatedWords };
+        });
+      }
+    } catch (err: any) {
+      console.log('Error toggling bookmark:', err);
+      Alert.alert('Thông báo', 'Không thể cập nhật trạng thái lưu từ vựng');
+    } finally {
+      setSavingWordId(null);
+    }
+  };
+
+  const playWordAudio = (word: any) => {
+    Speech.speak(word.headword, { language: 'en-US', rate: 0.85 });
+  };
 
   const navigateToPractice = (skillType: string) => {
     router.push({ pathname: '/practice', params: { lessonId: id, type: skillType } } as any);
@@ -200,23 +237,81 @@ export default function LessonScreen() {
         {/* VOCABULARY */}
         <View style={[styles.vocabCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
           <View style={styles.vocabHeader}>
-            <Text style={[styles.vocabTitle, { color: theme.text }]}>Từ vựng trong bài</Text>
-            <Text style={[styles.vocabCount, { color: theme.primary }]}>{words.length} từ</Text>
-          </View>
-          {words.slice(0, maxWordsToShow).map((w: any, index: number) => (
-            <View key={w.id} style={styles.vocabRow}>
-              <View style={styles.vocabDot} />
-              <Text style={[styles.vocabEng, { color: theme.text }]} numberOfLines={1}>{w.headword}</Text>
-              <Text style={[styles.vocabSlash, { color: theme.subtext }]}>/</Text>
-              <Text style={[styles.vocabVie, { color: theme.subtext }]} numberOfLines={1}>{w.meaning}</Text>
-              <View style={styles.vocabLearnedDot} />
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Ionicons name="bookmark" size={18} color="#f59e0b" style={{ marginRight: 6 }} />
+              <Text style={[styles.vocabTitle, { color: theme.text }]}>Từ vựng trong bài</Text>
             </View>
-          ))}
-          {words.length > maxWordsToShow && (
-            <Text style={[styles.vocabMore, { color: theme.subtext }]}>+ {words.length - maxWordsToShow} từ nữa...</Text>
+            <TouchableOpacity onPress={() => router.push('/saved-words')}>
+              <Text style={[styles.vocabCount, { color: theme.primary }]}>
+                {words.filter((w: any) => w.userProgress?.isSaved).length}/{words.length} đã lưu ›
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {(showAllWords ? words : words.slice(0, 5)).map((w: any) => {
+            const isSaved = Boolean(w.userProgress?.isSaved);
+            const isSaving = savingWordId === w.id;
+            return (
+              <View key={w.id} style={[styles.vocabCardRow, { borderColor: theme.border, backgroundColor: theme.cardSecondary }]}>
+                <TouchableOpacity onPress={() => playWordAudio(w)} style={styles.audioBtn}>
+                  <Ionicons name="volume-high" size={20} color={theme.primary} />
+                </TouchableOpacity>
+
+                <View style={{ flex: 1, marginHorizontal: 8 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'baseline', flexWrap: 'wrap', gap: 6 }}>
+                    <Text style={[styles.vocabEng, { color: theme.text }]}>{w.headword}</Text>
+                    {w.phonetic ? (
+                      <Text style={[styles.vocabPhonetic, { color: theme.primary }]}>
+                        {w.phonetic.startsWith('/') ? w.phonetic : `/${w.phonetic}/`}
+                      </Text>
+                    ) : null}
+                  </View>
+                  <Text style={[styles.vocabVie, { color: theme.subtext }]} numberOfLines={2}>{w.meaning}</Text>
+                </View>
+
+                {/* NÚT BẤM LƯU TỪ VỰNG */}
+                <TouchableOpacity
+                  style={[
+                    styles.bookmarkBtn,
+                    isSaved ? { backgroundColor: isDark ? '#451a03' : '#fef3c7', borderColor: '#fbbf24' } : { borderColor: theme.border }
+                  ]}
+                  onPress={() => handleToggleBookmark(w.id)}
+                  disabled={isSaving}
+                  activeOpacity={0.7}
+                >
+                  {isSaving ? (
+                    <ActivityIndicator size="small" color="#f59e0b" />
+                  ) : (
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                      <Ionicons
+                        name={isSaved ? 'bookmark' : 'bookmark-outline'}
+                        size={16}
+                        color={isSaved ? '#f59e0b' : theme.subtext}
+                      />
+                      <Text style={[styles.bookmarkBtnText, { color: isSaved ? '#f59e0b' : theme.subtext }]}>
+                        {isSaved ? 'Đã lưu' : 'Lưu từ'}
+                      </Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+              </View>
+            );
+          })}
+
+          {words.length > 5 && (
+            <TouchableOpacity
+              onPress={() => setShowAllWords(prev => !prev)}
+              style={[styles.showAllBtn, { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 }]}
+            >
+              <Ionicons name={showAllWords ? "chevron-up" : "chevron-down"} size={16} color={theme.primary} />
+              <Text style={{ color: theme.primary, fontWeight: 'bold', fontSize: 13 }}>
+                {showAllWords ? 'Thu gọn danh sách' : `Xem tất cả ${words.length} từ vựng`}
+              </Text>
+            </TouchableOpacity>
           )}
+
           {words.length === 0 && (
-             <Text style={[styles.vocabDesc, { color: theme.subtext }]}>Chưa có từ vựng nào được thêm.</Text>
+            <Text style={[styles.vocabDesc, { color: theme.subtext }]}>Chưa có từ vựng nào được thêm.</Text>
           )}
         </View>
 
@@ -264,17 +359,46 @@ const styles = StyleSheet.create({
   skillPercent: { fontSize: 14, fontWeight: 'bold' },
 
   vocabCard: { padding: 15, borderRadius: 12, borderWidth: 1, borderColor: '#bfdbfe', backgroundColor: '#ffffff', marginBottom: 20 },
-  vocabHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 15 },
-  vocabTitle: { fontSize: 14, fontWeight: 'bold', color: '#111827' },
+  vocabHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
+  vocabTitle: { fontSize: 15, fontWeight: 'bold', color: '#111827' },
   vocabCount: { fontSize: 13, fontWeight: 'bold', color: '#3b82f6' },
-  vocabRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
-  vocabDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#3b82f6', marginRight: 10 },
-  vocabEng: { flex: 1, fontSize: 14, fontWeight: 'bold', color: '#111827' },
-  vocabSlash: { marginHorizontal: 10, color: '#9ca3af' },
-  vocabVie: { flex: 1, fontSize: 14, color: '#374151', textAlign: 'right' },
-  vocabLearnedDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#10b981', marginLeft: 10 },
-  vocabMore: { textAlign: 'center', color: '#6b7280', fontSize: 13, marginTop: 10 },
-  vocabDesc: { textAlign: 'center', color: '#6b7280', fontSize: 13 },
+  vocabCardRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    marginBottom: 8,
+  },
+  audioBtn: {
+    padding: 6,
+    borderRadius: 8,
+    marginRight: 4,
+  },
+  vocabEng: { fontSize: 15, fontWeight: 'bold' },
+  vocabPhonetic: { fontSize: 13, fontStyle: 'italic', fontWeight: '500' },
+  vocabVie: { fontSize: 13, marginTop: 2 },
+  bookmarkBtn: {
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minWidth: 78,
+  },
+  bookmarkBtnText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  showAllBtn: {
+    paddingVertical: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 4,
+  },
+  vocabDesc: { textAlign: 'center', color: '#6b7280', fontSize: 13, paddingVertical: 10 },
 
   startBtn: { backgroundColor: '#3b82f6', paddingVertical: 16, borderRadius: 12, alignItems: 'center', marginBottom: 20 },
   startBtnText: { color: '#ffffff', fontSize: 16, fontWeight: 'bold' }
