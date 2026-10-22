@@ -32,6 +32,16 @@ export default function LessonScreen() {
     }
   };
 
+  const handleBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else if (lesson?.topicId) {
+      router.replace({ pathname: '/(tabs)/course/[id]', params: { id: lesson.topicId } } as any);
+    } else {
+      router.replace('/(tabs)');
+    }
+  };
+
   if (loading) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: theme.background }}>
@@ -44,7 +54,7 @@ export default function LessonScreen() {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: theme.background }}>
         <Text style={{ color: theme.text }}>Không tìm thấy bài học</Text>
-        <TouchableOpacity onPress={() => router.back()} style={{ marginTop: 20 }}>
+        <TouchableOpacity onPress={handleBack} style={{ marginTop: 20 }}>
           <Text style={{ color: theme.primary }}>Quay lại</Text>
         </TouchableOpacity>
       </View>
@@ -132,6 +142,8 @@ export default function LessonScreen() {
     Speech.speak(word.headword, { language: 'en-US', rate: 0.85 });
   };
 
+
+
   const navigateToPractice = (skillType: string) => {
     router.push({ pathname: '/practice', params: { lessonId: id, type: skillType } } as any);
   };
@@ -140,7 +152,7 @@ export default function LessonScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       {/* HEADER BAR */}
       <View style={[styles.headerBar, { backgroundColor: theme.card, borderBottomColor: theme.border }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+        <TouchableOpacity onPress={handleBack} style={styles.backBtn}>
           <Ionicons name="arrow-back" size={24} color={theme.text} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: theme.text }]} numberOfLines={1}>{lesson.title}</Text>

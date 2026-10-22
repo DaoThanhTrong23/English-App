@@ -54,6 +54,14 @@ export default function CourseDetailScreen() {
     }
   };
 
+  const handleBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace('/(tabs)');
+    }
+  };
+
   if (loading || !courseData) {
     return (
       <View style={[styles.center, { backgroundColor: theme.background }]}>
@@ -69,7 +77,7 @@ export default function CourseDetailScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       {/* HEADER */}
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.backBtn, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1 }]} onPress={() => router.back()}>
+        <TouchableOpacity style={[styles.backBtn, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1 }]} onPress={handleBack}>
           <Ionicons name="arrow-back" size={24} color={theme.text} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: theme.text }]} numberOfLines={1}>

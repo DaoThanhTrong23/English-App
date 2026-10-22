@@ -182,6 +182,8 @@ export default function TabLayout() {
   return (
     <View style={{ flex: 1, backgroundColor: theme.background }}>
       <Tabs
+        initialRouteName="index"
+        backBehavior="history"
         screenOptions={{
           headerShown: false,
           tabBarActiveTintColor: theme.primary,
@@ -244,8 +246,8 @@ export default function TabLayout() {
             ),
           }}
         />
-        <Tabs.Screen name="course/[id]" options={{ href: null }} />
-        <Tabs.Screen name="lesson/[id]" options={{ href: null }} />
+        <Tabs.Screen name="course/[id]" options={{ href: null, tabBarStyle: { display: 'none' } }} />
+        <Tabs.Screen name="lesson/[id]" options={{ href: null, tabBarStyle: { display: 'none' } }} />
       </Tabs>
 
       {/* FLOATING DRAGGABLE AI CHAT BUBBLE */}
