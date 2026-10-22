@@ -45,19 +45,7 @@ export class StudentTestService {
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new ApiError(404, "user_not_found", "Không tìm thấy người dùng");
 
-    // 1. KIỂM TRA CHÊNH LỆCH TRÌNH ĐỘ (Level Mismatch Gating)
-    const testCefr = test.ceftLevel || test.lesson?.cefrLevel;
-    if (testCefr && user.cefrLevel) {
-      const userRank = CEFR_ORDER[user.cefrLevel.toUpperCase()] || 1;
-      const testRank = CEFR_ORDER[testCefr.toUpperCase()] || 1;
-      if (testRank - userRank > 1) {
-        throw new ApiError(
-          403,
-          "level_mismatch",
-          `Trình độ hiện tại (${user.cefrLevel}) không đủ điều kiện làm bài thi cấp độ ${testCefr}. Thí sinh không thể nhảy cóc vượt cấp.`
-        );
-      }
-    }
+    // (Đã dỡ bỏ ràng buộc nhảy cóc trình độ - Người dùng có thể tùy ý chọn học mọi cấp độ)
 
     // 2. KIỂM TRA PHẠM VI CHỦ ĐỀ (Cross-Topic Access Control)
     if (test.lesson && test.lesson.topicId && user.preferredTopics) {
@@ -267,19 +255,7 @@ export class StudentTestService {
     if (userId) {
       const user = await prisma.user.findUnique({ where: { id: userId } });
       if (user) {
-        // 1. Kiểm tra chênh lệch trình độ khi mở bài thi
-        const testCefr = test.ceftLevel || test.lesson?.cefrLevel;
-        if (testCefr && user.cefrLevel) {
-          const userRank = CEFR_ORDER[user.cefrLevel.toUpperCase()] || 1;
-          const testRank = CEFR_ORDER[testCefr.toUpperCase()] || 1;
-          if (testRank - userRank > 1) {
-            throw new ApiError(
-              403,
-              "level_mismatch",
-              `Trình độ hiện tại (${user.cefrLevel}) không đủ điều kiện làm bài thi cấp độ ${testCefr}. Thí sinh không thể nhảy cóc vượt cấp.`
-            );
-          }
-        }
+        // (Đã dỡ bỏ ràng buộc nhảy cóc trình độ khi mở bài thi)
 
         // 2. Kiểm tra quyền truy cập phạm vi chủ đề
         if (test.lesson && test.lesson.topicId && user.preferredTopics) {

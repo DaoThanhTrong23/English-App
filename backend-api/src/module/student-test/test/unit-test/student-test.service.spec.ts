@@ -107,24 +107,23 @@ describe('StudentTestService - Unit Tests (QC 10-Year Standard)', () => {
   });
 
   describe('2. Candidate Level Discrepancy (Chênh Lệch Trình Độ Thí Sinh & Bài Thi)', () => {
-    it('[STT-DISC-01] Chặn thí sinh A1 mở xem bài kiểm tra cấp độ cao hơn (C1) ném 403 level_mismatch', async () => {
+    it('[STT-DISC-01] Thí sinh A1 có thể tự do mở xem bài kiểm tra cấp độ cao hơn (C1) mà không bị chặn', async () => {
       const advancedTest = { ...mockStudentTest, ceftLevel: 'C1' };
       (prisma.test.findUnique as any).mockResolvedValue(advancedTest);
       (prisma.user.findUnique as any).mockResolvedValue({ ...mockTestUser, cefrLevel: 'A1' });
 
-      await expect(service.getTestDetail(1, 1)).rejects.toThrowError(
-        expect.objectContaining({ statuscode: 403, code: 'level_mismatch' })
-      );
+      const res = await service.getTestDetail(1, 1);
+      expect(res.id).toBe(1);
     });
 
-    it('[STT-DISC-02] Chặn thí sinh A1 nộp bài thi cấp độ cao hơn (B2/C1) ném 403 level_mismatch', async () => {
+    it('[STT-DISC-02] Thí sinh A1 có thể tự do nộp bài thi cấp độ cao hơn (B2/C1) mà không bị chặn', async () => {
       const advancedTest = { ...mockStudentTest, ceftLevel: 'B2' };
       (prisma.test.findUnique as any).mockResolvedValue(advancedTest);
       (prisma.user.findUnique as any).mockResolvedValue({ ...mockTestUser, cefrLevel: 'A1' });
+      (prisma.userTestResult.findFirst as any).mockResolvedValue(null);
 
-      await expect(service.submitTest(1, 1, mockTestSubmission)).rejects.toThrowError(
-        expect.objectContaining({ statuscode: 403, code: 'level_mismatch' })
-      );
+      const res = await service.submitTest(1, 1, mockTestSubmission);
+      expect(res.totalScore).toBe(20);
     });
 
     it('[STT-DISC-03] Thí sinh trình độ cao (C1) làm bài thi cấp độ thấp (A1): Hệ thống xử lý an toàn', async () => {
