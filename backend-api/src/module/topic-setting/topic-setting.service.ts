@@ -70,6 +70,7 @@ export class TopicSettingService {
   }
 
   public getSettings(): TopicLevelSettings {
+    this.init();
     return this.settings;
   }
 
@@ -91,6 +92,7 @@ export class TopicSettingService {
    * Lấy số lượng topic hiển thị cho một cấp độ (Dễ: A1-A2, Trung bình: B1-B2, Khó: C1-C2)
    */
   public getLimitForLevel(cefrLevel?: string | null): number {
+    this.init();
     if (!cefrLevel) return this.settings.defaultLimit;
     const cleanLevel = cefrLevel.trim().toUpperCase();
 

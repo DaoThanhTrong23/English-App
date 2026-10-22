@@ -70,7 +70,7 @@ export class StudentLessonService {
 
     // 4. Giới hạn số lượng (Admin cấu hình tùy chỉnh cho từng cấp độ của người học)
     const levelLimit = topicSettingService.getLimitForLevel(query.targetLevelGroup || userCefr);
-    const limit = query.limit || Math.max(levelLimit, preferredCourseIds.length);
+    const limit = query.limit || levelLimit;
     const page = query.page || 1;
     const totalItems = scoredCourses.length;
     const totalPages = Math.ceil(totalItems / limit) || 1;

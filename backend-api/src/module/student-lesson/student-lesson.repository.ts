@@ -8,8 +8,9 @@ export class StudentLessonRepository {
    */
   @logExecution()
   async findCourses(filter: GetStudentCoursesQueryInput) {
-    const { page, limit, search, cefrLevel } = filter;
-    const skip = (page - 1) * limit;
+    const { page = 1, limit, search, cefrLevel } = filter;
+    const safeLimit = limit || 10;
+    const skip = (page - 1) * safeLimit;
 
     const whereCondition: any = {};
 
@@ -29,7 +30,7 @@ export class StudentLessonRepository {
       prisma.topic.findMany({
         where: whereCondition,
         skip,
-        take: limit,
+        take: safeLimit,
         orderBy: { id: "asc" },
         include: {
           lessons: {

@@ -94,8 +94,15 @@ export default function LoginScreen() {
 
   const handleAuth = async () => {
     setErrorMsg('');
-    if (!identifier || !password) {
+    const trimmedIdentifier = identifier.trim();
+    if (!trimmedIdentifier || !password) {
       setErrorMsg('Vui lòng nhập đầy đủ thông tin!');
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmedIdentifier)) {
+      setErrorMsg('Email không đúng định dạng (ví dụ: example@gmail.com)!');
       return;
     }
     
@@ -104,7 +111,7 @@ export default function LoginScreen() {
       const deviceInfo = Platform.OS;
       
       const res = await axiosClient.post('/auth/login', {
-        identifier: identifier,
+        identifier: trimmedIdentifier,
         password,
         deviceInfo
       });

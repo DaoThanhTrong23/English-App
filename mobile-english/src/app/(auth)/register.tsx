@@ -86,6 +86,7 @@ export default function RegisterScreen() {
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(cleanMail)) {
+      setEmailError('Email không đúng định dạng (ví dụ: example@gmail.com)');
       setIsEmailValid(false);
       return;
     }

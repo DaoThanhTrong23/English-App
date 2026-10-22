@@ -8,7 +8,7 @@ export const CEFR_LEVELS = ["A1", "A2", "B1", "B2", "C1", "C2"] as const;
 export const GetStudentCoursesQuerySchema = z.object({
   query: z.object({
     page: z.coerce.number().int().min(1, "Page phải lớn hơn 0").default(1),
-    limit: z.coerce.number().int().min(1).max(50, "Limit tối đa 50").default(10),
+    limit: z.coerce.number().int().min(1).max(50, "Limit tối đa 50").optional(),
     search: z.string().trim().optional(),
     targetLevelGroup: z.string().optional(),
     cefrLevel: z.enum(CEFR_LEVELS, {
