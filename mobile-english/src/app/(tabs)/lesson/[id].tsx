@@ -14,6 +14,8 @@ export default function LessonScreen() {
   const { isDark, theme } = useAppTheme();
   const [lesson, setLesson] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [showAllWords, setShowAllWords] = useState(false);
+  const [savingWordId, setSavingWordId] = useState<number | null>(null);
 
   useFocusEffect(useCallback(() => { fetchLessonDetail(); }, [id]));
 
@@ -94,8 +96,6 @@ export default function LessonScreen() {
   }
 
   const words = lesson.words || [];
-  const [showAllWords, setShowAllWords] = useState(false);
-  const [savingWordId, setSavingWordId] = useState<number | null>(null);
 
   const handleToggleBookmark = async (wordId: number) => {
     try {
