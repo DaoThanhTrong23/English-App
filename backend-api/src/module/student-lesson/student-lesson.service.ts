@@ -273,6 +273,22 @@ export class StudentLessonService {
       throw new ApiError(404, "course_not_found", "Không tìm thấy khóa học yêu cầu");
     }
 
+    // Tự động ghi nhận chủ đề vào preferredTopics nếu chưa có
+    try {
+      const user = await prisma.user.findUnique({ where: { id: userId }, select: { preferredTopics: true } });
+      if (user) {
+        const preferredIds = user.preferredTopics
+          ? user.preferredTopics.split(',').map((s: string) => parseInt(s.trim(), 10)).filter((n: number) => !isNaN(n))
+          : [];
+        if (!preferredIds.includes(courseId)) {
+          await prisma.user.update({
+            where: { id: userId },
+            data: { preferredTopics: [...preferredIds, courseId].join(',') }
+          });
+        }
+      }
+    } catch (_) {}
+
     // Lấy thông tin bài học và trạng thái hoàn thành dựa trên kết quả test thực tế
     const lessonIds = course.lessons.map(l => l.id);
     const testsInCourse = await prisma.test.findMany({
@@ -385,6 +401,25 @@ export class StudentLessonService {
         "Không tìm thấy bài học hoặc bài học đã bị gỡ bỏ"
       );
     }
+
+    // Tự động ghi nhận chủ đề của bài học vào preferredTopics nếu chưa có
+    try {
+      const topicId = (lesson as any).topic?.id || (lesson as any).topicId;
+      if (topicId) {
+        const user = await prisma.user.findUnique({ where: { id: userId }, select: { preferredTopics: true } });
+        if (user) {
+          const preferredIds = user.preferredTopics
+            ? user.preferredTopics.split(',').map((s: string) => parseInt(s.trim(), 10)).filter((n: number) => !isNaN(n))
+            : [];
+          if (!preferredIds.includes(topicId)) {
+            await prisma.user.update({
+              where: { id: userId },
+              data: { preferredTopics: [...preferredIds, topicId].join(',') }
+            });
+          }
+        }
+      }
+    } catch (_) {}
 
     // 1. Trích xuất danh sách wordIds và testIds của bài học
     const wordIds = lesson.lessonWords.map((lw) => lw.wordId);

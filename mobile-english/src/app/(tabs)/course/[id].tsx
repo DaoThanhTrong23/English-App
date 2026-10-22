@@ -45,6 +45,8 @@ export default function CourseDetailScreen() {
       if (res.data?.success) {
         setCourseData(res.data.data);
       }
+      // Tự động đăng ký chủ đề vào danh sách học chính nếu chưa có
+      await axiosClient.post(`/student/courses/${id}/enroll`).catch(() => {});
     } catch (error) {
       console.error("Error fetching course detail:", error);
     } finally {

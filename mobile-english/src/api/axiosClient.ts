@@ -52,8 +52,12 @@ axiosClient.interceptors.response.use(
       originalRequest?.url?.includes('/auth/login') ||
       originalRequest?.url?.includes('/auth/register');
 
-    // Xử lý lập tức khi phát hiện tài khoản bị Admin khóa (403 account_locked)
     const errorData = error.response?.data;
+    if (error.response?.status) {
+      console.warn(`[Axios Error ${error.response.status}] ${originalRequest?.method?.toUpperCase()} ${originalRequest?.url}:`, errorData?.message || errorData?.error?.message || error.message);
+    }
+
+    // Xử lý lập tức khi phát hiện tài khoản bị Admin khóa (403 account_locked)
     const isLockedError =
       error.response?.status === 403 &&
       (errorData?.error?.code === 'account_locked' ||

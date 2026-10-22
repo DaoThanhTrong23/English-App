@@ -76,6 +76,11 @@ export default function PracticeScreen() {
             }
             if (!targetTest) targetTest = lesson.tests[0];
 
+            const topicId = lesson.topicId || lesson.topic?.id;
+            if (topicId) {
+              await axiosClient.post(`/student/courses/${topicId}/enroll`).catch(() => {});
+            }
+
             setTestId(targetTest.id);
             const testRes = await axiosClient.get(`/student/tests/${targetTest.id}`);
             if (testRes.data?.success) {
@@ -83,9 +88,10 @@ export default function PracticeScreen() {
             }
           }
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error(error);
-        Alert.alert("Lỗi", "Không thể tải dữ liệu bài học");
+        const errMsg = error.response?.data?.message || error.response?.data?.error?.message || "Không thể tải dữ liệu bài học";
+        Alert.alert("Thông báo", errMsg);
       } finally {
         setLoading(false);
       }
