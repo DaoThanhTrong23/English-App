@@ -7,7 +7,7 @@ export class NotificationService {
   async notifyAdmins(title: string, body: string) {
     try {
       const admins = await prisma.user.findMany({
-        where: { role: 'admin' },
+        where: { role: { name: 'admin' } },
         select: { id: true }
       });
       if (!admins || admins.length === 0) return;
@@ -41,7 +41,7 @@ export class NotificationService {
     });
 
     // Nếu là Admin và chưa có thông báo nào, tự động backfill từ các sự kiện hệ thống gần đây
-    if (user?.role === 'admin' && notifications.length === 0) {
+    if (user?.role?.name === 'admin' && notifications.length === 0) {
       await this.backfillAdminNotifications(userId);
       notifications = await prisma.notification.findMany({
         where: { userId },
@@ -66,7 +66,7 @@ export class NotificationService {
   private async backfillAdminNotifications(adminUserId: number) {
     try {
       const recentStudents = await prisma.user.findMany({
-        where: { role: 'user' },
+        where: { role: { name: 'user' } },
         orderBy: { createdAt: 'desc' },
         take: 3
       });

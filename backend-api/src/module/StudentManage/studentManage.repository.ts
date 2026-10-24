@@ -11,7 +11,7 @@ export class StudentManageRepository {
     const skip = (page - 1) * limit;
 
     const whereCondition: any = {
-      role: "user"
+      role: { name: "user" }
     };
 
     if (search) {
@@ -78,12 +78,12 @@ export class StudentManageRepository {
   @logExecution()
   async findStudentDetailById(userId: number) {
     return prisma.user.findFirst({
-      where: { id: userId, role: "user" },
+      where: { id: userId, role: { name: "user" } },
       select: {
         id: true,
         username: true,
         email: true,
-        role: true,
+        role: { select: { name: true } },
         avatarUrl: true,
         xpPoints: true,
         isLocked: true,
@@ -132,7 +132,7 @@ export class StudentManageRepository {
   async countStudent(){
     return prisma.user.count({
       where: {
-        role: "user",
+        role: { name: "user" },
       },
     });
   }
@@ -161,7 +161,7 @@ export class StudentManageRepository {
 
   async getTopStudents(limit: number = 5) {
     return prisma.user.findMany({
-      where: { role: 'user' },
+      where: { role: { name: 'user' } },
       orderBy: [
         { xpPoints: 'desc' }
       ],

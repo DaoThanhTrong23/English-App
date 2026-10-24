@@ -3,11 +3,14 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { Authenticate, AuthenticateRequest } from "../../middleware/authenticate.middleware.js";
+import { requirePermission } from "../../middleware/authorize.middleware.js";
+import { PermissionName } from "../../generated/prisma/index.js";
 import { prisma } from "../../config/prisma.js";
 import { asyncHandler } from "../../shared/http/async-handler.js";
 
 import { studentLessonRepository } from "../student-lesson/student-lesson.repository.js";
 import { BcryptCompare } from "../../utils/hash.js";
+import { permissionService } from "../permission/permission.service.js";
 
 // Đảm bảo thư mục uploads/avatars tồn tại
 const uploadDir = path.join(process.cwd(), "uploads", "avatars");
@@ -30,7 +33,7 @@ export const profileRouter = Router();
 
 profileRouter.use(Authenticate);
 
-profileRouter.get("/me", asyncHandler(async (req: AuthenticateRequest, res) => {
+profileRouter.get("/me", requirePermission(PermissionName.READ_PROFILE), asyncHandler(async (req: AuthenticateRequest, res) => {
   const userId = req.user?.userId;
   if (!userId) {
     return res.status(401).json({ success: false, message: "Unauthorized" });
@@ -63,10 +66,18 @@ profileRouter.get("/me", asyncHandler(async (req: AuthenticateRequest, res) => {
     studentLessonRepository.calculateUserStreak(userId)
   ]);
 
+  const roleName = (user.role as any)?.name || 'user';
+  const isAdmin = roleName.toLowerCase() === 'admin';
+  const permissions = isAdmin
+    ? Object.values(PermissionName)
+    : await permissionService.getUserPermissions(userId);
+
   res.status(200).json({ 
     success: true, 
     data: {
       ...user,
+      role: roleName,
+      permissions,
       masteredWordsCount,
       learningWordsCount,
       totalSavedWordsCount,
@@ -78,7 +89,7 @@ profileRouter.get("/me", asyncHandler(async (req: AuthenticateRequest, res) => {
 }));
 
 
-profileRouter.put("/update", upload.single("avatar"), asyncHandler(async (req: AuthenticateRequest, res) => {
+profileRouter.put("/update", requirePermission(PermissionName.UPDATE_PROFILE), upload.single("avatar"), asyncHandler(async (req: AuthenticateRequest, res) => {
   const userId = req.user?.userId;
   const { username } = req.body;
   
@@ -110,7 +121,7 @@ profileRouter.put("/update", upload.single("avatar"), asyncHandler(async (req: A
 }));
 
 
-profileRouter.get("/history", asyncHandler(async (req: any, res) => {
+profileRouter.get("/history", requirePermission(PermissionName.READ_PROFILE_HISTORY), asyncHandler(async (req: any, res) => {
   const userId = req.user?.userId;
   if (!userId) return res.status(401).json({ success: false, message: "Unauthorized" });
 
@@ -151,7 +162,7 @@ profileRouter.get("/history", asyncHandler(async (req: any, res) => {
   });
 }));
 
-profileRouter.get("/achievements", asyncHandler(async (req: any, res) => {
+profileRouter.get("/achievements", requirePermission(PermissionName.READ_PROFILE_ACHIEVEMENTS), asyncHandler(async (req: any, res) => {
   const userId = req.user?.userId;
   if (!userId) return res.status(401).json({ success: false, message: "Unauthorized" });
 
@@ -195,7 +206,7 @@ profileRouter.get("/achievements", asyncHandler(async (req: any, res) => {
   });
 }));
 
-profileRouter.get("/saved-words", asyncHandler(async (req: any, res) => {
+profileRouter.get("/saved-words", requirePermission(PermissionName.READ_PROFILE_SAVED_WORDS), asyncHandler(async (req: any, res) => {
   const userId = req.user?.userId;
   const savedWords = await prisma.userProgress.findMany({
     where: { userId },
@@ -209,7 +220,7 @@ profileRouter.get("/saved-words", asyncHandler(async (req: any, res) => {
 
 
 // Khóa tài khoản: Yêu cầu người dùng xác nhận bằng mật khẩu
-profileRouter.post("/lock-account", Authenticate, asyncHandler(async (req: AuthenticateRequest, res) => {
+profileRouter.post("/lock-account", requirePermission(PermissionName.UPDATE_PROFILE_LOCK), asyncHandler(async (req: AuthenticateRequest, res) => {
   const userId = req.user?.userId;
   const { password } = req.body;
 
@@ -249,7 +260,7 @@ profileRouter.post("/lock-account", Authenticate, asyncHandler(async (req: Authe
 }));
 
 // Compliance: Xóa tài khoản (GDPR / App Store Policy)
-profileRouter.delete("/delete-account", Authenticate, asyncHandler(async (req: AuthenticateRequest, res) => {
+profileRouter.delete("/delete-account", requirePermission(PermissionName.DELETE_PROFILE_ACCOUNT), asyncHandler(async (req: AuthenticateRequest, res) => {
   const userId = req.user?.userId;
   if (!userId) return res.status(401).json({ success: false, message: "Unauthorized" });
 

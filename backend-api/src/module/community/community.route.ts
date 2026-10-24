@@ -3,6 +3,8 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { Authenticate } from "../../middleware/authenticate.middleware.js";
+import { requirePermission } from "../../middleware/authorize.middleware.js";
+import { PermissionName } from "../../generated/prisma/index.js";
 import { asyncHandler } from "../../shared/http/async-handler.js";
 import { communityService } from "./community.service.js";
 
@@ -33,6 +35,7 @@ communityRouter.use(Authenticate);
 
 communityRouter.get(
   "/posts",
+  requirePermission(PermissionName.READ_COMMUNITY_POST_LIST),
   asyncHandler(async (req: any, res) => {
     const userId = Number(req.user?.userId);
     const page = Number(req.query.page) || 1;
@@ -49,6 +52,7 @@ communityRouter.get(
 
 communityRouter.post(
   "/posts",
+  requirePermission(PermissionName.CREATE_COMMUNITY_POST),
   upload.single("image"),
   asyncHandler(async (req: any, res) => {
     const userId = Number(req.user?.userId);
@@ -75,6 +79,7 @@ communityRouter.post(
 
 communityRouter.post(
   "/posts/:id/like",
+  requirePermission(PermissionName.UPDATE_COMMUNITY_POST_LIKE),
   asyncHandler(async (req: any, res) => {
     const userId = Number(req.user?.userId);
     const postId = Number(req.params.id);
@@ -85,6 +90,7 @@ communityRouter.post(
 
 communityRouter.get(
   "/posts/:id/comments",
+  requirePermission(PermissionName.READ_COMMUNITY_COMMENTS),
   asyncHandler(async (req, res) => {
     const postId = Number(req.params.id);
     const result = await communityService.getComments(postId);
@@ -94,6 +100,7 @@ communityRouter.get(
 
 communityRouter.post(
   "/posts/:id/comments",
+  requirePermission(PermissionName.CREATE_COMMUNITY_COMMENT),
   asyncHandler(async (req: any, res) => {
     const userId = Number(req.user?.userId);
     const postId = Number(req.params.id);
@@ -107,6 +114,7 @@ communityRouter.post(
 
 communityRouter.put(
   "/posts/:id",
+  requirePermission(PermissionName.UPDATE_COMMUNITY_POST),
   upload.single("image"),
   asyncHandler(async (req: any, res) => {
     const userId = Number(req.user?.userId);
@@ -140,6 +148,7 @@ communityRouter.put(
 
 communityRouter.patch(
   "/posts/:id/privacy",
+  requirePermission(PermissionName.UPDATE_COMMUNITY_POST_PRIVACY),
   asyncHandler(async (req: any, res) => {
     const userId = Number(req.user?.userId);
     const postId = Number(req.params.id);
@@ -151,6 +160,7 @@ communityRouter.patch(
 
 communityRouter.delete(
   "/posts/:id",
+  requirePermission(PermissionName.DELETE_COMMUNITY_POST),
   asyncHandler(async (req: any, res) => {
     const userId = Number(req.user?.userId);
     const postId = Number(req.params.id);

@@ -6,7 +6,7 @@ export class LeaderboardService {
 
     // Top users by XP (chỉ hiển thị tài khoản học viên hợp lệ, loại trừ tài khoản bị khóa isLocked = true)
     const topUsers = await prisma.user.findMany({
-      where: { role: 'user', isLocked: false },
+      where: { role: { name: 'user' }, isLocked: false },
       orderBy: { xpPoints: 'desc' },
       take: safeLimit,
       select: {
@@ -29,7 +29,7 @@ export class LeaderboardService {
     if (currentUser && !currentUser.isLocked) {
       const higherXpCount = await prisma.user.count({
         where: {
-          role: 'user',
+          role: { name: 'user' },
           isLocked: false,
           xpPoints: { gt: currentUser.xpPoints }
         }

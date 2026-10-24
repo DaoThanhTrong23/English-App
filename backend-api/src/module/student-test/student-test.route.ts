@@ -1,5 +1,7 @@
 import { Router } from "express";
 import { Authenticate } from "../../middleware/authenticate.middleware.js";
+import { requirePermission } from "../../middleware/authorize.middleware.js";
+import { PermissionName } from "../../generated/prisma/index.js";
 import { asyncHandler } from "../../shared/http/async-handler.js";
 import { studentTestService } from "./student-test.service.js";
 
@@ -9,6 +11,7 @@ studentTestRouter.use(Authenticate);
 
 studentTestRouter.get(
   "/:id",
+  requirePermission(PermissionName.READ_STUDENT_TEST_DETAIL),
   asyncHandler(async (req: any, res) => {
     const userId = Number(req.user?.userId);
     const testId = Number(req.params.id);
@@ -23,6 +26,7 @@ studentTestRouter.get(
 
 studentTestRouter.post(
   "/:id/submit",
+  requirePermission(PermissionName.CREATE_STUDENT_TEST_SUBMISSION),
   asyncHandler(async (req: any, res) => {
     const userId = Number(req.user?.userId);
     const testId = Number(req.params.id);

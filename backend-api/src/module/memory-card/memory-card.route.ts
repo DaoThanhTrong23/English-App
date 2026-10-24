@@ -1,5 +1,7 @@
 import { Router, Response } from "express";
 import { Authenticate, AuthenticateRequest } from "../../middleware/authenticate.middleware.js";
+import { requirePermission } from "../../middleware/authorize.middleware.js";
+import { PermissionName } from "../../generated/prisma/index.js";
 import { validate } from "../../middleware/validate.middleware.js";
 import { asyncHandler } from "../../shared/http/async-handler.js";
 import {
@@ -15,6 +17,7 @@ const router = Router();
 router.get(
   "/start",
   Authenticate,
+  requirePermission(PermissionName.READ_MEMORY_CARD_GAME),
   validate(StartMemoryGameSchema),
   asyncHandler(async (req: AuthenticateRequest, res: Response) => {
     const userId = Number(req.user?.userId);
@@ -31,6 +34,7 @@ router.get(
 router.post(
   "/progress",
   Authenticate,
+  requirePermission(PermissionName.UPDATE_MEMORY_CARD_PROGRESS),
   validate(SaveProgressSchema),
   asyncHandler(async (req: AuthenticateRequest, res: Response) => {
     const userId = Number(req.user?.userId);
@@ -47,6 +51,7 @@ router.post(
 router.post(
   "/finish",
   Authenticate,
+  requirePermission(PermissionName.CREATE_MEMORY_CARD_RESULT),
   validate(FinishMemoryGameSchema),
   asyncHandler(async (req: AuthenticateRequest, res: Response) => {
     const userId = Number(req.user?.userId);

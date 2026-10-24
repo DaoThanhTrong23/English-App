@@ -1,5 +1,7 @@
 import { Router } from "express";
 import { Authenticate } from "../../middleware/authenticate.middleware.js";
+import { requirePermission } from "../../middleware/authorize.middleware.js";
+import { PermissionName } from "../../generated/prisma/index.js";
 import { asyncHandler } from "../../shared/http/async-handler.js";
 import { onboardingService } from "./onboarding.service.js";
 import { ApiError } from "../../shared/http/api-error.js";
@@ -10,6 +12,7 @@ const router = Router();
 router.get(
   "/placement-test",
   Authenticate,
+  requirePermission(PermissionName.READ_ONBOARDING),
   asyncHandler(async (req: any, res) => {
     const questions = await onboardingService.getPlacementQuestions();
     res.status(200).json({ success: true, data: questions });
@@ -20,6 +23,7 @@ router.get(
 router.post(
   "/submit",
   Authenticate,
+  requirePermission(PermissionName.UPDATE_ONBOARDING),
   asyncHandler(async (req: any, res) => {
     const userId = req.user.userId;
     const { job, interests, answers } = req.body;
@@ -37,11 +41,11 @@ router.post(
   })
 );
 
-
 // POST: Check progress for early stopping
 router.post(
   "/check-progress",
   Authenticate,
+  requirePermission(PermissionName.READ_ONBOARDING),
   asyncHandler(async (req: any, res) => {
     const { answers } = req.body;
     if (!answers || !Array.isArray(answers)) {
@@ -53,4 +57,3 @@ router.post(
 );
 
 export const onboardingRouter = router;
-

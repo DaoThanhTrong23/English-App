@@ -150,7 +150,7 @@ export class StudentManageService {
   @logExecution()
   async updateStudentLockStatus(studentId: number, isLocked: boolean) {
     const student = await prisma.user.findFirst({
-      where: { id: studentId, role: "user" },
+      where: { id: studentId, role: { name: "user" } },
     });
     if (!student) {
       throw new ApiError(404, "student_not_found", "Không tìm thấy học viên");

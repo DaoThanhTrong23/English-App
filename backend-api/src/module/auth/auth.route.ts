@@ -6,6 +6,8 @@ import { GoogleLoginSchema, FacebookLoginSchema } from './auth.schema.js';
 import { asyncHandler } from "../../shared/http/async-handler.js";
 import { authService } from "./auth.service.js";
 import { Authenticate, AuthenticateRequest } from "../../middleware/authenticate.middleware.js";
+import { requirePermission } from "../../middleware/authorize.middleware.js";
+import { PermissionName } from "../../generated/prisma/index.js";
 const Authrouter = Router();
 
 const extractBearerToken = (req: Request): string | undefined => {
@@ -82,7 +84,7 @@ Authrouter.post("/refresh", validate(RefreshTokenSChema), asyncHandler(async (re
 }));
 
 // Thêm authentica cho logout vì bắt buộc phải đăng nhập mới được logout
-Authrouter.post("/logout", Authenticate, validate(LogoutSchema), asyncHandler(async (req: AuthenticateRequest, res) => {
+Authrouter.post("/logout", Authenticate, requirePermission(PermissionName.DELETE_AUTH_LOGOUT), validate(LogoutSchema), asyncHandler(async (req: AuthenticateRequest, res) => {
     const accessToken = extractBearerToken(req);
     const userId = req.user?.userId;
     const result = await authService.logout(req.body.refreshToken, accessToken, userId);
@@ -92,7 +94,7 @@ Authrouter.post("/logout", Authenticate, validate(LogoutSchema), asyncHandler(as
     });
 }));
 
-Authrouter.post("/change-password", Authenticate, validate(ChangePasswordSchema), asyncHandler(async (req: AuthenticateRequest, res: Response) => {
+Authrouter.post("/change-password", Authenticate, requirePermission(PermissionName.UPDATE_AUTH_PASSWORD), validate(ChangePasswordSchema), asyncHandler(async (req: AuthenticateRequest, res: Response) => {
     const userId = req.user?.userId;
     if (!userId) {
         return res.status(401).json({ success: false, message: "Không xác định được người dùng" });

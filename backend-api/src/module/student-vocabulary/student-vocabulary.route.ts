@@ -1,5 +1,7 @@
 import { Router } from "express";
 import { Authenticate, AuthenticateRequest } from "../../middleware/authenticate.middleware.js";
+import { requirePermission } from "../../middleware/authorize.middleware.js";
+import { PermissionName } from "../../generated/prisma/index.js";
 import { validate } from "../../middleware/validate.middleware.js";
 import { asyncHandler } from "../../shared/http/async-handler.js";
 import {
@@ -20,6 +22,7 @@ router.use(Authenticate);
  */
 router.get(
   "/",
+  requirePermission(PermissionName.READ_STUDENT_VOCABULARY_LIST),
   validate(GetStudentVocabularyQuerySchema),
   asyncHandler(async (req: AuthenticateRequest, res) => {
     const userId = Number(req.user?.userId);
@@ -34,10 +37,10 @@ router.get(
 
 /**
  * GET /reviews/due - Lấy danh sách từ vựng đến hạn ôn tập (Spaced Repetition)
- * Đặt trước /:id để tránh Express coi 'reviews' là :id
  */
 router.get(
   "/reviews/due",
+  requirePermission(PermissionName.READ_STUDENT_VOCABULARY_REVIEW),
   asyncHandler(async (req: AuthenticateRequest, res) => {
     const userId = Number(req.user?.userId);
     const result = await studentVocabularyService.getDueReviews(userId);
@@ -50,6 +53,7 @@ router.get(
  */
 router.post(
   "/reviews",
+  requirePermission(PermissionName.CREATE_STUDENT_VOCABULARY_REVIEW),
   asyncHandler(async (req: AuthenticateRequest, res) => {
     const userId = Number(req.user?.userId);
     const { wordId, isCorrect } = req.body;
@@ -66,6 +70,7 @@ router.post(
  */
 router.post(
   "/",
+  requirePermission(PermissionName.CREATE_STUDENT_VOCABULARY),
   validate(AddStudentVocabularySchema),
   asyncHandler(async (req: AuthenticateRequest, res) => {
     const userId = Number(req.user?.userId);
@@ -83,6 +88,7 @@ router.post(
  */
 router.post(
   "/toggle",
+  requirePermission(PermissionName.CREATE_STUDENT_VOCABULARY),
   asyncHandler(async (req: AuthenticateRequest, res) => {
     const userId = Number(req.user?.userId);
     const wordId = Number(req.body.wordId);
@@ -103,6 +109,7 @@ router.post(
  */
 router.get(
   "/:id",
+  requirePermission(PermissionName.READ_STUDENT_VOCABULARY_LIST),
   validate(StudentVocabularyIdParamSchema),
   asyncHandler(async (req: AuthenticateRequest, res) => {
     const userId = Number(req.user?.userId);
@@ -121,6 +128,7 @@ router.get(
  */
 router.put(
   "/:id",
+  requirePermission(PermissionName.UPDATE_STUDENT_VOCABULARY_STATUS),
   validate(UpdateStudentVocabularySchema),
   asyncHandler(async (req: AuthenticateRequest, res) => {
     const userId = Number(req.user?.userId);
@@ -139,6 +147,7 @@ router.put(
  */
 router.delete(
   "/:id",
+  requirePermission(PermissionName.DELETE_STUDENT_VOCABULARY),
   validate(StudentVocabularyIdParamSchema),
   asyncHandler(async (req: AuthenticateRequest, res) => {
     const userId = Number(req.user?.userId);
@@ -151,8 +160,6 @@ router.delete(
     });
   })
 );
-
-
 
 export const studentVocabularyRouter = router;
 export default router;

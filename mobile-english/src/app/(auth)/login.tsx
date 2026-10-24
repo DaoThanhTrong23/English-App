@@ -17,7 +17,7 @@ export default function LoginScreen() {
   const { isDark, theme } = useAppTheme();
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
-  
+
   const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -69,11 +69,11 @@ export default function LoginScreen() {
           const avatar = user.avatarUrl.startsWith('http') ? user.avatarUrl : baseURL + user.avatarUrl;
           await SecureStore.setItemAsync('userAvatar', avatar);
         } else {
-          await SecureStore.deleteItemAsync('userAvatar').catch(() => {});
+          await SecureStore.deleteItemAsync('userAvatar').catch(() => { });
         }
       }
 
-      
+
       if (user && user.onboardingCompleted === false) {
         /* @ts-ignore */
         router.replace('/onboarding');
@@ -105,26 +105,26 @@ export default function LoginScreen() {
       setErrorMsg('Email không đúng định dạng (ví dụ: example@gmail.com)!');
       return;
     }
-    
+
 
     try {
       const deviceInfo = Platform.OS;
-      
+
       const res = await axiosClient.post('/auth/login', {
         identifier: trimmedIdentifier,
         password,
         deviceInfo
       });
-      
-      
+
+
       const { accessToken, refreshToken, user } = res.data.data?.token ? { accessToken: res.data.data.token.accessToken, refreshToken: res.data.data.token.refreshToken, user: res.data.data.user } : res.data.data;
-      
+
       if (!accessToken) {
         setErrorMsg('Lỗi từ Server: Không trả về Token đăng nhập.');
         return;
       }
 
-      if (user?.role === 'admin') {
+      if (user?.role !== 'user') {
         setErrorMsg('Tài khoản Admin không được phép đăng nhập trên thiết bị di động!');
         return;
       }
@@ -138,11 +138,11 @@ export default function LoginScreen() {
           const avatar = user.avatarUrl.startsWith('http') ? user.avatarUrl : baseURL + user.avatarUrl;
           await SecureStore.setItemAsync('userAvatar', avatar);
         } else {
-          await SecureStore.deleteItemAsync('userAvatar').catch(() => {});
+          await SecureStore.deleteItemAsync('userAvatar').catch(() => { });
         }
       }
 
-      
+
       if (user && user.onboardingCompleted === false) {
         /* @ts-ignore */
         router.replace('/onboarding');
@@ -227,7 +227,7 @@ export default function LoginScreen() {
 
           <View style={styles.socialButtonsContainer}>
             <TouchableOpacity style={[styles.socialButton, { backgroundColor: theme.card, borderColor: theme.border }]} onPress={() => gPromptAsync()} disabled={!gRequest}>
-              <Image source={{uri: 'https://cdn-icons-png.flaticon.com/512/2991/2991148.png'}} style={styles.socialIcon} />
+              <Image source={{ uri: 'https://cdn-icons-png.flaticon.com/512/2991/2991148.png' }} style={styles.socialIcon} />
             </TouchableOpacity>
             <TouchableOpacity style={[styles.socialButton, { backgroundColor: theme.card, borderColor: theme.border }]} onPress={() => Alert.alert('Đang phát triển', 'Chức năng đăng nhập Apple đang được tích hợp.')}>
               <Ionicons name="logo-apple" size={24} color={theme.text} />

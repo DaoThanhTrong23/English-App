@@ -34,19 +34,27 @@ export const Authenticate = async (req: AuthenticateRequest, res: Response, _nex
             return _next(new ApiError(401, 'token_revoked', 'Access Token này đã bị thu hồi/đăng xuất. Vui lòng đăng nhập lại'));
         }
 
-        // Khóa tài khoản: Chặn ngay lập tức nếu tài khoản bị Admin khóa
+        // Khóa tài khoản & đồng bộ vai trò mới nhất từ DB
         const userId = Number(decoded?.userId);
         if (userId) {
             const user = await prisma.user.findUnique({
                 where: { id: userId },
-                select: { isLocked: true }
+                include: { role: true }
             });
-            if (user?.isLocked) {
+            if (!user) {
+                return _next(new ApiError(401, 'user_not_found', 'Tài khoản người dùng không tồn tại'));
+            }
+            if (user.isLocked) {
                 return _next(new ApiError(403, 'account_locked', 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ Quản trị viên!'));
             }
+            req.user = {
+                ...decoded,
+                userId: user.id,
+                role: user.role?.name || "user"
+            };
+        } else {
+            req.user = decoded;
         }
-
-        req.user = decoded;
         return _next();
     } catch (error: any) {
         if (error instanceof ApiError) return _next(error);

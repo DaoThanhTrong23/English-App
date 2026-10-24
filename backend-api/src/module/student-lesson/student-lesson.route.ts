@@ -1,5 +1,7 @@
 import { Router } from "express";
 import { Authenticate, AuthenticateRequest } from "../../middleware/authenticate.middleware.js";
+import { requirePermission } from "../../middleware/authorize.middleware.js";
+import { PermissionName } from "../../generated/prisma/index.js";
 import { validate } from "../../middleware/validate.middleware.js";
 import { asyncHandler } from "../../shared/http/async-handler.js";
 import {
@@ -22,6 +24,7 @@ studentCourseRouter.use(Authenticate);
  */
 studentCourseRouter.get(
   "/",
+  requirePermission(PermissionName.READ_STUDENT_COURSE_LIST),
   validate(GetStudentCoursesQuerySchema),
   asyncHandler(async (req: AuthenticateRequest, res) => {
     const userId = Number(req.user?.userId);
@@ -39,6 +42,7 @@ studentCourseRouter.get(
  */
 studentCourseRouter.get(
   "/levels-progress",
+  requirePermission(PermissionName.READ_STUDENT_COURSE_LIST),
   asyncHandler(async (req: AuthenticateRequest, res) => {
     const userId = Number(req.user?.userId);
     const result = await studentLessonService.getLevelsProgress(userId);
@@ -55,6 +59,7 @@ studentCourseRouter.get(
  */
 studentCourseRouter.post(
   "/set-active-level",
+  requirePermission(PermissionName.UPDATE_STUDENT_LESSON_PROGRESS),
   asyncHandler(async (req: AuthenticateRequest, res) => {
     const userId = Number(req.user?.userId);
     const { level } = req.body;
@@ -72,6 +77,7 @@ studentCourseRouter.post(
  */
 studentCourseRouter.get(
   "/:courseId",
+  requirePermission(PermissionName.READ_STUDENT_COURSE_DETAIL),
   validate(StudentCourseIdParamSchema),
   asyncHandler(async (req: AuthenticateRequest, res) => {
     const userId = Number(req.user?.userId);
@@ -90,6 +96,7 @@ studentCourseRouter.get(
  */
 studentCourseRouter.post(
   "/:courseId/enroll",
+  requirePermission(PermissionName.UPDATE_STUDENT_LESSON_PROGRESS),
   validate(StudentCourseIdParamSchema),
   asyncHandler(async (req: AuthenticateRequest, res) => {
     const userId = Number(req.user?.userId);
@@ -108,6 +115,7 @@ studentCourseRouter.post(
  */
 studentCourseRouter.get(
   "/:courseId/lessons",
+  requirePermission(PermissionName.READ_STUDENT_COURSE_LESSONS),
   validate(StudentCourseIdParamSchema),
   asyncHandler(async (req: AuthenticateRequest, res) => {
     const userId = Number(req.user?.userId);
@@ -134,6 +142,7 @@ studentLessonRouter.use(Authenticate);
  */
 studentLessonRouter.get(
   "/:id",
+  requirePermission(PermissionName.READ_STUDENT_LESSON_DETAIL),
   validate(StudentLessonIdParamSchema),
   asyncHandler(async (req: AuthenticateRequest, res) => {
     const userId = Number(req.user?.userId);
@@ -152,6 +161,7 @@ studentLessonRouter.get(
  */
 studentLessonRouter.post(
   "/:id/complete",
+  requirePermission(PermissionName.UPDATE_STUDENT_LESSON_PROGRESS),
   validate(StudentLessonIdParamSchema),
   asyncHandler(async (req: AuthenticateRequest, res) => {
     const userId = Number(req.user?.userId);

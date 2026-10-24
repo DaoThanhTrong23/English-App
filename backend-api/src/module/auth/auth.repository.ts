@@ -11,49 +11,46 @@ export class AuthRepository {
                     { email: clean.toLowerCase() },
                     { username: clean }
                 ]
-            }
+            },
+            include: { role: true }
         });
     }
 
     @logExecution()
     async findUserByUsername(username: string) {
         return prisma.user.findFirst({
-            where: { username: username.trim() }
+            where: { username: username.trim() },
+            include: { role: true }
         });
     }
 
     @logExecution()
     async findUserByEmail(email: string) {
         return prisma.user.findFirst({
-            where: { email: email.trim().toLowerCase() }
+            where: { email: email.trim().toLowerCase() },
+            include: { role: true }
         });
     }
 
     @logExecution()
     async findUserById(id: number) {
         return prisma.user.findUnique({
-            where: { id }
+            where: { id },
+            include: { role: true }
         });
     }
 
     @logExecution()
-    async createUser(data: { username: string; email: string; passwordHash: string }) {
+    async createUser(data: { username: string; email: string; passwordHash: string; roleId?: number }) {
         return prisma.user.create({
             data: {
                 username: data.username.trim(),
                 passwordHash: data.passwordHash,
-                email: data.email.trim().toLowerCase()
+                email: data.email.trim().toLowerCase(),
+                roleId: data.roleId || 2
             },
-            select: {
-                id: true,
-                username: true,
-                email: true,
-                xpPoints: true,
-                role: true,
-                avatarUrl: true,
-                onboardingCompleted: true,
-                cefrLevel: true,
-                createdAt: true
+            include: {
+                role: true
             }
         });
     }
@@ -81,7 +78,11 @@ export class AuthRepository {
     async findRefreshTokenByHash(tokenHash: string) {
         return prisma.refreshToken.findUnique({
             where: { tokenHash },
-            include: { user: true }
+            include: {
+                user: {
+                    include: { role: true }
+                }
+            }
         });
     }
 

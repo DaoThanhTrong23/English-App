@@ -1,0 +1,432 @@
+-- ==============================================================================
+-- PRISMA MIGRATION: RBAC ROLES & PERMISSIONS SYSTEM
+-- ==============================================================================
+
+-- 1. CreateTable roles
+CREATE TABLE IF NOT EXISTS `roles` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `name` VARCHAR(50) NOT NULL,
+    `description` VARCHAR(255) NULL,
+    `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updated_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+
+    UNIQUE INDEX `roles_name_key`(`name`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- 2. CreateTable permissions
+CREATE TABLE IF NOT EXISTS `permissions` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `name` ENUM(
+        'DELETE_AUTH_LOGOUT',
+        'UPDATE_AUTH_PASSWORD',
+        'READ_PROFILE',
+        'UPDATE_PROFILE',
+        'READ_PROFILE_HISTORY',
+        'READ_PROFILE_ACHIEVEMENTS',
+        'READ_PROFILE_SAVED_WORDS',
+        'UPDATE_PROFILE_LOCK',
+        'DELETE_PROFILE_ACCOUNT',
+        'READ_STUDENT_LIST',
+        'READ_STUDENT_COUNT',
+        'READ_STUDENT_TOP',
+        'READ_STUDENT_DETAIL',
+        'READ_STUDENT_PROGRESS',
+        'READ_STUDENT_AI_CHAT',
+        'UPDATE_STUDENT_STATUS',
+        'READ_WORD_LIST',
+        'READ_WORD_COUNT',
+        'READ_WORD_DETAIL',
+        'CREATE_WORD',
+        'UPDATE_WORD',
+        'DELETE_WORD',
+        'CREATE_WORD_BULK',
+        'READ_WORD_EXPORT',
+        'READ_COURSE_LIST',
+        'READ_COURSE_COUNT',
+        'READ_COURSE_DETAIL',
+        'CREATE_COURSE',
+        'UPDATE_COURSE',
+        'DELETE_COURSE',
+        'UPDATE_COURSE_RESTORE',
+        'CREATE_COURSE_WORDS',
+        'DELETE_COURSE_WORDS',
+        'READ_TOPIC_LIST',
+        'READ_TOPIC_COUNT',
+        'READ_TOPIC_DETAIL',
+        'CREATE_TOPIC',
+        'UPDATE_TOPIC',
+        'DELETE_TOPIC',
+        'READ_TEST_LIST',
+        'READ_TEST_COUNT',
+        'READ_TEST_DETAIL',
+        'READ_TEST_STATS',
+        'CREATE_TEST',
+        'UPDATE_TEST',
+        'DELETE_TEST',
+        'CREATE_TEST_MEDIA',
+        'CREATE_TEST_QUESTION_IMPORT',
+        'READ_TEST_QUESTIONS',
+        'CREATE_TEST_QUESTION',
+        'UPDATE_TEST_QUESTION',
+        'DELETE_TEST_QUESTION',
+        'READ_TEST_RESULTS',
+        'READ_ACHIEVEMENT_LIST',
+        'READ_ACHIEVEMENT_DETAIL',
+        'CREATE_ACHIEVEMENT',
+        'UPDATE_ACHIEVEMENT',
+        'DELETE_ACHIEVEMENT',
+        'READ_ACTIVITY_LOG_LIST',
+        'READ_ACTIVITY_LOG_COUNT',
+        'READ_ACTIVITY_LOG_EXPORT',
+        'READ_DASHBOARD_STATS',
+        'READ_KEYWORD_SETTING_LIST',
+        'READ_KEYWORD_SETTING_DOWNLOAD',
+        'CREATE_KEYWORD_SETTING',
+        'UPDATE_KEYWORD_SETTING',
+        'DELETE_KEYWORD_SETTING',
+        'READ_TOPIC_SETTING_LIST',
+        'UPDATE_TOPIC_SETTING',
+        'READ_GAME_SETTING_LIST',
+        'UPDATE_GAME_SETTING',
+        'CREATE_ADMIN_NOTIFICATION',
+        'READ_AI_ADMIN_STATS',
+        'READ_AI_ADMIN_SESSIONS',
+        'READ_AI_ADMIN_SESSION_MESSAGES',
+        'DELETE_AI_ADMIN_SESSION',
+        'READ_STUDENT_VOCABULARY_LIST',
+        'READ_STUDENT_VOCABULARY_REVIEW',
+        'READ_STUDENT_VOCABULARY_STATS',
+        'CREATE_STUDENT_VOCABULARY',
+        'UPDATE_STUDENT_VOCABULARY_STATUS',
+        'CREATE_STUDENT_VOCABULARY_REVIEW',
+        'DELETE_STUDENT_VOCABULARY',
+        'UPDATE_STUDENT_VOCABULARY_SYNC',
+        'READ_STUDENT_COURSE_LIST',
+        'READ_STUDENT_COURSE_DETAIL',
+        'READ_STUDENT_COURSE_LESSONS',
+        'READ_STUDENT_LESSON_DETAIL',
+        'UPDATE_STUDENT_LESSON_PROGRESS',
+        'READ_STUDENT_TEST_DETAIL',
+        'CREATE_STUDENT_TEST_SUBMISSION',
+        'READ_STUDENT_TEST_HISTORY',
+        'READ_GAME_LIST',
+        'READ_GAME_HISTORY',
+        'READ_BUBBLE_GAME',
+        'UPDATE_BUBBLE_GAME_PROGRESS',
+        'CREATE_BUBBLE_GAME_RESULT',
+        'READ_MEMORY_CARD_GAME',
+        'UPDATE_MEMORY_CARD_PROGRESS',
+        'CREATE_MEMORY_CARD_RESULT',
+        'READ_WORD_MATCHING_GAME',
+        'UPDATE_WORD_MATCHING_PROGRESS',
+        'CREATE_WORD_MATCHING_RESULT',
+        'READ_MARIO_GAME',
+        'UPDATE_MARIO_GAME_PROGRESS',
+        'CREATE_MARIO_GAME_RESULT',
+        'CREATE_AI_ESSAY_GRADE',
+        'CREATE_AI_SPEAKING_GRADE',
+        'CREATE_AI_PRONUNCIATION',
+        'READ_AI_TTS',
+        'CREATE_AI_CHAT',
+        'READ_AI_CHAT_SESSIONS',
+        'READ_AI_CHAT_HISTORY',
+        'DELETE_AI_CHAT_SESSION',
+        'READ_COMMUNITY_POST_LIST',
+        'CREATE_COMMUNITY_POST',
+        'UPDATE_COMMUNITY_POST_LIKE',
+        'READ_COMMUNITY_COMMENTS',
+        'CREATE_COMMUNITY_COMMENT',
+        'UPDATE_COMMUNITY_POST',
+        'UPDATE_COMMUNITY_POST_PRIVACY',
+        'DELETE_COMMUNITY_POST',
+        'READ_LEADERBOARD',
+        'READ_QUEST_LIST',
+        'UPDATE_QUEST_CLAIM',
+        'READ_NOTIFICATION_LIST',
+        'UPDATE_NOTIFICATION_READ',
+        'UPDATE_NOTIFICATION_READ_ALL',
+        'DELETE_NOTIFICATION',
+        'DELETE_NOTIFICATION_ALL',
+        'READ_NOTIFICATION_PREFERRED_TIME',
+        'READ_ONBOARDING',
+        'UPDATE_ONBOARDING'
+    ) NOT NULL,
+    `description` VARCHAR(255) NULL,
+    `module` VARCHAR(50) NOT NULL,
+    `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    UNIQUE INDEX `permissions_name_key`(`name`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- 3. CreateTable _PermissionToRole
+CREATE TABLE IF NOT EXISTS `_PermissionToRole` (
+    `A` INTEGER NOT NULL,
+    `B` INTEGER NOT NULL,
+
+    UNIQUE INDEX `_PermissionToRole_AB_unique`(`A`, `B`),
+    INDEX `_PermissionToRole_B_index`(`B`),
+    CONSTRAINT `_PermissionToRole_A_fkey` FOREIGN KEY (`A`) REFERENCES `permissions`(`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT `_PermissionToRole_B_fkey` FOREIGN KEY (`B`) REFERENCES `roles`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- 4. Seed roles 'admin' (1) and 'user' (2)
+INSERT INTO `roles` (`id`, `name`, `description`)
+VALUES
+    (1, 'admin', 'Quản trị viên toàn quyền hệ thống'),
+    (2, 'user', 'Học viên / Người dùng hệ thống')
+ON DUPLICATE KEY UPDATE `description` = VALUES(`description`);
+
+-- 5. AlterTable users (add role_id if not exists)
+SET @col_exists := (SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'users' AND column_name = 'role_id');
+SET @sql := IF(@col_exists = 0, 'ALTER TABLE `users` ADD COLUMN `role_id` INT NOT NULL DEFAULT 2 AFTER `password_hash`', 'SELECT 1');
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+-- Migrate existing users if old 'role' column exists
+SET @has_old_role := (SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'users' AND column_name = 'role');
+SET @sql_update := IF(@has_old_role > 0, 'UPDATE `users` SET `role_id` = 1 WHERE `role` = \'admin\'', 'SELECT 1');
+PREPARE stmt_update FROM @sql_update;
+EXECUTE stmt_update;
+DEALLOCATE PREPARE stmt_update;
+
+-- Add foreign key constraint users_role_id_fkey if not exists
+SET @fk_exists := (SELECT COUNT(*) FROM information_schema.table_constraints WHERE table_schema = DATABASE() AND table_name = 'users' AND constraint_name = 'users_role_id_fkey');
+SET @sql_fk := IF(@fk_exists = 0, 'ALTER TABLE `users` ADD CONSTRAINT `users_role_id_fkey` FOREIGN KEY (`role_id`) REFERENCES `roles`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE', 'SELECT 1');
+PREPARE stmt_fk FROM @sql_fk;
+EXECUTE stmt_fk;
+DEALLOCATE PREPARE stmt_fk;
+
+-- Ensure required user columns exist
+SET @col_avatar := (SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'users' AND column_name = 'avatar_url');
+SET @sql_avatar := IF(@col_avatar = 0, 'ALTER TABLE `users` ADD COLUMN `avatar_url` TEXT NULL', 'SELECT 1');
+PREPARE stmt_avatar FROM @sql_avatar;
+EXECUTE stmt_avatar;
+DEALLOCATE PREPARE stmt_avatar;
+
+SET @col_locked := (SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'users' AND column_name = 'is_locked');
+SET @sql_locked := IF(@col_locked = 0, 'ALTER TABLE `users` ADD COLUMN `is_locked` BOOLEAN NOT NULL DEFAULT false', 'SELECT 1');
+PREPARE stmt_locked FROM @sql_locked;
+EXECUTE stmt_locked;
+DEALLOCATE PREPARE stmt_locked;
+
+SET @col_list := (SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'users' AND column_name = 'listening_elo');
+SET @sql_list := IF(@col_list = 0, 'ALTER TABLE `users` ADD COLUMN `listening_elo` INT NOT NULL DEFAULT 1200', 'SELECT 1');
+PREPARE stmt_list FROM @sql_list;
+EXECUTE stmt_list;
+DEALLOCATE PREPARE stmt_list;
+
+-- 6. Insert/Update all permissions
+INSERT INTO `permissions` (`name`, `description`, `module`) VALUES
+    ('DELETE_AUTH_LOGOUT', 'Đăng xuất khỏi hệ thống', 'auth'),
+    ('UPDATE_AUTH_PASSWORD', 'Thay đổi mật khẩu tài khoản', 'auth'),
+    ('READ_PROFILE', 'Xem thông tin hồ sơ cá nhân', 'profile'),
+    ('UPDATE_PROFILE', 'Cập nhật thông tin hồ sơ cá nhân', 'profile'),
+    ('READ_PROFILE_HISTORY', 'Xem lịch sử học tập cá nhân', 'profile'),
+    ('READ_PROFILE_ACHIEVEMENTS', 'Xem danh hiệu cá nhân', 'profile'),
+    ('READ_PROFILE_SAVED_WORDS', 'Xem từ vựng đã lưu cá nhân', 'profile'),
+    ('UPDATE_PROFILE_LOCK', 'Yêu cầu tự khóa tài khoản', 'profile'),
+    ('DELETE_PROFILE_ACCOUNT', 'Yêu cầu xóa tài khoản', 'profile'),
+    ('READ_STUDENT_LIST', 'Xem danh sách học viên', 'student_manage'),
+    ('READ_STUDENT_COUNT', 'Xem tổng số lượng học viên', 'student_manage'),
+    ('READ_STUDENT_TOP', 'Xem danh sách học viên tiêu biểu', 'student_manage'),
+    ('READ_STUDENT_DETAIL', 'Xem chi tiết thông tin học viên', 'student_manage'),
+    ('READ_STUDENT_PROGRESS', 'Xem tiến độ học tập của học viên', 'student_manage'),
+    ('READ_STUDENT_AI_CHAT', 'Xem lịch sử trò chuyện AI của học viên', 'student_manage'),
+    ('UPDATE_STUDENT_STATUS', 'Khóa hoặc mở khóa tài khoản học viên', 'student_manage'),
+    ('READ_WORD_LIST', 'Xem danh sách từ vựng', 'word'),
+    ('READ_WORD_COUNT', 'Xem tổng số từ vựng', 'word'),
+    ('READ_WORD_DETAIL', 'Xem chi tiết từ vựng', 'word'),
+    ('CREATE_WORD', 'Tạo từ vựng mới', 'word'),
+    ('UPDATE_WORD', 'Chỉnh sửa từ vựng', 'word'),
+    ('DELETE_WORD', 'Xóa từ vựng', 'word'),
+    ('CREATE_WORD_BULK', 'Thêm hàng loạt từ vựng', 'word'),
+    ('READ_WORD_EXPORT', 'Xuất dữ liệu từ vựng', 'word'),
+    ('READ_COURSE_LIST', 'Xem danh sách khóa học', 'course'),
+    ('READ_COURSE_COUNT', 'Xem tổng số khóa học / bài học', 'course'),
+    ('READ_COURSE_DETAIL', 'Xem chi tiết khóa học', 'course'),
+    ('CREATE_COURSE', 'Tạo khóa học mới', 'course'),
+    ('UPDATE_COURSE', 'Cập nhật thông tin khóa học', 'course'),
+    ('DELETE_COURSE', 'Xóa khóa học', 'course'),
+    ('UPDATE_COURSE_RESTORE', 'Khôi phục khóa học đã xóa', 'course'),
+    ('CREATE_COURSE_WORDS', 'Thêm từ vựng vào khóa học', 'course'),
+    ('DELETE_COURSE_WORDS', 'Xóa từ vựng khỏi khóa học', 'course'),
+    ('READ_TOPIC_LIST', 'Xem danh sách chủ đề', 'topic'),
+    ('READ_TOPIC_COUNT', 'Xem tổng số chủ đề', 'topic'),
+    ('READ_TOPIC_DETAIL', 'Xem chi tiết chủ đề', 'topic'),
+    ('CREATE_TOPIC', 'Tạo chủ đề mới', 'topic'),
+    ('UPDATE_TOPIC', 'Cập nhật chủ đề', 'topic'),
+    ('DELETE_TOPIC', 'Xóa chủ đề', 'topic'),
+    ('READ_TEST_LIST', 'Xem danh sách bài kiểm tra', 'test'),
+    ('READ_TEST_COUNT', 'Xem tổng số bài kiểm tra', 'test'),
+    ('READ_TEST_DETAIL', 'Xem chi tiết bài kiểm tra', 'test'),
+    ('READ_TEST_STATS', 'Xem thống kê bài kiểm tra', 'test'),
+    ('CREATE_TEST', 'Tạo bài kiểm tra mới', 'test'),
+    ('UPDATE_TEST', 'Cập nhật bài kiểm tra', 'test'),
+    ('DELETE_TEST', 'Xóa bài kiểm tra', 'test'),
+    ('CREATE_TEST_MEDIA', 'Upload media cho câu hỏi bài thi', 'test'),
+    ('CREATE_TEST_QUESTION_IMPORT', 'Import câu hỏi từ file Excel', 'test'),
+    ('READ_TEST_QUESTIONS', 'Xem danh sách câu hỏi của bài thi', 'test'),
+    ('CREATE_TEST_QUESTION', 'Tạo câu hỏi mới cho bài thi', 'test'),
+    ('UPDATE_TEST_QUESTION', 'Cập nhật câu hỏi bài thi', 'test'),
+    ('DELETE_TEST_QUESTION', 'Xóa câu hỏi bài thi', 'test'),
+    ('READ_TEST_RESULTS', 'Xem danh sách kết quả làm bài thi', 'test'),
+    ('READ_ACHIEVEMENT_LIST', 'Xem danh sách thành tựu', 'achievement'),
+    ('READ_ACHIEVEMENT_DETAIL', 'Xem chi tiết thành tựu', 'achievement'),
+    ('CREATE_ACHIEVEMENT', 'Tạo thành tựu mới', 'achievement'),
+    ('UPDATE_ACHIEVEMENT', 'Cập nhật thành tựu', 'achievement'),
+    ('DELETE_ACHIEVEMENT', 'Xóa thành tựu', 'achievement'),
+    ('READ_ACTIVITY_LOG_LIST', 'Xem nhật ký hoạt động hệ thống', 'activity_log'),
+    ('READ_ACTIVITY_LOG_COUNT', 'Xem tổng số lượng log', 'activity_log'),
+    ('READ_ACTIVITY_LOG_EXPORT', 'Xuất dữ liệu nhật ký hoạt động', 'activity_log'),
+    ('READ_DASHBOARD_STATS', 'Xem số liệu thống kê Dashboard Admin', 'dashboard'),
+    ('READ_KEYWORD_SETTING_LIST', 'Xem cấu hình từ khóa', 'keyword_setting'),
+    ('READ_KEYWORD_SETTING_DOWNLOAD', 'Tải file từ khóa mẫu CSV', 'keyword_setting'),
+    ('CREATE_KEYWORD_SETTING', 'Tạo nhóm từ khóa mới', 'keyword_setting'),
+    ('UPDATE_KEYWORD_SETTING', 'Cập nhật nhóm từ khóa', 'keyword_setting'),
+    ('DELETE_KEYWORD_SETTING', 'Xóa nhóm từ khóa', 'keyword_setting'),
+    ('READ_TOPIC_SETTING_LIST', 'Xem cấu hình số lượng topic theo cấp độ', 'topic_setting'),
+    ('UPDATE_TOPIC_SETTING', 'Cập nhật cấu hình số lượng topic theo cấp độ', 'topic_setting'),
+    ('READ_GAME_SETTING_LIST', 'Xem cấu hình các trò chơi', 'game'),
+    ('UPDATE_GAME_SETTING', 'Cập nhật độ khó và điểm số trò chơi', 'game'),
+    ('CREATE_ADMIN_NOTIFICATION', 'Gửi thông báo hệ thống đến người dùng', 'notification'),
+    ('READ_AI_ADMIN_STATS', 'Xem thống kê tổng quan AI Chat', 'ai'),
+    ('READ_AI_ADMIN_SESSIONS', 'Xem danh sách các phiên trò chuyện AI', 'ai'),
+    ('READ_AI_ADMIN_SESSION_MESSAGES', 'Xem tin nhắn trong phiên trò chuyện AI', 'ai'),
+    ('DELETE_AI_ADMIN_SESSION', 'Xóa cuộc trò chuyện AI', 'ai'),
+    ('READ_STUDENT_VOCABULARY_LIST', 'Xem danh sách từ vựng cá nhân', 'student_vocabulary'),
+    ('READ_STUDENT_VOCABULARY_REVIEW', 'Lấy danh sách từ vựng cần ôn tập', 'student_vocabulary'),
+    ('READ_STUDENT_VOCABULARY_STATS', 'Xem thống kê học từ vựng', 'student_vocabulary'),
+    ('CREATE_STUDENT_VOCABULARY', 'Lưu từ vựng mới vào sổ tay', 'student_vocabulary'),
+    ('UPDATE_STUDENT_VOCABULARY_STATUS', 'Cập nhật trạng thái từ vựng (đang học/thuộc)', 'student_vocabulary'),
+    ('CREATE_STUDENT_VOCABULARY_REVIEW', 'Ghi nhận kết quả ôn tập từ vựng', 'student_vocabulary'),
+    ('DELETE_STUDENT_VOCABULARY', 'Xóa từ vựng khỏi sổ tay', 'student_vocabulary'),
+    ('UPDATE_STUDENT_VOCABULARY_SYNC', 'Đồng bộ tiến trình từ vựng', 'student_vocabulary'),
+    ('READ_STUDENT_COURSE_LIST', 'Xem danh sách khóa học dành cho học viên', 'student_lesson'),
+    ('READ_STUDENT_COURSE_DETAIL', 'Xem chi tiết khóa học dành cho học viên', 'student_lesson'),
+    ('READ_STUDENT_COURSE_LESSONS', 'Xem danh sách bài học của khóa học', 'student_lesson'),
+    ('READ_STUDENT_LESSON_DETAIL', 'Xem nội dung chi tiết bài học', 'student_lesson'),
+    ('UPDATE_STUDENT_LESSON_PROGRESS', 'Cập nhật tiến trình học bài học', 'student_lesson'),
+    ('READ_STUDENT_TEST_DETAIL', 'Xem đề thi bài kiểm tra', 'student_test'),
+    ('CREATE_STUDENT_TEST_SUBMISSION', 'Nộp bài kiểm tra và chấm điểm', 'student_test'),
+    ('READ_STUDENT_TEST_HISTORY', 'Xem lịch sử kết quả làm bài thi', 'student_test'),
+    ('READ_GAME_LIST', 'Xem danh sách các trò chơi học tập', 'game'),
+    ('READ_GAME_HISTORY', 'Xem lịch sử chơi game', 'game'),
+    ('READ_BUBBLE_GAME', 'Chơi trò chơi Bắn bóng từ vựng', 'bubble_game'),
+    ('UPDATE_BUBBLE_GAME_PROGRESS', 'Cập nhật tiến trình trò chơi Bắn bóng', 'bubble_game'),
+    ('CREATE_BUBBLE_GAME_RESULT', 'Lưu kết quả trò chơi Bắn bóng', 'bubble_game'),
+    ('READ_MEMORY_CARD_GAME', 'Chơi trò chơi Lật thẻ trí nhớ', 'memory_card'),
+    ('UPDATE_MEMORY_CARD_PROGRESS', 'Cập nhật tiến trình trò chơi Lật thẻ', 'memory_card'),
+    ('CREATE_MEMORY_CARD_RESULT', 'Lưu kết quả trò chơi Lật thẻ', 'memory_card'),
+    ('READ_WORD_MATCHING_GAME', 'Chơi trò chơi Ghép từ tương ứng', 'word_matching'),
+    ('UPDATE_WORD_MATCHING_PROGRESS', 'Cập nhật tiến trình trò chơi Ghép từ', 'word_matching'),
+    ('CREATE_WORD_MATCHING_RESULT', 'Lưu kết quả trò chơi Ghép từ', 'word_matching'),
+    ('READ_MARIO_GAME', 'Chơi trò chơi Mario tiếng Anh', 'mario_game'),
+    ('UPDATE_MARIO_GAME_PROGRESS', 'Cập nhật tiến trình trò chơi Mario', 'mario_game'),
+    ('CREATE_MARIO_GAME_RESULT', 'Lưu kết quả trò chơi Mario', 'mario_game'),
+    ('CREATE_AI_ESSAY_GRADE', 'Chấm điểm bài viết bằng AI', 'ai'),
+    ('CREATE_AI_SPEAKING_GRADE', 'Chấm điểm bài nói bằng AI', 'ai'),
+    ('CREATE_AI_PRONUNCIATION', 'Đánh giá phát âm bằng AI', 'ai'),
+    ('READ_AI_TTS', 'Tạo âm thanh phát âm từ văn bản', 'ai'),
+    ('CREATE_AI_CHAT', 'Trò chuyện với trợ lý AI', 'ai'),
+    ('READ_AI_CHAT_SESSIONS', 'Xem danh sách phiên chat AI của bản thân', 'ai'),
+    ('READ_AI_CHAT_HISTORY', 'Xem chi tiết tin nhắn chat AI của bản thân', 'ai'),
+    ('DELETE_AI_CHAT_SESSION', 'Xóa phiên chat AI của bản thân', 'ai'),
+    ('READ_COMMUNITY_POST_LIST', 'Xem bảng tin cộng đồng học tập', 'community'),
+    ('CREATE_COMMUNITY_POST', 'Đăng bài viết lên cộng đồng', 'community'),
+    ('UPDATE_COMMUNITY_POST_LIKE', 'Thích hoặc bỏ thích bài viết', 'community'),
+    ('READ_COMMUNITY_COMMENTS', 'Xem bình luận bài viết', 'community'),
+    ('CREATE_COMMUNITY_COMMENT', 'Bình luận trên bài viết', 'community'),
+    ('UPDATE_COMMUNITY_POST', 'Chỉnh sửa bài viết cá nhân', 'community'),
+    ('UPDATE_COMMUNITY_POST_PRIVACY', 'Thay đổi quyền riêng tư bài viết', 'community'),
+    ('DELETE_COMMUNITY_POST', 'Xóa bài viết cá nhân', 'community'),
+    ('READ_LEADERBOARD', 'Xem bảng xếp hạng học tập', 'leaderboard'),
+    ('READ_QUEST_LIST', 'Xem danh sách nhiệm vụ hàng ngày', 'quest'),
+    ('UPDATE_QUEST_CLAIM', 'Nhận phần thưởng nhiệm vụ', 'quest'),
+    ('READ_NOTIFICATION_LIST', 'Xem danh sách thông báo', 'notification'),
+    ('UPDATE_NOTIFICATION_READ', 'Đánh dấu thông báo đã đọc', 'notification'),
+    ('UPDATE_NOTIFICATION_READ_ALL', 'Đánh dấu tất cả thông báo là đã đọc', 'notification'),
+    ('DELETE_NOTIFICATION', 'Xóa thông báo', 'notification'),
+    ('DELETE_NOTIFICATION_ALL', 'Xóa tất cả thông báo', 'notification'),
+    ('READ_NOTIFICATION_PREFERRED_TIME', 'Xem gợi ý giờ học quen thuộc', 'notification'),
+    ('READ_ONBOARDING', 'Xem trạng thái Onboarding', 'onboarding'),
+    ('UPDATE_ONBOARDING', 'Hoàn tất các bước Onboarding khảo sát ban đầu', 'onboarding')
+ON DUPLICATE KEY UPDATE `description` = VALUES(`description`), `module` = VALUES(`module`);
+
+-- 7. Assign ALL permissions to role 1 ('admin')
+INSERT IGNORE INTO `_PermissionToRole` (`A`, `B`)
+SELECT `id`, 1 FROM `permissions`;
+
+-- 8. Assign USER permissions to role 2 ('user')
+INSERT IGNORE INTO `_PermissionToRole` (`A`, `B`)
+SELECT `id`, 2 FROM `permissions`
+WHERE `name` IN (
+    'DELETE_AUTH_LOGOUT',
+    'UPDATE_AUTH_PASSWORD',
+    'READ_PROFILE',
+    'UPDATE_PROFILE',
+    'READ_PROFILE_HISTORY',
+    'READ_PROFILE_ACHIEVEMENTS',
+    'READ_PROFILE_SAVED_WORDS',
+    'UPDATE_PROFILE_LOCK',
+    'DELETE_PROFILE_ACCOUNT',
+    'READ_GAME_LIST',
+    'READ_GAME_HISTORY',
+    'READ_BUBBLE_GAME',
+    'UPDATE_BUBBLE_GAME_PROGRESS',
+    'CREATE_BUBBLE_GAME_RESULT',
+    'READ_MEMORY_CARD_GAME',
+    'UPDATE_MEMORY_CARD_PROGRESS',
+    'CREATE_MEMORY_CARD_RESULT',
+    'READ_WORD_MATCHING_GAME',
+    'UPDATE_WORD_MATCHING_PROGRESS',
+    'CREATE_WORD_MATCHING_RESULT',
+    'READ_MARIO_GAME',
+    'UPDATE_MARIO_GAME_PROGRESS',
+    'CREATE_MARIO_GAME_RESULT',
+    'READ_STUDENT_VOCABULARY_LIST',
+    'READ_STUDENT_VOCABULARY_REVIEW',
+    'READ_STUDENT_VOCABULARY_STATS',
+    'CREATE_STUDENT_VOCABULARY',
+    'UPDATE_STUDENT_VOCABULARY_STATUS',
+    'CREATE_STUDENT_VOCABULARY_REVIEW',
+    'DELETE_STUDENT_VOCABULARY',
+    'UPDATE_STUDENT_VOCABULARY_SYNC',
+    'READ_STUDENT_COURSE_LIST',
+    'READ_STUDENT_COURSE_DETAIL',
+    'READ_STUDENT_COURSE_LESSONS',
+    'READ_STUDENT_LESSON_DETAIL',
+    'UPDATE_STUDENT_LESSON_PROGRESS',
+    'READ_STUDENT_TEST_DETAIL',
+    'CREATE_STUDENT_TEST_SUBMISSION',
+    'READ_STUDENT_TEST_HISTORY',
+    'CREATE_AI_ESSAY_GRADE',
+    'CREATE_AI_SPEAKING_GRADE',
+    'CREATE_AI_PRONUNCIATION',
+    'READ_AI_TTS',
+    'CREATE_AI_CHAT',
+    'READ_AI_CHAT_SESSIONS',
+    'READ_AI_CHAT_HISTORY',
+    'DELETE_AI_CHAT_SESSION',
+    'READ_COMMUNITY_POST_LIST',
+    'CREATE_COMMUNITY_POST',
+    'UPDATE_COMMUNITY_POST_LIKE',
+    'READ_COMMUNITY_COMMENTS',
+    'CREATE_COMMUNITY_COMMENT',
+    'UPDATE_COMMUNITY_POST',
+    'UPDATE_COMMUNITY_POST_PRIVACY',
+    'DELETE_COMMUNITY_POST',
+    'READ_LEADERBOARD',
+    'READ_QUEST_LIST',
+    'UPDATE_QUEST_CLAIM',
+    'READ_NOTIFICATION_LIST',
+    'UPDATE_NOTIFICATION_READ',
+    'UPDATE_NOTIFICATION_READ_ALL',
+    'DELETE_NOTIFICATION',
+    'DELETE_NOTIFICATION_ALL',
+    'READ_NOTIFICATION_PREFERRED_TIME',
+    'READ_ONBOARDING',
+    'UPDATE_ONBOARDING'
+);

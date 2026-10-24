@@ -10,18 +10,36 @@ import { recordActivity } from "../../shared/decorators/activity.decorator.js";
 import { notificationService } from "../notification/notification.service.js";
 
 import { OAuth2Client } from 'google-auth-library';
+import { permissionService } from "../permission/permission.service.js";
+import { PermissionName } from "../../generated/prisma/index.js";
 const googleClient = new OAuth2Client(env.GOOGLE_CLIENT_ID);
 
 export class AuthService {
     constructor(private authRepo: AuthRepository = authRepository) { }
 
-    private async createToken(userId: number, role: string, sessionId: string, deviceInfo?: string) {
-        const accessToken = signAccessToken({ userId, role });
+    private getRoleName(role: any): string {
+        if (!role) return "user";
+        if (typeof role === "string") return role;
+        if (typeof role === "object" && role.name) return role.name;
+        return "user";
+    }
+
+    private async getUserPermissions(userId: number, roleName: string): Promise<string[]> {
+        if (roleName.toLowerCase() === "admin") {
+            return Object.values(PermissionName);
+        }
+        const perms = await permissionService.getUserPermissions(userId);
+        return perms;
+    }
+
+    private async createToken(userId: number, role: any, sessionId: string, deviceInfo?: string) {
+        const roleName = this.getRoleName(role);
+        const accessToken = signAccessToken({ userId, role: roleName });
         const accessTokenHash = hashSHA256(accessToken);
         const refreshToken = signRefreshToken({
             userId,
             sessionId,
-            role,
+            role: roleName,
             accessTokenHash
         });
 
@@ -71,12 +89,16 @@ export class AuthService {
             }),
         ]);
 
+        const roleName = this.getRoleName(user.role);
+        const permissions = await this.getUserPermissions(user.id, roleName);
+
         return {
             user: {
                 id: user.id,
                 username: user.username,
                 email: user.email,
-                role: user.role,
+                role: roleName,
+                permissions,
                 avatarUrl: user.avatarUrl,
                 xpPoint: user.xpPoints,
                 xpPoints: user.xpPoints,
@@ -140,12 +162,16 @@ export class AuthService {
             }),
         ]);
 
+        const roleName = this.getRoleName(currentUser.role);
+        const permissions = await this.getUserPermissions(currentUser.id, roleName);
+
         return {
             user: { 
                 id: currentUser.id, 
                 username: currentUser.username, 
                 email: email, 
-                role: currentUser.role,
+                role: roleName,
+                permissions,
                 avatarUrl: currentUser.avatarUrl,
                 xpPoint: currentUser.xpPoints,
                 xpPoints: currentUser.xpPoints,
@@ -219,12 +245,16 @@ export class AuthService {
             }),
         ]);
 
+        const roleName = this.getRoleName(currentUser.role);
+        const permissions = await this.getUserPermissions(currentUser.id, roleName);
+
         return {
             user: { 
                 id: currentUser.id, 
                 username: currentUser.username, 
                 email: email, 
-                role: currentUser.role,
+                role: roleName,
+                permissions,
                 avatarUrl: currentUser.avatarUrl,
                 xpPoint: currentUser.xpPoints,
                 xpPoints: currentUser.xpPoints,
@@ -414,12 +444,16 @@ export class AuthService {
             `Học viên ${newUser.username} (${newUser.email}) vừa đăng ký tài khoản mới trên hệ thống.`
         ).catch(() => {});
 
+        const roleName = this.getRoleName(newUser.role);
+        const permissions = await this.getUserPermissions(newUser.id, roleName);
+
         return {
             user: {
                 id: newUser.id,
                 username: newUser.username,
                 email: newUser.email,
-                role: newUser.role,
+                role: roleName,
+                permissions,
                 avatarUrl: newUser.avatarUrl,
                 xpPoint: newUser.xpPoints,
                 xpPoints: newUser.xpPoints,

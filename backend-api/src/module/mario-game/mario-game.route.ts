@@ -1,5 +1,7 @@
 import { Router, Response, NextFunction } from "express";
 import { Authenticate, AuthenticateRequest } from "../../middleware/authenticate.middleware.js";
+import { requirePermission } from "../../middleware/authorize.middleware.js";
+import { PermissionName } from "../../generated/prisma/index.js";
 import { validate } from "../../middleware/validate.middleware.js";
 import { StartGameSchema, MatchPairSchema, FinishGameSchema } from "./mario-game.schema.js";
 import { MarioGameService } from "./mario-game.service.js";
@@ -11,6 +13,7 @@ const gameService = new MarioGameService();
 router.get(
   "/start",
   Authenticate,
+  requirePermission(PermissionName.READ_MARIO_GAME),
   validate(StartGameSchema) as any,
   async (req: AuthenticateRequest, res: Response, next: NextFunction) => {
     try {
@@ -27,6 +30,7 @@ router.get(
 router.post(
   "/match",
   Authenticate,
+  requirePermission(PermissionName.UPDATE_MARIO_GAME_PROGRESS),
   validate(MatchPairSchema) as any,
   async (req: AuthenticateRequest, res: Response, next: NextFunction) => {
     try {
@@ -43,6 +47,7 @@ router.post(
 router.post(
   "/finish",
   Authenticate,
+  requirePermission(PermissionName.CREATE_MARIO_GAME_RESULT),
   validate(FinishGameSchema) as any,
   async (req: AuthenticateRequest, res: Response, next: NextFunction) => {
     try {
