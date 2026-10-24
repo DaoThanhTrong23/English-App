@@ -3,15 +3,16 @@ import { validate } from "../../middleware/validate.middleware.js";
 import { asyncHandler } from "../../shared/http/async-handler.js";
 import { GradeEssaySchema } from "./ai.schema.js";
 import { aiService } from "./ai.service.js";
-import { authorize } from "../../middleware/authorize.middleware.js";
+import { requirePermission } from "../../middleware/authorize.middleware.js";
 import multer from "multer";
 import { ApiError } from "../../shared/http/api-error.js";
 import { prisma } from '../../config/prisma.js';
 import { Authenticate } from "../../middleware/authenticate.middleware.js";
-import { Role } from '../../generated/prisma/index.js';
+import { PermissionName } from '../../generated/prisma/index.js';
 
 const router = Router();
 router.use(Authenticate);
+
 // Cấu hình Multer nhận file âm thanh (.wav, .mp3, .m4a, .webm, .ogg)
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -31,10 +32,10 @@ const upload = multer({
   },
 });
 
-
 // Chấm bài viết (Writing Essay)
 router.post(
   "/grade-essay",
+  requirePermission(PermissionName.CREATE_AI_ESSAY_GRADE),
   validate(GradeEssaySchema),
   asyncHandler(async (req, res) => {
     const result = await aiService.gradeEssay(req.body);
@@ -49,6 +50,7 @@ router.post(
 // Chấm bài nói tự do (Speaking Evaluation)
 router.post(
   "/grade-speaking",
+  requirePermission(PermissionName.CREATE_AI_SPEAKING_GRADE),
   upload.any(),
   asyncHandler(async (req, res) => {
     const files = req.files as Express.Multer.File[] | undefined;
@@ -81,6 +83,7 @@ router.post(
 // Đánh giá phát âm (GOP)
 router.post(
   "/evaluate-pronunciation",
+  requirePermission(PermissionName.CREATE_AI_PRONUNCIATION),
   upload.any(),
   asyncHandler(async (req, res) => {
     const files = req.files as Express.Multer.File[] | undefined;
@@ -95,7 +98,6 @@ router.post(
       throw new ApiError(400, "missing_params", "Vui lòng cung cấp targetWord");
     }
 
-    console.log("Received audio buffer of length:", uploadedFile.buffer.length);
     const result = await aiService.evaluatePronunciationGOP(
       uploadedFile.buffer,
       targetWord.trim(),
@@ -113,7 +115,7 @@ router.post(
 // User: Chat với AI Bot
 router.post(
   "/chat",
-  Authenticate,
+  requirePermission(PermissionName.CREATE_AI_CHAT),
   asyncHandler(async (req: any, res) => {
     const { message, sessionId } = req.body;
     const userId = req.user.userId;
@@ -131,7 +133,7 @@ router.post(
 // User: Lấy danh sách lịch sử chat của mình
 router.get(
   "/chat/sessions",
-  Authenticate,
+  requirePermission(PermissionName.READ_AI_CHAT_SESSIONS),
   asyncHandler(async (req: any, res) => {
     const userId = req.user.userId;
     const sessions = await prisma.aiChatSession.findMany({
@@ -146,7 +148,7 @@ router.get(
 // User: Lấy tin nhắn trong 1 session
 router.get(
   "/chat/sessions/:id",
-  Authenticate,
+  requirePermission(PermissionName.READ_AI_CHAT_HISTORY),
   asyncHandler(async (req: any, res) => {
     const sessionId = parseInt(req.params.id as string);
     const userId = req.user.userId;
@@ -168,8 +170,7 @@ router.get(
 // Admin: Thống kê tổng quan AI Chat
 router.get(
   "/admin/stats",
-  Authenticate,
-  authorize([Role.admin]),
+  requirePermission(PermissionName.READ_AI_ADMIN_STATS),
   asyncHandler(async (req, res) => {
     const totalSessions = await prisma.aiChatSession.count();
     const totalMessages = await prisma.aiChatMessage.count();
@@ -190,11 +191,10 @@ router.get(
   })
 );
 
-// Admin: Lấy danh sách hội thoại (có tìm kiếm & trích đoạn tin nhắn mới nhất)
+// Admin: Lấy danh sách hội thoại
 router.get(
   "/admin/sessions",
-  Authenticate,
-  authorize([Role.admin]),
+  requirePermission(PermissionName.READ_AI_ADMIN_SESSIONS),
   asyncHandler(async (req, res) => {
     const search = req.query.search ? String(req.query.search).trim() : '';
 
@@ -228,8 +228,7 @@ router.get(
 // Admin: Lấy chi tiết tin nhắn của một phiên
 router.get(
   "/admin/sessions/:id/messages",
-  Authenticate,
-  authorize([Role.admin]),
+  requirePermission(PermissionName.READ_AI_ADMIN_SESSION_MESSAGES),
   asyncHandler(async (req, res) => {
     const sessionId = parseInt(req.params.id as string);
     const messages = await prisma.aiChatMessage.findMany({
@@ -243,8 +242,7 @@ router.get(
 // Admin: Xóa 1 phiên hội thoại
 router.delete(
   "/admin/sessions/:id",
-  Authenticate,
-  authorize([Role.admin]),
+  requirePermission(PermissionName.DELETE_AI_ADMIN_SESSION),
   asyncHandler(async (req, res) => {
     const sessionId = parseInt(req.params.id as string);
     await prisma.aiChatMessage.deleteMany({ where: { sessionId } });

@@ -1,9 +1,9 @@
 import { Router } from "express";
-import { authorize } from "../../middleware/authorize.middleware.js";
+import { requirePermission } from "../../middleware/authorize.middleware.js";
 import { Authenticate } from "../../middleware/authenticate.middleware.js";
 import { validate } from "../../middleware/validate.middleware.js";
 import { asyncHandler } from "../../shared/http/async-handler.js";
-import { Role } from "../../generated/prisma/index.js";
+import { PermissionName } from "../../generated/prisma/index.js";
 import {
   AddWordsToCourseSchema,
   CourseIdParamSchema,
@@ -16,10 +16,13 @@ import { courseService } from "./course.service.js";
 
 const router = Router();
 
-// Phân quyền cho tất cả route bên dưới (yêu cầu role admin)
-router.use(Authenticate, authorize([Role.admin]));
+// Xác thực người dùng
+router.use(Authenticate);
 
-router.get(  "/totalLesson", asyncHandler(async (_req, res) => {
+router.get(
+  "/totalLesson",
+  requirePermission(PermissionName.READ_COURSE_COUNT),
+  asyncHandler(async (_req, res) => {
     const result = await courseService.getCourseCount();
     res.status(200).json({
       success: true,
@@ -29,7 +32,10 @@ router.get(  "/totalLesson", asyncHandler(async (_req, res) => {
   })
 );
 
-router.get( "/totalCourse", asyncHandler(async (_req, res) => {
+router.get(
+  "/totalCourse",
+  requirePermission(PermissionName.READ_COURSE_COUNT),
+  asyncHandler(async (_req, res) => {
     const result = await courseService.getCourseCount();
     res.status(200).json({
       success: true,
@@ -39,8 +45,11 @@ router.get( "/totalCourse", asyncHandler(async (_req, res) => {
   })
 );
 
-
-router.get( "/",validate(GetCoursesQuerySchema),  asyncHandler(async (req, res) => {
+router.get(
+  "/",
+  requirePermission(PermissionName.READ_COURSE_LIST),
+  validate(GetCoursesQuerySchema),
+  asyncHandler(async (req, res) => {
     const result = await courseService.getCoursesList(req.query as any);
     res.status(200).json({
       success: true,
@@ -50,9 +59,12 @@ router.get( "/",validate(GetCoursesQuerySchema),  asyncHandler(async (req, res) 
   })
 );
 
-
-router.post(  "/", validate(CreateCourseSchema), asyncHandler(async (req, res) => {
-    const adminId = (req as any).user?.id;
+router.post(
+  "/",
+  requirePermission(PermissionName.CREATE_COURSE),
+  validate(CreateCourseSchema),
+  asyncHandler(async (req, res) => {
+    const adminId = (req as any).user?.id || (req as any).user?.userId;
     const result = await courseService.createCourse(req.body as any, adminId);
     res.status(201).json({
       success: true,
@@ -62,8 +74,11 @@ router.post(  "/", validate(CreateCourseSchema), asyncHandler(async (req, res) =
   })
 );
 
-
-router.get( "/:id", validate(CourseIdParamSchema),asyncHandler(async (req, res) => {
+router.get(
+  "/:id",
+  requirePermission(PermissionName.READ_COURSE_DETAIL),
+  validate(CourseIdParamSchema),
+  asyncHandler(async (req, res) => {
     const courseId = Number(req.params.id);
     const result = await courseService.getCourseDetail(courseId);
     res.status(200).json({
@@ -74,9 +89,13 @@ router.get( "/:id", validate(CourseIdParamSchema),asyncHandler(async (req, res) 
   })
 );
 
-router.put(  "/:id", validate(UpdateCourseSchema), asyncHandler(async (req, res) => {
+router.put(
+  "/:id",
+  requirePermission(PermissionName.UPDATE_COURSE),
+  validate(UpdateCourseSchema),
+  asyncHandler(async (req, res) => {
     const courseId = Number(req.params.id);
-    const adminId = (req as any).user?.id;
+    const adminId = (req as any).user?.id || (req as any).user?.userId;
     const result = await courseService.updateCourse(courseId, req.body as any, adminId);
     res.status(200).json({
       success: true,
@@ -86,28 +105,37 @@ router.put(  "/:id", validate(UpdateCourseSchema), asyncHandler(async (req, res)
   })
 );
 
-
-router.delete( "/:id",validate(CourseIdParamSchema), asyncHandler(async (req, res) => {
+router.delete(
+  "/:id",
+  requirePermission(PermissionName.DELETE_COURSE),
+  validate(CourseIdParamSchema),
+  asyncHandler(async (req, res) => {
     const courseId = Number(req.params.id);
-    const adminId = (req as any).user?.id;
+    const adminId = (req as any).user?.id || (req as any).user?.userId;
     const result = await courseService.softDeleteCourse(courseId, adminId);
     res.status(200).json(result);
   })
 );
 
-
-router.patch( "/:id/restore", validate(CourseIdParamSchema), asyncHandler(async (req, res) => {
+router.patch(
+  "/:id/restore",
+  requirePermission(PermissionName.UPDATE_COURSE_RESTORE),
+  validate(CourseIdParamSchema),
+  asyncHandler(async (req, res) => {
     const courseId = Number(req.params.id);
-    const adminId = (req as any).user?.id;
+    const adminId = (req as any).user?.id || (req as any).user?.userId;
     const result = await courseService.restoreCourse(courseId, adminId);
     res.status(200).json(result);
   })
 );
 
-
-router.post( "/:id/words", validate(AddWordsToCourseSchema),asyncHandler(async (req, res) => {
+router.post(
+  "/:id/words",
+  requirePermission(PermissionName.CREATE_COURSE_WORDS),
+  validate(AddWordsToCourseSchema),
+  asyncHandler(async (req, res) => {
     const courseId = Number(req.params.id);
-    const adminId = (req as any).user?.id;
+    const adminId = (req as any).user?.id || (req as any).user?.userId;
     const { wordIds } = req.body as any;
     const result = await courseService.addWordsToCourse(courseId, wordIds, adminId);
     res.status(200).json({
@@ -118,11 +146,14 @@ router.post( "/:id/words", validate(AddWordsToCourseSchema),asyncHandler(async (
   })
 );
 
-
-router.delete(  "/:id/words/:wordId", validate(CourseWordParamSchema), asyncHandler(async (req, res) => {
+router.delete(
+  "/:id/words/:wordId",
+  requirePermission(PermissionName.DELETE_COURSE_WORDS),
+  validate(CourseWordParamSchema),
+  asyncHandler(async (req, res) => {
     const courseId = Number(req.params.id);
     const wordId = Number(req.params.wordId);
-    const adminId = (req as any).user?.id;
+    const adminId = (req as any).user?.id || (req as any).user?.userId;
     const result = await courseService.removeWordFromCourse(courseId, wordId, adminId);
     res.status(200).json(result);
   })

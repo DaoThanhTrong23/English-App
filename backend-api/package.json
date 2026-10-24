@@ -8,6 +8,8 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
+    "migrate": "prisma migrate deploy",
+    "migrate:dev": "prisma migrate dev",
     "seed": "prisma db seed",
     "populate:phonetics": "tsx scripts/populate-phonetics.ts",
     "populate:pos": "tsx scripts/populate-pos-sentences.ts",

@@ -2,7 +2,7 @@ import { prisma } from '../../config/prisma.js';
 
 export class DashboardService {
   async getDashboardStats() {
-    const totalStudents = await prisma.user.count({ where: { role: 'user' } });
+    const totalStudents = await prisma.user.count({ where: { role: { name: 'user' } } });
     const totalCourses = await prisma.lesson.count();
     const totalWords = await prisma.word.count();
     const totalTests = await prisma.test.count();
@@ -10,7 +10,7 @@ export class DashboardService {
     // Level distribution based on actual CEFR level
     const soCap = await prisma.user.count({
       where: {
-        role: 'user',
+        role: { name: 'user' },
         OR: [
           { cefrLevel: { in: ['A1', 'A2'] } },
           { cefrLevel: null }
@@ -19,13 +19,13 @@ export class DashboardService {
     });
     const trungCap = await prisma.user.count({
       where: {
-        role: 'user',
+        role: { name: 'user' },
         cefrLevel: { in: ['B1', 'B2'] }
       }
     });
     const caoCap = await prisma.user.count({
       where: {
-        role: 'user',
+        role: { name: 'user' },
         cefrLevel: { in: ['C1', 'C2'] }
       }
     });
@@ -46,7 +46,7 @@ export class DashboardService {
       const endOfDay = new Date(d.setHours(23,59,59,999));
       
       const newUsers = await prisma.user.count({
-        where: { createdAt: { gte: startOfDay, lte: endOfDay }, role: 'user' }
+        where: { createdAt: { gte: startOfDay, lte: endOfDay }, role: { name: 'user' } }
       });
       
       const activeUserGroups = await prisma.loginLog.groupBy({

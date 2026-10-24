@@ -1,5 +1,7 @@
 import { Router, Response } from "express";
 import { Authenticate, AuthenticateRequest } from "../../middleware/authenticate.middleware.js";
+import { requirePermission } from "../../middleware/authorize.middleware.js";
+import { PermissionName } from "../../generated/prisma/index.js";
 import { validate } from "../../middleware/validate.middleware.js";
 import { asyncHandler } from "../../shared/http/async-handler.js";
 import {
@@ -15,6 +17,7 @@ const router = Router();
 router.get(
   "/start",
   Authenticate,
+  requirePermission(PermissionName.READ_WORD_MATCHING_GAME),
   validate(StartWordMatchingSchema),
   asyncHandler(async (req: AuthenticateRequest, res: Response) => {
     const userId = Number(req.user?.userId);
@@ -31,6 +34,7 @@ router.get(
 router.post(
   "/submit",
   Authenticate,
+  requirePermission(PermissionName.CREATE_WORD_MATCHING_RESULT),
   validate(SubmitWordMatchingSchema),
   asyncHandler(async (req: AuthenticateRequest, res: Response) => {
     const userId = Number(req.user?.userId);
@@ -47,6 +51,7 @@ router.post(
 router.post(
   "/progress",
   Authenticate,
+  requirePermission(PermissionName.UPDATE_WORD_MATCHING_PROGRESS),
   validate(SaveWordMatchingProgressSchema),
   asyncHandler(async (req: AuthenticateRequest, res: Response) => {
     const userId = Number(req.user?.userId);

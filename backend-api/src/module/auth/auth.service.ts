@@ -15,13 +15,21 @@ const googleClient = new OAuth2Client(env.GOOGLE_CLIENT_ID);
 export class AuthService {
     constructor(private authRepo: AuthRepository = authRepository) { }
 
-    private async createToken(userId: number, role: string, sessionId: string, deviceInfo?: string) {
-        const accessToken = signAccessToken({ userId, role });
+    private getRoleName(role: any): string {
+        if (!role) return "user";
+        if (typeof role === "string") return role;
+        if (typeof role === "object" && role.name) return role.name;
+        return "user";
+    }
+
+    private async createToken(userId: number, role: any, sessionId: string, deviceInfo?: string) {
+        const roleName = this.getRoleName(role);
+        const accessToken = signAccessToken({ userId, role: roleName });
         const accessTokenHash = hashSHA256(accessToken);
         const refreshToken = signRefreshToken({
             userId,
             sessionId,
-            role,
+            role: roleName,
             accessTokenHash
         });
 
@@ -76,7 +84,7 @@ export class AuthService {
                 id: user.id,
                 username: user.username,
                 email: user.email,
-                role: user.role,
+                role: this.getRoleName(user.role),
                 avatarUrl: user.avatarUrl,
                 xpPoint: user.xpPoints,
                 xpPoints: user.xpPoints,
@@ -145,7 +153,7 @@ export class AuthService {
                 id: currentUser.id, 
                 username: currentUser.username, 
                 email: email, 
-                role: currentUser.role,
+                role: this.getRoleName(currentUser.role),
                 avatarUrl: currentUser.avatarUrl,
                 xpPoint: currentUser.xpPoints,
                 xpPoints: currentUser.xpPoints,
@@ -224,7 +232,7 @@ export class AuthService {
                 id: currentUser.id, 
                 username: currentUser.username, 
                 email: email, 
-                role: currentUser.role,
+                role: this.getRoleName(currentUser.role),
                 avatarUrl: currentUser.avatarUrl,
                 xpPoint: currentUser.xpPoints,
                 xpPoints: currentUser.xpPoints,
@@ -419,7 +427,7 @@ export class AuthService {
                 id: newUser.id,
                 username: newUser.username,
                 email: newUser.email,
-                role: newUser.role,
+                role: this.getRoleName(newUser.role),
                 avatarUrl: newUser.avatarUrl,
                 xpPoint: newUser.xpPoints,
                 xpPoints: newUser.xpPoints,

@@ -15,7 +15,7 @@ export const startCronJobs = () => {
 
       // 1. Lấy tất cả user học viên
       const users = await prisma.user.findMany({
-        where: { role: 'user', isLocked: false },
+        where: { role: { name: 'user' }, isLocked: false },
         select: { id: true, username: true }
       });
 

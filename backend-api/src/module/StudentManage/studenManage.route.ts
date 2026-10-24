@@ -1,18 +1,16 @@
-// src/module/StudentManage/studenMange.route.ts
+// src/module/StudentManage/studenManage.route.ts
 import { Router } from "express";
 import { Authenticate } from "../../middleware/authenticate.middleware.js";
-import { authorize } from "../../middleware/authorize.middleware.js";
+import { requirePermission } from "../../middleware/authorize.middleware.js";
+import { PermissionName } from "../../generated/prisma/index.js";
 import { validate } from "../../middleware/validate.middleware.js";
 import { asyncHandler } from "../../shared/http/async-handler.js";
 import { GetStudentQuerySchema, StudentIdParamSchema, UpdateStudentStatusSchema } from "./studentManage.schema.js";
 import { studentManageService } from "./studentManage.service.js";
-import { Role } from "../../generated/prisma/index.js";
-
 
 const router = Router();
 
-// Tất cả các route bên dưới chỉ dành cho ADMIN đã đăng nhập
-router.use(Authenticate, authorize([Role.admin]));
+router.use(Authenticate);
 
 /**
  *  GET /api/admin/students
@@ -20,6 +18,7 @@ router.use(Authenticate, authorize([Role.admin]));
  */
 router.get(
   "/",
+  requirePermission(PermissionName.READ_STUDENT_LIST),
   validate(GetStudentQuerySchema),
   asyncHandler(async (req, res) => {
     const result = await studentManageService.getStudentslist(req.query as any);
@@ -31,19 +30,22 @@ router.get(
   })
 );
 
-router.get("/totalStudent",
+router.get(
+  "/totalStudent",
+  requirePermission(PermissionName.READ_STUDENT_COUNT),
   asyncHandler(async (req, res) => {
     const result = await studentManageService.getStudentCount();
-    res.status(200).json({success: true, message: "Lấy số lượng học viên thành công", data: result});    
+    res.status(200).json({ success: true, message: "Lấy số lượng học viên thành công", data: result });
   })
-)
+);
 
 /**
- * @route   GET /api/admin/students/:id
- * @desc    Xem chi tiết tiến trình học, bài thi và nhật ký của 1 học viên
+ * @route   GET /api/admin/students/top
+ * @desc    Lấy danh sách học viên xuất sắc
  */
 router.get(
   "/top",
+  requirePermission(PermissionName.READ_STUDENT_TOP),
   asyncHandler(async (req, res) => {
     const limit = Number(req.query.limit) || 5;
     const result = await studentManageService.getTopStudents(limit);
@@ -57,6 +59,7 @@ router.get(
 
 router.get(
   "/:id",
+  requirePermission(PermissionName.READ_STUDENT_DETAIL),
   validate(StudentIdParamSchema),
   asyncHandler(async (req, res) => {
     const studentId = Number(req.params.id);
@@ -71,6 +74,7 @@ router.get(
 
 router.get(
   "/:id/progress",
+  requirePermission(PermissionName.READ_STUDENT_PROGRESS),
   validate(StudentIdParamSchema),
   asyncHandler(async (req, res) => {
     const id = Number(req.params.id);
@@ -85,6 +89,7 @@ router.get(
 
 router.get(
   "/:id/ai-chat",
+  requirePermission(PermissionName.READ_STUDENT_AI_CHAT),
   validate(StudentIdParamSchema),
   asyncHandler(async (req, res) => {
     const id = Number(req.params.id);
@@ -103,6 +108,7 @@ router.get(
  */
 router.patch(
   "/:id/status",
+  requirePermission(PermissionName.UPDATE_STUDENT_STATUS),
   validate(UpdateStudentStatusSchema),
   asyncHandler(async (req, res) => {
     const studentId = Number(req.params.id);

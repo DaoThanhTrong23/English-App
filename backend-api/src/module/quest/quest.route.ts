@@ -1,5 +1,7 @@
 import { Router } from "express";
 import { Authenticate, AuthenticateRequest } from "../../middleware/authenticate.middleware.js";
+import { requirePermission } from "../../middleware/authorize.middleware.js";
+import { PermissionName } from "../../generated/prisma/index.js";
 import { prisma } from "../../config/prisma.js";
 import { asyncHandler } from "../../shared/http/async-handler.js";
 
@@ -46,7 +48,7 @@ const QUEST_DEFINITIONS: QuestConfig[] = [
 /**
  * 1. Lấy danh sách nhiệm vụ hằng ngày và tiến độ hôm nay của học viên
  */
-questRouter.get("/daily", asyncHandler(async (req: AuthenticateRequest, res) => {
+questRouter.get("/daily", requirePermission(PermissionName.READ_QUEST_LIST), asyncHandler(async (req: AuthenticateRequest, res) => {
   const userId = req.user?.userId;
   if (!userId) return res.status(401).json({ success: false, message: "Unauthorized" });
 
@@ -121,7 +123,7 @@ questRouter.get("/daily", asyncHandler(async (req: AuthenticateRequest, res) => 
 /**
  * 2. Nhận thưởng XP cho nhiệm vụ đã hoàn thành
  */
-questRouter.post("/claim", asyncHandler(async (req: AuthenticateRequest, res) => {
+questRouter.post("/claim", requirePermission(PermissionName.UPDATE_QUEST_CLAIM), asyncHandler(async (req: AuthenticateRequest, res) => {
   const userId = req.user?.userId;
   if (!userId) return res.status(401).json({ success: false, message: "Unauthorized" });
 

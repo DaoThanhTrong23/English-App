@@ -1,20 +1,21 @@
 import { Router } from "express";
 import { Authenticate } from "../../middleware/authenticate.middleware.js";
-import { authorize } from "../../middleware/authorize.middleware.js";
-import { Role } from "../../generated/prisma/index.js";
+import { requirePermission } from "../../middleware/authorize.middleware.js";
+import { PermissionName } from "../../generated/prisma/index.js";
 import { asyncHandler } from "../../shared/http/async-handler.js";
 import { keywordSettingService } from "./keyword-setting.service.js";
 
 export const keywordRouter = Router();
 
-// Toàn bộ route cài đặt keyword dành cho Admin
-keywordRouter.use(Authenticate, authorize([Role.admin]));
+// Toàn bộ route cài đặt keyword yêu cầu đăng nhập
+keywordRouter.use(Authenticate);
 
 /**
  * GET /api/admin/keywords - Lấy toàn bộ danh sách nhóm từ khóa đồng nghĩa
  */
 keywordRouter.get(
   "/",
+  requirePermission(PermissionName.READ_KEYWORD_SETTING_LIST),
   asyncHandler(async (req, res) => {
     const data = keywordSettingService.getAll();
     res.status(200).json({
@@ -30,6 +31,7 @@ keywordRouter.get(
  */
 keywordRouter.get(
   "/download",
+  requirePermission(PermissionName.READ_KEYWORD_SETTING_DOWNLOAD),
   asyncHandler(async (req, res) => {
     const filePath = keywordSettingService.getCsvFilePath();
     res.download(filePath, "synonyms.csv");
@@ -41,6 +43,7 @@ keywordRouter.get(
  */
 keywordRouter.post(
   "/",
+  requirePermission(PermissionName.CREATE_KEYWORD_SETTING),
   asyncHandler(async (req, res) => {
     const { group, keywords } = req.body;
     const kwList = Array.isArray(keywords)
@@ -63,6 +66,7 @@ keywordRouter.post(
  */
 keywordRouter.put(
   "/:id",
+  requirePermission(PermissionName.UPDATE_KEYWORD_SETTING),
   asyncHandler(async (req, res) => {
     const id = req.params.id as string;
     const { group, keywords } = req.body;
@@ -86,6 +90,7 @@ keywordRouter.put(
  */
 keywordRouter.delete(
   "/:id",
+  requirePermission(PermissionName.DELETE_KEYWORD_SETTING),
   asyncHandler(async (req, res) => {
     const id = req.params.id as string;
     keywordSettingService.deleteGroup(id);

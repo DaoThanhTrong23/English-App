@@ -1,19 +1,20 @@
 import { Router } from "express";
 import { Authenticate } from "../../middleware/authenticate.middleware.js";
-import { authorize } from "../../middleware/authorize.middleware.js";
-import { Role } from "../../generated/prisma/index.js";
+import { requirePermission } from "../../middleware/authorize.middleware.js";
+import { PermissionName } from "../../generated/prisma/index.js";
 import { asyncHandler } from "../../shared/http/async-handler.js";
 import { topicSettingService } from "./topic-setting.service.js";
 
 export const topicSettingRouter = Router();
 
-topicSettingRouter.use(Authenticate, authorize([Role.admin]));
+topicSettingRouter.use(Authenticate);
 
 /**
  * GET /api/admin/topic-settings - Lấy cấu hình số lượng topic theo cấp độ
  */
 topicSettingRouter.get(
   "/",
+  requirePermission(PermissionName.READ_TOPIC_SETTING_LIST),
   asyncHandler(async (req, res) => {
     const data = topicSettingService.getSettings();
     res.status(200).json({
@@ -29,6 +30,7 @@ topicSettingRouter.get(
  */
 topicSettingRouter.put(
   "/",
+  requirePermission(PermissionName.UPDATE_TOPIC_SETTING),
   asyncHandler(async (req, res) => {
     const { defaultLimit, groups, levels } = req.body;
     const updated = topicSettingService.updateSettings({
