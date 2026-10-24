@@ -42,8 +42,27 @@ const AdminLogin: React.FC = () => {
           if (refreshToken) {
             localStorage.setItem('adminRefreshToken', refreshToken);
           }
+          const getRedirectPath = (u: any) => {
+            const isAdmin = u?.role?.toLowerCase() === 'admin';
+            const perms: string[] = u?.permissions || [];
+            if (isAdmin || perms.includes('READ_DASHBOARD_STATS')) return '/admin/dashboard';
+            if (perms.includes('READ_STUDENT_LIST')) return '/admin/students';
+            if (perms.includes('READ_TOPIC_LIST')) return '/admin/topics';
+            if (perms.includes('READ_COURSE_LIST')) return '/admin/courses';
+            if (perms.includes('READ_WORD_LIST')) return '/admin/words';
+            if (perms.includes('READ_TEST_LIST')) return '/admin/tests';
+            if (perms.includes('READ_ACHIEVEMENT_LIST')) return '/admin/achievements';
+            if (perms.includes('READ_KEYWORD_SETTING_LIST')) return '/admin/keywords';
+            if (perms.includes('READ_ROLE_LIST')) return '/admin/staff';
+            if (perms.includes('READ_AI_ADMIN_SESSIONS') || perms.includes('READ_AI_ADMIN_STATS')) return '/admin/ai-chat';
+            if (perms.includes('READ_GAME_SETTING_LIST')) return '/admin/game';
+            if (perms.includes('READ_TOPIC_SETTING_LIST')) return '/admin/topic-levels';
+            if (perms.includes('READ_ACTIVITY_LOG_LIST')) return '/admin/logs';
+            return '/admin/settings';
+          };
+
           localStorage.setItem('adminInfo', JSON.stringify(resultData.user));
-          navigate('/admin/dashboard');
+          navigate(getRedirectPath(resultData.user));
 
         }).catch(error => {
           setErrorMsg(error?.response?.data?.error?.message || "Lỗi xác thực từ Server");
@@ -84,8 +103,28 @@ const AdminLogin: React.FC = () => {
       }
       localStorage.setItem('adminInfo', JSON.stringify(resultData.user));
 
+      const u = resultData.user;
+      const isAdmin = u?.role?.toLowerCase() === 'admin';
+      const perms: string[] = u?.permissions || [];
+      let redirectPath = '/admin/dashboard';
+      if (!isAdmin && !perms.includes('READ_DASHBOARD_STATS')) {
+        if (perms.includes('READ_STUDENT_LIST')) redirectPath = '/admin/students';
+        else if (perms.includes('READ_TOPIC_LIST')) redirectPath = '/admin/topics';
+        else if (perms.includes('READ_COURSE_LIST')) redirectPath = '/admin/courses';
+        else if (perms.includes('READ_WORD_LIST')) redirectPath = '/admin/words';
+        else if (perms.includes('READ_TEST_LIST')) redirectPath = '/admin/tests';
+        else if (perms.includes('READ_ACHIEVEMENT_LIST')) redirectPath = '/admin/achievements';
+        else if (perms.includes('READ_KEYWORD_SETTING_LIST')) redirectPath = '/admin/keywords';
+        else if (perms.includes('READ_ROLE_LIST')) redirectPath = '/admin/staff';
+        else if (perms.includes('READ_AI_ADMIN_SESSIONS') || perms.includes('READ_AI_ADMIN_STATS')) redirectPath = '/admin/ai-chat';
+        else if (perms.includes('READ_GAME_SETTING_LIST')) redirectPath = '/admin/game';
+        else if (perms.includes('READ_TOPIC_SETTING_LIST')) redirectPath = '/admin/topic-levels';
+        else if (perms.includes('READ_ACTIVITY_LOG_LIST')) redirectPath = '/admin/logs';
+        else redirectPath = '/admin/settings';
+      }
+
       setTimeout(() => {
-        navigate('/admin/dashboard');
+        navigate(redirectPath);
       }, 500);
 
     } catch (error: any) {

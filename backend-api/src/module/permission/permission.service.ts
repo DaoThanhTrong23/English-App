@@ -87,6 +87,23 @@ export class PermissionService {
         },
       });
 
+      // 4. Đảm bảo mọi vai trò trong hệ thống đều luôn luôn có quyền Profile & Auth cơ bản
+      const defaultProfilePerms = await prisma.permission.findMany({
+        where: { module: { in: ["auth", "profile"] } },
+        select: { id: true },
+      });
+      const allRoles = await prisma.role.findMany({ select: { id: true } });
+      for (const r of allRoles) {
+        await prisma.role.update({
+          where: { id: r.id },
+          data: {
+            permissions: {
+              connect: defaultProfilePerms.map((p) => ({ id: p.id })),
+            },
+          },
+        });
+      }
+
       this.clearCache();
       loggers.info("Khởi tạo Roles và Permissions thành công!");
     } catch (error) {
@@ -137,6 +154,7 @@ export class PermissionService {
    */
   async hasPermission(roleName: string, permissionName: PermissionName): Promise<boolean> {
     if (!roleName) return false;
+    if (roleName.toLowerCase() === "admin") return true;
     const permissions = await this.getPermissionsByRole(roleName);
     return permissions.has(permissionName);
   }

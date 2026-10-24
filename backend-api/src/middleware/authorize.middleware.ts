@@ -23,6 +23,12 @@ export const requirePermission = (permission: PermissionName | PermissionName[])
       }
 
       const roleName = String(req.user.role || "user").toLowerCase();
+
+      // Quản trị viên (Admin) luôn có toàn quyền trên toàn bộ các endpoint của hệ thống
+      if (roleName === "admin") {
+        return _next();
+      }
+
       const requiredPerms = Array.isArray(permission) ? permission : [permission];
 
       // Kiểm tra xem role của user có ít nhất một trong các permission được yêu cầu không

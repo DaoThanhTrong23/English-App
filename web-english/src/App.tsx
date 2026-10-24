@@ -21,6 +21,8 @@ const TestResults = lazy(() => import('./features/tests/pages/TestResults'));
 const AiChatList = lazy(() => import('./features/ai-chat/pages/AiChatList'));
 const GameList = lazy(() => import('./features/game/pages/GameList'));
 const TopicLevels = lazy(() => import('./features/topics/pages/TopicLevels'));
+const RoleList = lazy(() => import('./features/roles/pages/RoleList'));
+const StaffList = lazy(() => import('./features/staff/pages/StaffList'));
 
 const PageLoadingFallback: React.FC = () => (
   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', gap: '14px' }}>
@@ -73,6 +75,8 @@ function App() {
             <Route path="/admin/tests/:testId/results" element={<TestResults />} />
 
             {/* Hệ thống */}
+            <Route path="/admin/staff" element={<StaffList />} />
+            <Route path="/admin/roles" element={<RoleList />} />
             <Route path="/admin/logs" element={<SystemLogs />} />
             <Route path="/admin/settings" element={<Settings />} />
             <Route path="/admin/ai-chat" element={<AiChatList />} />

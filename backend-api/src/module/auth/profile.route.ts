@@ -10,6 +10,7 @@ import { asyncHandler } from "../../shared/http/async-handler.js";
 
 import { studentLessonRepository } from "../student-lesson/student-lesson.repository.js";
 import { BcryptCompare } from "../../utils/hash.js";
+import { permissionService } from "../permission/permission.service.js";
 
 // Đảm bảo thư mục uploads/avatars tồn tại
 const uploadDir = path.join(process.cwd(), "uploads", "avatars");
@@ -65,11 +66,18 @@ profileRouter.get("/me", requirePermission(PermissionName.READ_PROFILE), asyncHa
     studentLessonRepository.calculateUserStreak(userId)
   ]);
 
+  const roleName = (user.role as any)?.name || 'user';
+  const isAdmin = roleName.toLowerCase() === 'admin';
+  const permissions = isAdmin
+    ? Object.values(PermissionName)
+    : await permissionService.getUserPermissions(userId);
+
   res.status(200).json({ 
     success: true, 
     data: {
       ...user,
-      role: (user.role as any)?.name || 'user',
+      role: roleName,
+      permissions,
       masteredWordsCount,
       learningWordsCount,
       totalSavedWordsCount,

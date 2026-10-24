@@ -21,6 +21,31 @@ export class RoleService {
   private readonly SYSTEM_ROLES = ["admin", "user"];
 
   /**
+   * Danh sách các module quyền dành riêng cho Web Admin (quản trị hệ thống)
+   */
+  readonly ADMIN_WEB_MODULES = [
+    "student_manage",
+    "word",
+    "course",
+    "topic",
+    "test",
+    "achievement",
+    "activity_log",
+    "dashboard",
+    "keyword_setting",
+    "topic_setting",
+    "game",
+    "notification",
+    "ai",
+    "role_manage",
+  ];
+
+  /**
+   * Danh sách các module quyền mặc định bắt buộc (mọi vai trò đều luôn luôn có)
+   */
+  readonly DEFAULT_PROFILE_MODULES = ["auth", "profile"];
+
+  /**
    * Kiểm tra xem một vai trò có phải vai trò hệ thống hay không
    */
   isSystemRole(role: { id: number; name: string }): boolean {
@@ -29,6 +54,32 @@ export class RoleService {
       role.id === 2 ||
       this.SYSTEM_ROLES.includes(role.name.toLowerCase())
     );
+  }
+
+  /**
+   * Lấy danh sách ID các quyền mặc định mà MỌI vai trò đều luôn luôn có (Auth & Profile)
+   */
+  async getDefaultProfilePermissionIds(): Promise<number[]> {
+    const defaultPerms = await prisma.permission.findMany({
+      where: {
+        module: { in: this.DEFAULT_PROFILE_MODULES },
+      },
+      select: { id: true },
+    });
+    return defaultPerms.map((p) => p.id);
+  }
+
+  /**
+   * Lấy danh sách ID các quyền hợp lệ của Web Admin
+   */
+  async getValidAdminPermissionIds(): Promise<number[]> {
+    const adminPerms = await prisma.permission.findMany({
+      where: {
+        module: { in: this.ADMIN_WEB_MODULES },
+      },
+      select: { id: true },
+    });
+    return adminPerms.map((p) => p.id);
   }
 
   /**
@@ -70,11 +121,21 @@ export class RoleService {
   }
 
   /**
-   * Lấy danh sách toàn bộ Permissions trong hệ thống
-   * Nhóm theo module để hiển thị checkbox phân quyền trên Frontend
+   * Lấy danh sách Permissions của Web Admin (dùng để chọn phân quyền cho Role mới)
+   * Kèm thông tin các quyền Auth & Profile mặc định
    */
-  async getAllPermissionsGrouped() {
+  async getAllPermissionsGrouped(adminOnly: boolean = true) {
+    const whereClause = adminOnly
+      ? { module: { in: this.ADMIN_WEB_MODULES } }
+      : undefined;
+
     const permissions = await prisma.permission.findMany({
+      where: whereClause,
+      orderBy: [{ module: "asc" }, { id: "asc" }],
+    });
+
+    const defaultProfilePermissions = await prisma.permission.findMany({
+      where: { module: { in: this.DEFAULT_PROFILE_MODULES } },
       orderBy: [{ module: "asc" }, { id: "asc" }],
     });
 
@@ -90,6 +151,7 @@ export class RoleService {
       total: permissions.length,
       grouped,
       list: permissions,
+      defaultPermissions: defaultProfilePermissions,
     };
   }
 
@@ -135,6 +197,44 @@ export class RoleService {
   }
 
   /**
+   * Tự động bổ sung quyền READ tương ứng khi có ít nhất 1 quyền Action (Create/Update/Delete)
+   * của module đó được chọn, và tự động loại bỏ quyền READ nếu không có action nào được chọn.
+   */
+  async syncAutoReadPermissions(permissionIds: number[]): Promise<number[]> {
+    const adminPerms = await prisma.permission.findMany({
+      where: { module: { in: this.ADMIN_WEB_MODULES } },
+      select: { id: true, name: true, module: true },
+    });
+
+    const permsByModule = new Map<string, typeof adminPerms>();
+    for (const p of adminPerms) {
+      if (!permsByModule.has(p.module)) permsByModule.set(p.module, []);
+      permsByModule.get(p.module)!.push(p);
+    }
+
+    const selectedSet = new Set(permissionIds);
+
+    for (const [, modulePerms] of permsByModule.entries()) {
+      const actionPerms = modulePerms.filter((p) => !p.name.startsWith("READ_"));
+      const readPerms = modulePerms.filter((p) => p.name.startsWith("READ_"));
+
+      // Nếu module có các quyền action (thêm, sửa, xóa)
+      if (actionPerms.length > 0) {
+        const hasAction = actionPerms.some((p) => selectedSet.has(p.id));
+        if (hasAction) {
+          // Tự động kích hoạt toàn bộ quyền READ của module này
+          for (const r of readPerms) selectedSet.add(r.id);
+        } else {
+          // Tự động bỏ toàn bộ quyền READ của module này nếu không có action nào
+          for (const r of readPerms) selectedSet.delete(r.id);
+        }
+      }
+    }
+
+    return Array.from(selectedSet);
+  }
+
+  /**
    * Tạo vai trò mới (Không được trùng tên với admin, user hoặc role đã tồn tại)
    */
   async createRole(dto: CreateRoleDto) {
@@ -163,16 +263,26 @@ export class RoleService {
       );
     }
 
-    // Validate permissionIds nếu có truyền lên
-    const permConnect = Array.isArray(dto.permissionIds) && dto.permissionIds.length > 0
-      ? { connect: dto.permissionIds.map((id) => ({ id })) }
-      : undefined;
+    // 1. Luôn tự động cấp các quyền mặc định Profile & Auth cho mọi vai trò
+    const defaultProfileIds = await this.getDefaultProfilePermissionIds();
+
+    // 2. Chỉ cho phép gán các quyền thuộc phạm vi Web Admin
+    const validAdminIds = new Set(await this.getValidAdminPermissionIds());
+    const filteredAdminIds = (dto.permissionIds || []).filter((id) => validAdminIds.has(id));
+
+    // 3. Tự động đồng bộ quyền READ cho các tài nguyên có quyền Action được chọn
+    const syncedAdminIds = await this.syncAutoReadPermissions(filteredAdminIds);
+
+    // Danh sách quyền cuối cùng được gán
+    const finalPermissionIds = Array.from(new Set([...defaultProfileIds, ...syncedAdminIds]));
 
     const newRole = await prisma.role.create({
       data: {
         name: trimmedName,
         description: dto.description?.trim() || null,
-        permissions: permConnect,
+        permissions: {
+          connect: finalPermissionIds.map((id) => ({ id })),
+        },
       },
       include: {
         permissions: {
@@ -265,8 +375,20 @@ export class RoleService {
     }
 
     if (Array.isArray(dto.permissionIds)) {
+      // 1. Luôn bảo lưu các quyền mặc định Profile & Auth cho mọi vai trò
+      const defaultProfileIds = await this.getDefaultProfilePermissionIds();
+
+      // 2. Chỉ cho phép gán các quyền thuộc phạm vi Web Admin
+      const validAdminIds = new Set(await this.getValidAdminPermissionIds());
+      const filteredAdminIds = dto.permissionIds.filter((id) => validAdminIds.has(id));
+
+      // 3. Tự động đồng bộ quyền READ cho các tài nguyên có quyền Action được chọn
+      const syncedAdminIds = await this.syncAutoReadPermissions(filteredAdminIds);
+
+      const finalPermissionIds = Array.from(new Set([...defaultProfileIds, ...syncedAdminIds]));
+
       dataToUpdate.permissions = {
-        set: dto.permissionIds.map((pid) => ({ id: pid })),
+        set: finalPermissionIds.map((pid) => ({ id: pid })),
       };
     }
 

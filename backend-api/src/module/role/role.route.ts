@@ -49,7 +49,7 @@ roleRouter.get(
   "/:id",
   requirePermission(PermissionName.READ_ROLE_DETAIL),
   asyncHandler(async (req, res) => {
-    const id = parseInt(req.params.id, 10);
+    const id = parseInt(String(req.params.id), 10);
     const role = await roleService.getRoleById(id);
     res.status(200).json({
       success: true,
@@ -88,7 +88,7 @@ roleRouter.put(
   "/:id",
   requirePermission(PermissionName.UPDATE_ROLE),
   asyncHandler(async (req, res) => {
-    const id = parseInt(req.params.id, 10);
+    const id = parseInt(String(req.params.id), 10);
     const { name, description, permissionIds } = req.body;
 
     const updatedRole = await roleService.updateRole(id, {
@@ -112,7 +112,7 @@ roleRouter.delete(
   "/:id",
   requirePermission(PermissionName.DELETE_ROLE),
   asyncHandler(async (req, res) => {
-    const id = parseInt(req.params.id, 10);
+    const id = parseInt(String(req.params.id), 10);
     const result = await roleService.deleteRole(id);
 
     res.status(200).json({

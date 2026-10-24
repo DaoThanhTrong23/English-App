@@ -36,6 +36,8 @@ import { notificationRouter } from "./module/notification/notification.route.js"
 import { questRouter } from "./module/quest/quest.route.js";
 import { keywordRouter } from "./module/keyword-setting/keyword-setting.route.js";
 import { topicSettingRouter } from "./module/topic-setting/topic-setting.route.js";
+import { roleRouter } from "./module/role/role.route.js";
+import { staffRouter } from "./module/staff/staff.route.js";
 
 export function createapp() {
     const app = express();
@@ -87,6 +89,10 @@ app.use("/api/onboarding", onboardingRouter);
     app.use("/api/admin/keywords", keywordRouter);
     app.use("/api/admin/topic-settings", topicSettingRouter);
     app.use("/api/admin/achievements", achievementRouter);
+    // Đăng ký route quản lý vai trò và phân quyền
+    app.use("/api/admin/roles", roleRouter);
+    // Đăng ký route quản lý nhân viên
+    app.use("/api/admin/staff", staffRouter);
     // Đăng ký route quản lý bài kiểm tra
     app.use("/api/admin/tests", testRouter);
     // Đăng ký route game
