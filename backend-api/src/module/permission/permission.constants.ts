@@ -111,6 +111,13 @@ export const ALL_PERMISSIONS: PermissionDefinition[] = [
   { name: PermissionName.READ_AI_ADMIN_SESSION_MESSAGES, description: "Xem tin nhắn trong phiên trò chuyện AI", module: "ai" },
   { name: PermissionName.DELETE_AI_ADMIN_SESSION, description: "Xóa cuộc trò chuyện AI", module: "ai" },
 
+  // === ADMIN - ROLE MANAGEMENT ===
+  { name: PermissionName.READ_ROLE_LIST, description: "Xem danh sách vai trò (roles)", module: "role_manage" },
+  { name: PermissionName.READ_ROLE_DETAIL, description: "Xem chi tiết vai trò", module: "role_manage" },
+  { name: PermissionName.CREATE_ROLE, description: "Tạo vai trò mới", module: "role_manage" },
+  { name: PermissionName.UPDATE_ROLE, description: "Chỉnh sửa vai trò", module: "role_manage" },
+  { name: PermissionName.DELETE_ROLE, description: "Xóa vai trò", module: "role_manage" },
+
   // === 15. STUDENT - VOCABULARY ===
   { name: PermissionName.READ_STUDENT_VOCABULARY_LIST, description: "Xem danh sách từ vựng cá nhân", module: "student_vocabulary" },
   { name: PermissionName.READ_STUDENT_VOCABULARY_REVIEW, description: "Lấy danh sách từ vựng cần ôn tập", module: "student_vocabulary" },

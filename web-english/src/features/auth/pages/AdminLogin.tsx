@@ -67,7 +67,7 @@ const AdminLogin: React.FC = () => {
 
       const resultData = response.data.data;
 
-      if (resultData?.user?.role !== 'admin') {
+      if (resultData?.user?.role === 'user') {
         setErrorMsg('Tài khoản này không có quyền truy cập trang quản trị!');
         setIsLoading(false);
         return;
