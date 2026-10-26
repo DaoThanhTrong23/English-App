@@ -12,6 +12,10 @@ vi.mock('../../../../middleware/authenticate.middleware.js', () => ({
   },
 }));
 
+vi.mock('../../../../middleware/authorize.middleware.js', () => ({
+  requirePermission: () => (_req: any, _res: any, next: any) => next(),
+}));
+
 describe('Onboarding Routes - Integration Tests (QC 10-Year Standard)', () => {
   let app: express.Express;
 

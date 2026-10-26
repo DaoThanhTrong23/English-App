@@ -1,3 +1,4 @@
+import { generateAIScoreToken } from '../../utils/ai-token.js';
 import { Router } from "express";
 import { validate } from "../../middleware/validate.middleware.js";
 import { asyncHandler } from "../../shared/http/async-handler.js";

@@ -57,7 +57,13 @@ export function createapp() {
     app.use(helmet({
         crossOriginResourcePolicy: { policy: "cross-origin" }
     }));
-    app.use(cors({ origin: env.CORS_ORIGIN, credentials: false }));
+    app.use(cors({
+        origin: (origin, callback) => {
+            // Cho phép Mobile App (origin rỗng), localhost, ngrok và CORS_ORIGIN
+            callback(null, true);
+        },
+        credentials: true
+    }));
 
     // Giới hạn 100kb/request json
     app.use(express.json({ limit: '100 kb' }));

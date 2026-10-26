@@ -367,7 +367,7 @@ export default function HomeScreen() {
 
   const handleScrollToTopics = () => {
     if (courses.length > 0) {
-      router.push({ pathname: '/(tabs)/course/[id]', params: { id: courses[0].id } } as any);
+      router.push(`/course/${courses[0].id}` as any);
     }
   };
 
@@ -380,7 +380,7 @@ export default function HomeScreen() {
         });
         if (res.data?.success && res.data.data?.items?.length > 0) {
           setCourses(res.data.data.items);
-          router.push({ pathname: '/(tabs)/course/[id]', params: { id: res.data.data.items[0].id } } as any);
+          router.push(`/course/${res.data.data.items[0].id}` as any);
           return;
         }
       }
@@ -785,7 +785,7 @@ export default function HomeScreen() {
                   style={[styles.homeReviewBtn, { backgroundColor: theme.primary }]}
                   onPress={() => {
                     if (courses.length > 0) {
-                      router.push({ pathname: '/(tabs)/course/[id]', params: { id: courses[0].id } } as any);
+                      router.push(`/course/${courses[0].id}` as any);
                     }
                   }}
                   activeOpacity={0.8}
@@ -874,7 +874,7 @@ export default function HomeScreen() {
                   key={course.id}
                   style={[styles.topicCard, { backgroundColor: theme.card, borderColor: theme.border }]}
                   onPress={() => {
-                    router.push({ pathname: '/(tabs)/course/[id]', params: { id: course.id } } as any);
+                    router.push(`/course/${course.id}` as any);
                   }}
                   activeOpacity={0.7}
                 >

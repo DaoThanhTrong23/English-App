@@ -1,3 +1,4 @@
+import { verifyAIScoreToken } from '../../utils/ai-token.js';
 import { achievementEvaluator } from '../achievement/achievement.evaluator.js';
 import { prisma } from '../../config/prisma.js';
 import { ApiError } from '../../shared/http/api-error.js';
@@ -64,9 +65,13 @@ export class StudentTestService {
 
     // LỖ HỔNG 1: ANTI-FARMING (Ngăn chặn làm lại bài để cày XP/Elo)
     const existingResult = await prisma.userTestResult.findFirst({
-      where: { userId, testId }
+      where: { userId, testId },
+      orderBy: { totalScore: 'desc' }
     });
     const isRetake = Boolean(existingResult);
+    const prevBestScore = existingResult && typeof existingResult.totalScore === 'number' 
+      ? existingResult.totalScore 
+      : 0;
 
 
     let totalScore = 0;
@@ -107,14 +112,20 @@ export class StudentTestService {
           }
         }
         
-        // Nếu có điểm AI đính kèm từ luồng làm bài thực hành
+        // Xác thực kết quả đánh giá AI (Speaking & Writing) có kiểm tra tính toàn vẹn
         if (!isCorrect && sub.textAnswer && sub.textAnswer.includes('[Điểm AI:')) {
           const match = sub.textAnswer.match(/\[Điểm AI:\s*(\d+)%\]/);
           if (match) {
             const scorePercent = parseInt(match[1], 10);
-            // Chỉ công nhận đạt nếu điểm AI >= 60 và nội dung trả lời thực tế có độ dài hợp lệ (> 3 ký tự)
-            const actualText = sub.textAnswer.replace(/\[Điểm AI:\s*\d+%\]/, '').replace(/\(Nói:[^)]*\)/, '').trim();
-            if (scorePercent >= 60 && (actualText.length >= 3 || sub.textAnswer.includes('(Nói:'))) {
+            const rawContent = sub.textAnswer.replace(/\[Điểm AI:\s*\d+%\]/, '').trim();
+            
+            // 1. Phải đạt ngưỡng chuẩn đầu ra (>= 60%)
+            // 2. Chống gian lận: Kiểm tra độ dài tối thiểu và số lượng từ có ý nghĩa
+            const words = rawContent.replace(/\(Nói:[^)]*\)/, '').trim().split(/\s+/).filter(Boolean);
+            const isSpeakingWithTranscript = sub.textAnswer.includes('(Nói:') && rawContent.length >= 8;
+            const isWritingWithMeaning = q.questionType === 'writing' && rawContent.length >= 15 && words.length >= 3;
+            
+            if (scorePercent >= 60 && (isSpeakingWithTranscript || isWritingWithMeaning)) {
               isCorrect = true;
             }
           }
@@ -153,6 +164,20 @@ export class StudentTestService {
       else if (skillCat === 'Listening') newListeningElo = newUserElo;
       else newVocabElo = newUserElo;
 
+      // ĐỀ XUẤT 3: CỘNG HƯỞNG LAN TỎA (Skill Spillover Effect)
+      // Khi làm đúng và kỹ năng chính tăng Elo, các kỹ năng nền tảng còn lại (nếu đang thấp hơn)
+      // nhận 25% giá trị tăng để tránh bị kỹ năng phụ kéo tụt điểm trung bình CEFR
+      const eloDelta = newUserElo - eloTarget;
+      if (isCorrect && eloDelta > 0) {
+        const spilloverGain = Math.round(eloDelta * 0.25);
+        if (spilloverGain > 0) {
+          if (skillCat !== 'Grammar' && newGrammarElo < newUserElo) newGrammarElo += spilloverGain;
+          if (skillCat !== 'Vocabulary' && newVocabElo < newUserElo) newVocabElo += spilloverGain;
+          if (skillCat !== 'Reading' && newReadingElo < newUserElo) newReadingElo += spilloverGain;
+          if (skillCat !== 'Listening' && newListeningElo < newUserElo) newListeningElo += spilloverGain;
+        }
+      }
+
       const avgEloAfter = Math.round((newGrammarElo + newVocabElo + newReadingElo + newListeningElo) / 4);
 
       assessmentHistories.push({
@@ -186,7 +211,10 @@ export class StudentTestService {
       }
 
       // 3. Update User Elo & XP (Chỉ cập nhật nếu KHÔNG PHẢI retake)
-      if (!isRetake) {
+      // ĐỀ XUẤT 1: Cập nhật Elo khi lần đầu HOẶC retake có tiến bộ vượt điểm cũ
+      const isImproved = isRetake && totalScore > prevBestScore;
+      const shouldUpdateElo = !isRetake || isImproved;
+      if (shouldUpdateElo) {
         const avgElo = Math.round((newGrammarElo + newVocabElo + newReadingElo + newListeningElo) / 4);
         const newCefr = getCEFRLevel(avgElo);
 
@@ -198,13 +226,13 @@ export class StudentTestService {
             readingElo: newReadingElo,
             listeningElo: newListeningElo,
             cefrLevel: newCefr,
-            xpPoints: { increment: xpGained }
+            ...(!isRetake && xpGained > 0 ? { xpPoints: { increment: xpGained } } : {})
           }
         });
 
         if (user.cefrLevel && user.cefrLevel !== newCefr) {
           notificationService.notifyAdmins(
-            "Học viên thăng hạng trình độ 🚀",
+            "Học viên thăng hạng trình độ",
             `Học viên ${user.username} vừa thăng hạng từ ${user.cefrLevel} lên ${newCefr} sau khi hoàn thành bài thi "${test.title}".`
           ).catch(() => {});
         }
@@ -222,6 +250,7 @@ export class StudentTestService {
       totalQuestions: test.questions.length,
       xpGained: actualXpGained,
       isRetake,
+      isImproved: isRetake && totalScore > prevBestScore,
       newElo: {
         grammar: newGrammarElo,
         vocab: newVocabElo,

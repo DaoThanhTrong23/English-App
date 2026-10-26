@@ -39,13 +39,17 @@ testRouter.post("/:testId/questions/import", requirePermission(PermissionName.CR
 testRouter.get("/", requirePermission(PermissionName.READ_TEST_LIST), asyncHandler(async (req, res) => {
   const ceftLevel = req.query.ceftLevel as string;
   const search = req.query.search as string;
+  const type = req.query.type as 'placement' | 'lesson' | 'all' | undefined;
+  const page = req.query.page ? parseInt(req.query.page as string) : undefined;
+  const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
+
   let lessonId: number | null | undefined = undefined;
   if (req.query.lessonId === 'null') {
     lessonId = null;
   } else if (req.query.lessonId) {
     lessonId = parseInt(req.query.lessonId as string);
   }
-  const result = await testService.getAllTests(ceftLevel, search, lessonId);
+  const result = await testService.getAllTests(ceftLevel, search, lessonId, page, limit, type);
   res.status(200).json({ success: true, message: "Lấy danh sách bài thi thành công", data: result });
 }));
 

@@ -16,7 +16,17 @@ export const CEFR_ORDER: Record<string, number> = {
 export class TestService {
   constructor(private testRepo: TestRepository = testRepository) {}
 
-  async getAllTests(ceftLevel?: string, search?: string, lessonId?: number | null) {
+  async getAllTests(
+    ceftLevel?: string, 
+    search?: string, 
+    lessonId?: number | null,
+    page?: number,
+    limit?: number,
+    type?: 'placement' | 'lesson' | 'all'
+  ) {
+    if (page !== undefined || limit !== undefined || type !== undefined) {
+      return await this.testRepo.findTests(ceftLevel, search, lessonId, page, limit, type);
+    }
     return await this.testRepo.findTests(ceftLevel, search, lessonId);
   }
 

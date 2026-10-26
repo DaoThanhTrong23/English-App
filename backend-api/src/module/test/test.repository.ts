@@ -1,7 +1,14 @@
 import { prisma } from "../../config/prisma.js";
 
 export class TestRepository {
-  async findTests(ceftLevel?: string, search?: string, lessonId?: number | null) {
+  async findTests(
+    ceftLevel?: string, 
+    search?: string, 
+    lessonId?: number | null,
+    page?: number,
+    limit?: number,
+    type?: 'placement' | 'lesson' | 'all'
+  ) {
     const whereClause: any = {};
     if (ceftLevel) {
       if (ceftLevel === 'A') {
@@ -19,21 +26,85 @@ export class TestRepository {
       whereClause.title = { contains: search };
     }
 
-    if (lessonId) {
-      whereClause.lessonId = lessonId;
-    } else if (lessonId === null) {
-      whereClause.lessonId = null;
+    // Lọc theo loại bài thi (Placement Test vs Lesson Test)
+    if (type === 'placement') {
+      whereClause.OR = [
+        { lessonId: null },
+        { title: { contains: 'đầu vào' } }
+      ];
+    } else if (type === 'lesson') {
+      whereClause.lessonId = { not: null };
+      whereClause.NOT = { title: { contains: 'đầu vào' } };
+    } else if (lessonId !== undefined) {
+      if (lessonId === null) {
+        whereClause.lessonId = null;
+      } else {
+        whereClause.lessonId = lessonId;
+      }
     }
 
-    return await prisma.test.findMany({
-      where: whereClause,
-      include: {
-        _count: {
-          select: { questions: true }
+    // Tương thích ngược: Nếu không yêu cầu phân trang, trả về danh sách phẳng
+    if (page === undefined && limit === undefined) {
+      return await prisma.test.findMany({
+        where: whereClause,
+        include: {
+          _count: {
+            select: { questions: true }
+          }
+        },
+        orderBy: { id: 'desc' }
+      });
+    }
+
+    // Phân trang Server-side Offset-based
+    const p = Math.max(1, Number(page) || 1);
+    const l = Math.max(1, Number(limit) || 10);
+    const skip = (p - 1) * l;
+
+    const [items, total, placementCount, lessonCount, allCount] = await Promise.all([
+      prisma.test.findMany({
+        where: whereClause,
+        include: {
+          _count: {
+            select: { questions: true }
+          }
+        },
+        orderBy: { id: 'desc' },
+        skip,
+        take: l
+      }),
+      prisma.test.count({ where: whereClause }),
+      prisma.test.count({
+        where: {
+          OR: [
+            { lessonId: null },
+            { title: { contains: 'đầu vào' } }
+          ]
         }
+      }),
+      prisma.test.count({
+        where: {
+          lessonId: { not: null },
+          NOT: { title: { contains: 'đầu vào' } }
+        }
+      }),
+      prisma.test.count()
+    ]);
+
+    return {
+      items,
+      pagination: {
+        total,
+        page: p,
+        limit: l,
+        totalPages: Math.ceil(total / l)
       },
-      orderBy: { id: 'desc' }
-    });
+      counts: {
+        placement: placementCount,
+        lesson: lessonCount,
+        all: allCount
+      }
+    };
   }
 
   async findTestById(id: number) {

@@ -413,6 +413,8 @@ export class AuthService {
             );
         }
 
+        
+
         const passwordHash = await bcryptHash(data.password);
         const newUser = await this.authRepo.createUser({
             username: cleanUsername,
@@ -440,7 +442,7 @@ export class AuthService {
 
         // Gửi thông báo đến Quản trị viên
         notificationService.notifyAdmins(
-            "Học viên mới đăng ký 🎉",
+            "Học viên mới đăng ký",
             `Học viên ${newUser.username} (${newUser.email}) vừa đăng ký tài khoản mới trên hệ thống.`
         ).catch(() => {});
 

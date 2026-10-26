@@ -246,8 +246,6 @@ export default function TabLayout() {
             ),
           }}
         />
-        <Tabs.Screen name="course/[id]" options={{ href: null, tabBarStyle: { display: 'none' } }} />
-        <Tabs.Screen name="lesson/[id]" options={{ href: null, tabBarStyle: { display: 'none' } }} />
       </Tabs>
 
       {/* FLOATING DRAGGABLE AI CHAT BUBBLE */}

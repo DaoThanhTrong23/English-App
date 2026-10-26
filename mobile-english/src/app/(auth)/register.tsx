@@ -273,8 +273,8 @@ export default function RegisterScreen() {
         return;
       }
 
-      if (user?.role === 'admin') {
-        setErrorMsg('Tài khoản Admin không được phép đăng nhập trên thiết bị di động!');
+      if (user && String(user.role || '').toLowerCase() !== 'user') {
+        setErrorMsg('Tài khoản Quản trị viên/Nhân viên không được phép đăng nhập ứng dụng dành cho học viên!');
         return;
       }
 

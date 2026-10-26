@@ -11,24 +11,24 @@
  *
  * Tất cả được quy tụ tại file này để Quản trị viên/Giáo viên/Lập trình viên
  * dễ dàng tùy chỉnh mà không cần sửa code lõi của thuật toán.
- */
+*/
 
 export const FAME_KT_CONFIG = {
   // 1. Phân tích tâm lý học thời gian (Psychometrics Time Factor)
   TIME_FACTOR: {
     /** Ngưỡng thời gian trả lời siêu nhanh (giây). Dưới ngưỡng này coi là bấm lụi mù quáng/bot */
-    ANTI_BOT_THRESHOLD_SEC: 2,
+    ANTI_BOT_THRESHOLD_SEC: 5.6,
     /** Hệ số phạt khi bấm lụi siêu nhanh */
     ANTI_BOT_FACTOR: 0.2,
 
     /** Vùng phản xạ tối ưu: Nắm vững kiến thức (Optimal Flow Min - Max giây) */
-    OPTIMAL_TIME_MIN_SEC: 2,
-    OPTIMAL_TIME_MAX_SEC: 15,
+    OPTIMAL_TIME_MIN_SEC: 5.6,
+    OPTIMAL_TIME_MAX_SEC: 37.3,
     /** Hệ số thưởng khi làm bài trong vùng phản xạ tối ưu */
     OPTIMAL_FACTOR: 1.5,
 
     /** Thời gian làm bài thông thường tối đa (giây) */
-    NORMAL_MAX_SEC: 20,
+    NORMAL_MAX_SEC: 45,
     /** Hệ số cho thời gian bình thường */
     NORMAL_FACTOR: 1.0,
 
@@ -36,7 +36,7 @@ export const FAME_KT_CONFIG = {
     SLOW_MIN_FACTOR: 0.3,
 
     /** Thời gian chuẩn kỳ vọng cho 1 câu hỏi trắc nghiệm (mili-giây) */
-    EXPECTED_TIME_MS: 20000,
+    EXPECTED_TIME_MS: 45000,
   },
 
   // 2. Tham số mô hình IRT (Item Response Theory)
@@ -47,22 +47,29 @@ export const FAME_KT_CONFIG = {
 
   // 3. Cấu hình hệ thống Elo
   ELO: {
-    /** Hệ số K cơ sở dùng để điều chỉnh độ nhạy điểm Elo */
-    K_BASE: 32,
-    /** Điểm Elo ban đầu cho từng kỹ năng của học viên mới */
-    INITIAL_USER_ELO: 1200,
+    /** Hệ số K cơ sở dùng cho các bài kiểm tra tiến độ thông thường */
+    K_BASE: 40,
+    /** Hệ số K chẩn đoán ban đầu (Diagnostic K) cho bài test đầu vào để hội tụ nhanh */
+    K_DIAGNOSTIC: 75,
+    /** Điểm Elo ban đầu cho từng kỹ năng của học viên mới (Khởi điểm A1 chuẩn) */
+    INITIAL_USER_ELO: 950,
     /** Độ khó Elo mặc định của câu hỏi nếu chưa được gán */
     DEFAULT_QUESTION_ELO: 1200,
+    /** Hệ số K giảm chấn cho câu hỏi (Damped K-factor) nhằm đảm bảo quán tính thống kê */
+    K_QUESTION_BASE: 6,
+    /** Ngưỡng Elo tối thiểu và tối đa để kẹp biên an toàn cho độ khó câu hỏi */
+    MIN_QUESTION_ELO: 600,
+    MAX_QUESTION_ELO: 2400,
   },
 
   // 4. Cấu hình dừng sớm thích ứng (Computerized Adaptive Testing - Early Stopping)
   EARLY_STOP: {
-    /** Số câu tối thiểu học viên phải hoàn thành trước khi hệ thống bắt đầu xét dừng sớm */
-    MIN_QUESTIONS: 6,
+    /** Số câu tối thiểu học viên phải hoàn thành (ít nhất 2 câu/kỹ năng x 4 kỹ năng = 8) */
+    MIN_QUESTIONS: 8,
     /** Số lần cập nhật Elo gần nhất dùng để tính biên độ hội tụ */
     RECENT_QUESTIONS_COUNT: 3,
-    /** Biên độ dao động Elo tối đa giữa các câu gần nhất. Nếu dao động < ngưỡng này thì coi là năng lực đã hội tụ */
-    VARIANCE_THRESHOLD: 15,
+    /** Biên độ dao động Elo tối đa giữa các câu gần nhất để xét hội tụ */
+    VARIANCE_THRESHOLD: 10,
   },
 
   // 5. Ngưỡng phân cấp trình độ theo khung chuẩn Châu Âu CEFR

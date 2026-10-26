@@ -26,8 +26,8 @@ const AdminLogin: React.FC = () => {
         }).then(backendRes => {
           const resultData = backendRes.data.data;
 
-          if (resultData?.user?.role !== 'admin') {
-            setErrorMsg('Tài khoản Facebook này không có quyền quản trị!');
+          if (String(resultData?.user?.role || '').toLowerCase() === 'user') {
+            setErrorMsg('Tài khoản học viên không có quyền truy cập trang quản trị!');
             setIsLoading(false);
             window.history.replaceState(null, '', window.location.pathname);
             return;
@@ -183,7 +183,7 @@ const AdminLogin: React.FC = () => {
                     value={identifier}
                     onChange={(e) => setIdentifier(e.target.value)}
                     className="admin-login-input"
-                    placeholder="admin@example.com"
+                    placeholder="Nhập email hoặc username"
                     disabled={isLoading}
                     required
                   />
@@ -228,8 +228,8 @@ const AdminLogin: React.FC = () => {
                         });
                         const resultData = response.data.data;
 
-                        if (resultData?.user?.role !== 'admin') {
-                          setErrorMsg('Tài khoản Google này không có quyền quản trị!');
+          if (String(resultData?.user?.role || '').toLowerCase() === 'user') {
+            setErrorMsg('Tài khoản học viên không có quyền truy cập trang quản trị!');
                           return;
                         }
                         const token = resultData?.token?.accessToken || resultData?.accessToken;

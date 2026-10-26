@@ -855,8 +855,8 @@ const RoleList: React.FC = () => {
                 <div style={{ marginBottom: 18, background: '#f8fafc', padding: 14, borderRadius: 8, fontSize: 13.5, color: '#475569' }}>
                   <strong>Mô tả:</strong> {viewingRole.description || 'Chưa có mô tả'}
                   <div style={{ marginTop: 6, display: 'flex', gap: 16 }}>
-                    <span>👥 Số người dùng đang gán: <strong>{viewingRole.userCount}</strong></span>
-                    <span>🔑 Tổng số quyền được cấp: <strong>{viewingRole.permissionCount}</strong> quyền</span>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Users size={14} /> Số người dùng đang gán: <strong>{viewingRole.userCount}</strong></span>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Key size={14} /> Tổng số quyền được cấp: <strong>{viewingRole.permissionCount}</strong> quyền</span>
                   </div>
                 </div>
 

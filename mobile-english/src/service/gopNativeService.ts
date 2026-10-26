@@ -1,26 +1,10 @@
+import { API_URL } from '../constants/api';
 import { Platform } from "react-native";
 import Constants from "expo-constants";
 import * as FileSystem from "expo-file-system/legacy";
 
 // Tự động lấy IP của máy tính đang chạy Expo server để điện thoại kết nối được
-function getAutoBackendUrl(): string {
-  if (Platform.OS === "web") {
-    return "http://localhost:3000";
-  }
-
-  // Lấy IP máy tính qua hostUri của Expo
-  const hostUri = Constants.expoConfig?.hostUri || (Constants as any).manifest2?.extra?.expoGo?.debuggerHost;
-  if (hostUri) {
-    const ip = hostUri.split(":")[0];
-    if (ip && ip !== "localhost") {
-      return `http://${ip}:3000`;
-    }
-  }
-
-  return Platform.OS === "android" ? "http://192.168.100.5:3000" : "http://localhost:3000";
-}
-
-export const BACKEND_URL = getAutoBackendUrl();
+export const BACKEND_URL = API_URL.replace(/\/api\/?$/, '');
 
 export interface PhonemeScoreDetail {
   phoneme: string;

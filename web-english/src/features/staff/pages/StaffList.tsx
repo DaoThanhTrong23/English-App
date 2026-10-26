@@ -11,7 +11,6 @@ import {
   Lock,
   Unlock,
   Key,
-  Crown,
   UserPlus,
   CheckCircle2,
   AlertTriangle,
@@ -233,7 +232,8 @@ const StaffList: React.FC = () => {
     });
     setIsCreateModalOpen(true);
   };
-
+  const isStrongPassword = (password: string) => /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9\s]).{9,}$/.test(password);
+  const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
   // Handle submit Create Staff
   const handleSubmitCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -241,6 +241,18 @@ const StaffList: React.FC = () => {
       toast.info('Vui lòng điền đầy đủ các thông tin bắt buộc (*)');
       return;
     }
+
+    if (!isValidEmail(createForm.email)) {
+      toast.error('Địa chỉ email không đúng định dạng (VD: example@domain.com)');
+      return;
+    }
+
+    if(!isStrongPassword(createForm.password))
+    {
+      toast.error('Mật khẩu phải có ít nhất 9 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt.');
+      return;
+    }
+
 
     setSubmitting(true);
     try {
@@ -474,7 +486,7 @@ const StaffList: React.FC = () => {
 
           <div className="staff-stat-card">
             <div className="staff-stat-icon purple">
-              <Crown size={24} />
+              <ShieldCheck size={24} />
             </div>
             <div>
               <div className="staff-stat-label">Quản trị viên (Admin)</div>
@@ -558,7 +570,7 @@ const StaffList: React.FC = () => {
               <thead>
                 <tr>
                   <th>Nhân viên</th>
-                  <th>Vị trí / Chức vụ</th>
+                  {/* <th>Vị trí / Chức vụ</th> */}
                   <th>Vai trò (Role)</th>
                   <th>Trạng thái</th>
                   <th>Ngày tạo</th>
@@ -613,7 +625,7 @@ const StaffList: React.FC = () => {
                         </td>
 
                         {/* Job / Position */}
-                        <td>
+                        {/* <td>
                           {staff.job ? (
                             <span style={{ color: '#334155', fontWeight: 500 }}>{staff.job}</span>
                           ) : (
@@ -621,12 +633,12 @@ const StaffList: React.FC = () => {
                               Chưa thiết lập
                             </span>
                           )}
-                        </td>
+                        </td> */}
 
                         {/* Role Badge */}
                         <td>
                           <span className={`role-badge ${staff.isAdmin ? 'admin' : 'custom'}`}>
-                            {staff.isAdmin ? <Crown size={14} /> : <ShieldCheck size={14} />}
+                            <ShieldCheck size={14} />
                             {staff.role.name.toUpperCase()}
                           </span>
                         </td>
@@ -659,7 +671,7 @@ const StaffList: React.FC = () => {
                                 onClick={() => handleQuickPromoteToAdmin(staff)}
                                 title="Nâng cấp tài khoản này lên Quản trị viên (Admin)"
                               >
-                                <Crown size={14} />
+                                <ShieldCheck size={14} />
                                 <span>Lên Admin</span>
                               </button>
                             )}
@@ -740,7 +752,7 @@ const StaffList: React.FC = () => {
               <div className="staff-modal-header">
                 <h3 className="staff-modal-title">
                   <UserPlus size={20} color="#2563eb" />
-                  <span>Tạo tài khoản Nhân viên / Quản trị viên mới</span>
+                  <span>Tạo tài khoản nhân viên/quản trị viên mới</span>
                 </h3>
                 <button
                   className="staff-modal-close"
@@ -829,7 +841,7 @@ const StaffList: React.FC = () => {
 
                     {roles.find((r) => r.id === createForm.roleId)?.name === 'admin' ? (
                       <div className="role-select-card admin-highlight">
-                        <Crown size={20} />
+                        <ShieldCheck size={20} />
                         <div>
                           <strong>Đặc quyền Admin:</strong> Tài khoản này sẽ được cấp toàn bộ quyền hạn quản trị cao nhất của hệ thống.
                         </div>
@@ -950,7 +962,7 @@ const StaffList: React.FC = () => {
 
                     {roles.find((r) => r.id === editForm.roleId)?.name === 'admin' && (
                       <div className="role-select-card admin-highlight">
-                        <Crown size={20} />
+                        <ShieldCheck size={20} />
                         <div>
                           <strong>Nâng cấp lên Quản trị viên:</strong> Tài khoản này sẽ có quyền truy cập toàn bộ hệ thống.
                         </div>
@@ -978,7 +990,7 @@ const StaffList: React.FC = () => {
                       value={editForm.password}
                       onChange={(e) => setEditForm({ ...editForm, password: e.target.value })}
                     />
-                    <div className="form-help">Nhập tối thiểu 6 ký tự để đổi mật khẩu</div>
+                    <div className="form-help">Nhập tối thiểu 8 ký tự để đổi mật khẩu</div>
                   </div>
 
                   {editingStaff.id !== currentAdminId && (
@@ -1140,7 +1152,7 @@ const StaffList: React.FC = () => {
 
                     {roles.find((r) => r.id === candidateRoleId)?.name === 'admin' && (
                       <div className="role-select-card admin-highlight">
-                        <Crown size={20} />
+                        <ShieldCheck size={20} />
                         <div>
                           Học viên này sẽ được nâng cấp thành <strong>Quản trị viên (Admin)</strong> với toàn quyền trên hệ thống.
                         </div>

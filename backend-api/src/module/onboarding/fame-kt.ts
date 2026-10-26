@@ -62,19 +62,42 @@ export function updateAdvancedElo(
   questionElo: number, 
   isCorrect: boolean, 
   timeTakenMs: number,
-  c_guessing: number = FAME_KT_CONFIG.IRT.DEFAULT_GUESSING_PROBABILITY
+  c_guessing: number = FAME_KT_CONFIG.IRT.DEFAULT_GUESSING_PROBABILITY,
+  kBaseCustom?: number
 ) {
   const actualScore = isCorrect ? 1 : 0;
   const expectedScore = getExpectedScoreIRT(userElo, questionElo, c_guessing);
   const timeFactor = calculateTimeFactor(timeTakenMs);
   
-  const K_BASE = FAME_KT_CONFIG.ELO.K_BASE;
-  const kDynamic = K_BASE * timeFactor;
+    // Tính K-factor thích ứng theo độ chênh lệch năng lực & tổn thất bất đối xứng (Asymmetric Loss)
+  let kBase = kBaseCustom || FAME_KT_CONFIG.ELO.K_BASE;
+  if (isCorrect) {
+    // Thưởng xứng đáng khi giải đúng câu hỏi vượt trình độ hiện tại
+    if (questionElo > userElo) {
+      kBase += (questionElo - userElo) / 1.5;
+    }
+  } else {
+    // Giảm phạt khi câu hỏi quá khó so với năng lực (vốn xác suất đoán trúng đã thấp)
+    if (questionElo > userElo + 150) {
+      kBase = Math.max(16, kBase * 0.4);
+    }
+  }
+
+  const kDynamic = kBase * timeFactor;
   
-  // Cập nhật cả 2: Năng lực User và Độ khó Câu hỏi
+  // Damped K-factor cho câu hỏi để đảm bảo quán tính thống kê
+  const kQuestionBase = (FAME_KT_CONFIG.ELO as any).K_QUESTION_BASE || 6;
+  const kQuestionDynamic = kQuestionBase * timeFactor;
+  const rawQuestionElo = Math.round(questionElo + kQuestionDynamic * (expectedScore - actualScore));
+
+  // Kẹp biên an toàn (Boundary Clamping) tránh biến thiên cực đoan [600, 2400]
+  const minElo = (FAME_KT_CONFIG.ELO as any).MIN_QUESTION_ELO || 600;
+  const maxElo = (FAME_KT_CONFIG.ELO as any).MAX_QUESTION_ELO || 2400;
+  const clampedQuestionElo = Math.max(minElo, Math.min(maxElo, rawQuestionElo));
+
   return {
     newUserElo: Math.round(userElo + kDynamic * (actualScore - expectedScore)),
-    newQuestionElo: Math.round(questionElo + kDynamic * (expectedScore - actualScore)) 
+    newQuestionElo: clampedQuestionElo
   };
 }
 
@@ -97,11 +120,11 @@ export function createNewUserProficiency(): UserProficiency {
 
 // Map sang CEFR chuẩn hóa cho toàn bộ hệ thống
 export function getCEFRLevel(elo: number): string {
-  if (elo < CEFR_THRESHOLDS.A2) return 'A1';
-  if (elo < CEFR_THRESHOLDS.B1) return 'A2';
-  if (elo < CEFR_THRESHOLDS.B2) return 'B1';
-  if (elo < CEFR_THRESHOLDS.C1) return 'B2';
-  if (elo < CEFR_THRESHOLDS.C2) return 'C1';
+  if (elo < CEFR_THRESHOLDS.A1) return 'A1';
+  if (elo < CEFR_THRESHOLDS.A2) return 'A2';
+  if (elo < CEFR_THRESHOLDS.B1) return 'B1';
+  if (elo < CEFR_THRESHOLDS.B2) return 'B2';
+  if (elo < CEFR_THRESHOLDS.C1) return 'C1';
   return 'C2';
 }
 
@@ -196,8 +219,15 @@ export function checkEarlyStop(
   const recentElos = eloHistory.slice(-FAME_KT_CONFIG.EARLY_STOP.RECENT_QUESTIONS_COUNT);
   const variance = Math.max(...recentElos) - Math.min(...recentElos);
   
-  // Nếu biên độ dao động Elo trong các câu gần nhất < ngưỡng hội tụ -> Đã hội tụ
-  if (variance < FAME_KT_CONFIG.EARLY_STOP.VARIANCE_THRESHOLD) return true;
+  // Nếu thí sinh đang trong đà tăng liên tiếp hoặc giảm liên tiếp, KHÔNG dừng sớm vì chưa hội tụ
+  const isStrictlyIncreasing = recentElos.every((val, i, arr) => i === 0 || val > arr[i - 1]);
+  const isStrictlyDecreasing = recentElos.every((val, i, arr) => i === 0 || val < arr[i - 1]);
+  if ((isStrictlyIncreasing || isStrictlyDecreasing) && variance >= 6) {
+    return false;
+  }
+
+  // Nếu biên độ dao động Elo trong các câu gần nhất <= ngưỡng hội tụ -> Đã hội tụ
+  if (variance <= FAME_KT_CONFIG.EARLY_STOP.VARIANCE_THRESHOLD) return true;
   
   return false;
 }

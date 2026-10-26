@@ -280,14 +280,16 @@ export default function OnboardingScreen() {
               <View style={{backgroundColor: isDark ? '#1e293b' : '#dbeafe', padding: 12, borderRadius: 10, marginBottom: 12, flexDirection: 'row', alignItems: 'center', gap: 8}}>
                 <Ionicons name="flash" size={18} color={isDark ? '#93c5fd' : '#1e40af'} />
                 <Text style={{color: isDark ? '#93c5fd' : '#1e40af', fontSize: 13, fontWeight: '500', lineHeight: 18, flex: 1}}>
-                  Tính năng Tự động dừng (Auto-stop): Thuật toán thông minh FAME-KT đã phân tích xong trình độ của bạn chỉ sau {result.questionsUsed} câu hỏi mà không cần làm hết bài!
+                  Đây là tính năng tự động dừng   {"\n"}
+                  Thuật toán FAME-KT đã phân tích xong trình độ của bạn chỉ sau {result.questionsUsed} câu hỏi mà không cần làm hết bài!
                 </Text>
+                
               </View>
             )}
 
             {result.eloProfile && (
               <View style={{marginTop: 5}}>
-                <Text style={[styles.resultLabel, { color: theme.subtext, marginBottom: 10 }]}>Báo cáo năng lực đa chiều (FAME-KT Elo):</Text>
+                <Text style={[styles.resultLabel, { color: theme.subtext, marginBottom: 10 }]}>Báo cáo năng lực đa chiều theo FAME-KT Elo</Text>
                 <View style={styles.skillsGrid}>
                   <View style={[styles.skillBox, { backgroundColor: isDark ? theme.cardSecondary : '#f8fafc', borderColor: theme.border }]}>
                     <Ionicons name="create-outline" size={24} color={theme.primary} style={{ marginBottom: 4 }} />

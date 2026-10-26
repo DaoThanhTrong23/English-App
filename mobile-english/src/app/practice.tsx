@@ -380,7 +380,7 @@ export default function PracticeScreen() {
           <Ionicons name="checkmark" size={40} color="#16a34a" />
         </View>
         <Text style={{fontSize: 24, fontWeight: 'bold', color: theme.text, marginBottom: 10}}>
-          {resultData.isRetake ? 'Luyện tập lại hoàn thành!' : 'Hoàn thành xuất sắc!'}
+          {resultData.isRetake ? 'Luyện tập lại hoàn thành!' : 'Chúc mừng!'}
         </Text>
         <Text style={{fontSize: 16, color: theme.subtext, marginBottom: 6}}>
           Điểm số: {resultData.totalScore || 0} / {(resultData.totalQuestions || 0) * 10} ({resultData.correctCount || 0} câu đúng)

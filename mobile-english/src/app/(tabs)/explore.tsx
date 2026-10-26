@@ -21,6 +21,7 @@ export default function ExploreScreen() {
     { id: 'A1', label: 'Cơ bản (A1)' },
     { id: 'A2', label: 'Sơ cấp (A2)' },
     { id: 'B1_B2', label: 'Trung cấp (B1-B2)' },
+    { id: 'C1_C2', label: 'Nâng cao (C1-C2)' },
     { id: 'VOCAB', label: 'Nhiều từ vựng nhất' }
   ];
 
@@ -31,8 +32,10 @@ export default function ExploreScreen() {
   const fetchCourses = async () => {
     try {
       setLoading(true);
-      const res = await axiosClient.get('/student/courses');
-      // res.data.data.items handles the new backend structure
+      // Lấy tối đa 100 chủ đề để load đầy đủ mọi mục CEFR
+      const res = await axiosClient.get('/student/courses', {
+        params: { limit: 100 }
+      });
       setCourses(res.data?.data?.items || res.data?.data || []);
     } catch (error) {
       console.log('Error fetching courses:', error);
@@ -43,11 +46,17 @@ export default function ExploreScreen() {
 
   const filteredCourses = courses
     .filter(c => {
-      const matchSearch = c.title.toLowerCase().includes(searchQuery.toLowerCase());
+      const title = (c.title || '').toLowerCase();
+      const desc = (c.description || '').toLowerCase();
+      const q = searchQuery.trim().toLowerCase();
+      const matchSearch = !q || title.includes(q) || desc.includes(q);
       if (!matchSearch) return false;
-      if (selectedFilter === 'A1') return c.cefrLevel === 'A1';
-      if (selectedFilter === 'A2') return c.cefrLevel === 'A2';
-      if (selectedFilter === 'B1_B2') return c.cefrLevel === 'B1' || c.cefrLevel === 'B2';
+
+      const level = (c.cefrLevel || 'A1').toUpperCase();
+      if (selectedFilter === 'A1') return level === 'A1';
+      if (selectedFilter === 'A2') return level === 'A2';
+      if (selectedFilter === 'B1_B2') return level === 'B1' || level === 'B2';
+      if (selectedFilter === 'C1_C2') return level === 'C1' || level === 'C2';
       return true;
     })
     .sort((a, b) => {
@@ -60,37 +69,11 @@ export default function ExploreScreen() {
   const handleStartLearning = async (course: any) => {
     try {
       setEnrollingId(course.id);
-      const res = await axiosClient.post(`/student/courses/${course.id}/enroll`);
-      const { alreadyEnrolled } = res.data?.data || {};
-
-      if (alreadyEnrolled) {
-        Alert.alert(
-          'Thông báo',
-          'Bạn đang học chủ đề này.',
-          [
-            { text: 'Đóng', style: 'cancel' },
-            { 
-              text: 'Tiếp tục học', 
-              onPress: () => router.push({ pathname: '/(tabs)/course/[id]', params: { id: course.id } } as any) 
-            }
-          ]
-        );
-      } else {
-        Alert.alert(
-          'Thành công',
-          'Đã thêm chủ đề vào phần học chính của bạn!',
-          [
-            { 
-              text: 'Bắt đầu học', 
-              onPress: () => router.push({ pathname: '/(tabs)/course/[id]', params: { id: course.id } } as any) 
-            }
-          ]
-        );
-      }
+      // Đăng ký ngầm nếu chưa có
+      await axiosClient.post(`/student/courses/${course.id}/enroll`).catch(() => {});
+      router.push(`/course/${course.id}` as any);
     } catch (error: any) {
-      console.log('Error enrolling course:', error);
-      // Fallback nếu có lỗi mạng vẫn cho phép mở khóa học
-      router.push({ pathname: '/(tabs)/course/[id]', params: { id: course.id } } as any);
+      router.push(`/course/${course.id}` as any);
     } finally {
       setEnrollingId(null);
     }
@@ -103,7 +86,7 @@ export default function ExploreScreen() {
     return (
       <TouchableOpacity 
         style={[styles.courseCard, { backgroundColor: theme.card, borderColor: theme.border }]}
-        onPress={() => router.push({ pathname: '/(tabs)/course/[id]', params: { id: item.id } } as any)}
+        onPress={() => router.push(`/course/${item.id}` as any)}
       >
         <Image 
           source={topicImg ? { uri: topicImg } : require('../../../assets/images/gacon.gif')} 
@@ -197,6 +180,8 @@ export default function ExploreScreen() {
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.listContainer}
           showsVerticalScrollIndicator={false}
+          refreshing={loading}
+          onRefresh={fetchCourses}
           ListEmptyComponent={
             <View style={styles.emptyState}>
               <Ionicons name="search-outline" size={48} color={theme.subtext} />

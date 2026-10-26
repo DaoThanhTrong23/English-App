@@ -59,6 +59,10 @@ export default function LoginScreen() {
 
       const { accessToken, refreshToken, user } = res.data.data || res.data;
       if (!accessToken) throw new Error('Không nhận được token từ server');
+      if (user && String(user.role || '').toLowerCase() !== 'user') {
+        Alert.alert('Truy cập bị từ chối', 'Tài khoản Quản trị viên/Nhân viên không được phép đăng nhập ứng dụng dành cho học viên!');
+        return;
+      }
 
       await SecureStore.setItemAsync('accessToken', String(accessToken));
       if (refreshToken) await SecureStore.setItemAsync('refreshToken', String(refreshToken));
@@ -100,12 +104,6 @@ export default function LoginScreen() {
       return;
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(trimmedIdentifier)) {
-      setErrorMsg('Email không đúng định dạng (ví dụ: example@gmail.com)!');
-      return;
-    }
-
 
     try {
       const deviceInfo = Platform.OS;
@@ -124,8 +122,8 @@ export default function LoginScreen() {
         return;
       }
 
-      if (user?.role !== 'user') {
-        setErrorMsg('Tài khoản Admin không được phép đăng nhập trên thiết bị di động!');
+      if (user && String(user.role || '').toLowerCase() !== 'user') {
+        setErrorMsg('Tài khoản Quản trị viên/Nhân viên không được phép đăng nhập ứng dụng dành cho học viên!');
         return;
       }
 
@@ -182,16 +180,16 @@ export default function LoginScreen() {
         ) : null}
 
         <View style={styles.formContainer}>
-          <Text style={[styles.inputLabel, { color: theme.text }]}>Email của bạn</Text>
+          <Text style={[styles.inputLabel, { color: theme.text }]}>Email hoặc tên đăng nhập</Text>
           <View style={[styles.inputWrapper, { backgroundColor: theme.inputBg, borderColor: theme.border }]}>
             <TextInput
               style={[styles.input, { color: theme.inputText }]}
-              placeholder="example@gmail.com"
+              placeholder="Nhập email hoặc tên đăng nhập"
               placeholderTextColor={theme.subtext}
               value={identifier}
               onChangeText={setIdentifier}
               autoCapitalize="none"
-              keyboardType="email-address"
+              autoCorrect={false}
             />
           </View>
 

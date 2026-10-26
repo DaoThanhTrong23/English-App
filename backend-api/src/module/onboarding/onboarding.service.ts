@@ -1,3 +1,4 @@
+import { shuffleArray } from '../../utils/array.js';
 import fs from 'fs';
 import path from 'path';
 import { prisma } from '../../config/prisma.js';
@@ -12,7 +13,41 @@ export class OnboardingService {
     this.loadQuestionBank();
   }
 
-    private loadQuestionBank() {
+    async loadQuestionBank() {
+    try {
+      // 1. Ưu tiên nạp từ Database để Admin có thể thêm/xóa/sửa trực tiếp trên trang quản trị
+      const dbQuestions = await prisma.question.findMany({
+        where: {
+          test: {
+            lessonId: null,
+            title: { contains: "phân loại đầu vào" }
+          }
+        },
+        include: { answers: true, test: true },
+        orderBy: { id: "asc" }
+      });
+
+      if (dbQuestions && dbQuestions.length > 0) {
+        this.questionBank = dbQuestions.map(q => {
+          const correctAns = q.answers.find(a => a.isCorrect)?.answerText || (q.answers[0]?.answerText || "");
+          return {
+            id: q.id.toString(),
+            question: q.quesionText,
+            options: q.answers.map(a => a.answerText),
+            correct: correctAns,
+            difficultyElo: q.difficultyElo || 1200,
+            skillCategory: q.skillCategory || "Grammar",
+            topic: q.topic || "General English",
+            cefr: q.test?.ceftLevel || "A1"
+          };
+        });
+        console.log(`Đã nạp thành công ${this.questionBank.length} câu hỏi phân loại đầu vào từ Database!`);
+        return;
+      }
+    } catch (e) {
+      console.warn("Chưa lấy được câu hỏi từ DB, dùng fallback JSON:", e);
+    }
+
     try {
       const filePath = path.resolve(process.cwd(), 'uploads/questionBank_full.json');
       if (fs.existsSync(filePath)) {
@@ -28,9 +63,7 @@ export class OnboardingService {
   }
 
   async getPlacementQuestions() {
-    if (!this.questionBank || this.questionBank.length === 0) {
-      this.loadQuestionBank();
-    }
+    await this.loadQuestionBank();
     
     const count = FAME_KT_CONFIG.TEST_SETTINGS.PLACEMENT_QUESTIONS_COUNT || 15;
     const levels = ['A1', 'A2', 'B1', 'B2', 'C1'];
@@ -44,7 +77,7 @@ export class OnboardingService {
       const levelQuestions = this.questionBank.filter(q => q.cefr === lvl);
       if (levelQuestions.length > 0) {
         // Xáo trộn ngẫu nhiên trước để tạo sự đa dạng
-        const shuffled = [...levelQuestions].sort(() => 0.5 - Math.random());
+        const shuffled = shuffleArray(levelQuestions);
         // Sắp xếp ưu tiên các kỹ năng đang có ít câu hỏi nhất trong đề
         shuffled.sort((a, b) => (globalSkillCounts[a.skillCategory] || 0) - (globalSkillCounts[b.skillCategory] || 0));
 
@@ -73,11 +106,11 @@ export class OnboardingService {
     // Nếu chưa đủ count, bổ sung từ các câu còn lại trong ngân hàng
     if (selectedQuestions.length < count) {
       const remaining = this.questionBank.filter(q => !selectedQuestions.some(s => s.id === q.id));
-      const extra = [...remaining].sort(() => 0.5 - Math.random()).slice(0, count - selectedQuestions.length);
+      const extra = shuffleArray(remaining).slice(0, count - selectedQuestions.length);
       selectedQuestions.push(...extra);
     }
 
-    const finalSet = selectedQuestions.slice(0, count);
+    const finalSet = shuffleArray(selectedQuestions.slice(0, count));
 
     return finalSet.map(q => ({
       id: q.id,
@@ -92,12 +125,13 @@ export class OnboardingService {
 
   
   async checkProgress(userAnswers: { id: string, answer: string, timeTakenMs?: number }[]) {
+    await this.loadQuestionBank();
     let userProficiency = createNewUserProficiency();
     let avgEloHistory: number[] = [];
     let stoppedEarly = false;
 
     for (const ans of userAnswers) {
-      const q = this.questionBank.find((x) => x.id === ans.id);
+      const q = this.questionBank.find((x) => x.id.toString() === ans.id.toString());
       if (q) {
         const isCorrect = q.correct === ans.answer;
         const timeTakenMs = ans.timeTakenMs || FAME_KT_CONFIG.TEST_SETTINGS.DEFAULT_SIMULATED_TIME_MS;
@@ -123,6 +157,7 @@ export class OnboardingService {
   }
 
   async processOnboarding(userId: number, job: string, interests: string, userAnswers: { id: string, answer: string, timeTakenMs?: number }[]) {
+    await this.loadQuestionBank();
     // 1. Khởi tạo năng lực người dùng theo thuật toán FAME-KT
     let userProficiency = createNewUserProficiency();
     let totalScore = 0;
@@ -133,8 +168,11 @@ export class OnboardingService {
     let stoppedEarly = false;
     let avgEloHistory: number[] = [];
 
+    const questionEloUpdates: { id: number; newElo: number }[] = [];
+    const assessmentHistoryRecords: any[] = [];
+
     for (const ans of userAnswers) {
-      const q = this.questionBank.find((x) => x.id === ans.id);
+      const q = this.questionBank.find((x) => x.id.toString() === ans.id.toString());
       if (q) {
         const isCorrect = q.correct === ans.answer;
         if (isCorrect) totalScore++;
@@ -145,20 +183,71 @@ export class OnboardingService {
         const userEloForSkill = userProficiency[skill];
         const questionElo = q.difficultyElo || FAME_KT_CONFIG.ELO.DEFAULT_QUESTION_ELO;
 
-        const { newUserElo } = updateAdvancedElo(userEloForSkill, questionElo, isCorrect, timeTakenMs);
+        // FAME-KT: Cập nhật đồng thời Năng lực học viên và Độ khó câu hỏi với Diagnostic K-factor
+        const kDiag = (FAME_KT_CONFIG.ELO as any).K_DIAGNOSTIC || 75;
+        const { newUserElo, newQuestionElo } = updateAdvancedElo(
+          userEloForSkill, 
+          questionElo, 
+          isCorrect, 
+          timeTakenMs,
+          FAME_KT_CONFIG.IRT.DEFAULT_GUESSING_PROBABILITY,
+          kDiag
+        );
         
         userProficiency[skill] = newUserElo;
         questionsUsed++;
 
         // Lưu lại Elo trung bình để xét điều kiện dừng sớm
-        const currentAvgElo = Object.values(userProficiency).reduce((a, b) => a + b, 0) / 4;
+        const currentAvgElo = Math.round(Object.values(userProficiency).reduce((a, b) => a + b, 0) / 4);
         avgEloHistory.push(currentAvgElo);
+
+        // Thu thập thông tin cập nhật độ khó câu hỏi và ghi nhận khảo thí
+        const qNumId = Number(q.id);
+        if (!isNaN(qNumId) && qNumId > 0) {
+          questionEloUpdates.push({ id: qNumId, newElo: newQuestionElo });
+          q.difficultyElo = newQuestionElo; // Đồng bộ tức thì trong memory cache
+
+          assessmentHistoryRecords.push({
+            userId,
+            questionId: qNumId,
+            isCorrect,
+            timeTakenMs,
+            userAnswer: typeof ans.answer === 'string' ? ans.answer : String(ans.answer || ''),
+            avgEloAfter: currentAvgElo
+          });
+        }
 
         // Kích hoạt Cải tiến 4: Tự động dừng
         if (checkEarlyStop(avgEloHistory, FAME_KT_CONFIG.EARLY_STOP.MIN_QUESTIONS)) {
           stoppedEarly = true;
           break; // Dừng việc chấm điểm các câu còn lại do năng lực đã hội tụ
         }
+      }
+    }
+
+    // Thực thi Online Real-time Update vào Database & Ghi nhận AssessmentHistory
+    if (questionEloUpdates.length > 0) {
+      try {
+        const validQuestionIds = (await prisma.question.findMany({
+          where: { id: { in: questionEloUpdates.map(u => u.id) } },
+          select: { id: true }
+        })).map(item => item.id);
+
+        const dbOps: any[] = questionEloUpdates
+          .filter(u => validQuestionIds.includes(u.id))
+          .map(u => prisma.question.update({
+            where: { id: u.id },
+            data: { difficultyElo: u.newElo }
+          }));
+
+        const validHistories = assessmentHistoryRecords.filter(r => validQuestionIds.includes(r.questionId));
+        if (validHistories.length > 0) {
+          dbOps.push(prisma.assessmentHistory.createMany({ data: validHistories }));
+        }
+
+        await Promise.all(dbOps);
+      } catch (err) {
+        console.error('Lỗi cập nhật Elo câu hỏi hoặc lưu lịch sử khảo thí:', err);
       }
     }
   
@@ -245,7 +334,7 @@ export class OnboardingService {
     prisma.user.findUnique({ where: { id: userId }, select: { username: true } }).then(u => {
       if (u) {
         notificationService.notifyAdmins(
-          "Học viên được xếp hạng trình độ 🎓",
+          "Học viên được xếp hạng trình độ",
           `Học viên ${u.username} đã hoàn thành bài đánh giá năng lực và đạt trình độ ${cefrLevel}.`
         ).catch(() => {});
       }

@@ -173,12 +173,12 @@ export class StudentManageService {
         where: { userId: studentId },
       });
       notificationService.notifyAdmins(
-        "Khóa tài khoản học viên 🔒",
+        "Khóa tài khoản học viên",
         `Tài khoản của học viên ${student.username} (${student.email}) đã bị khóa quyền truy cập.`
       ).catch(() => {});
     } else {
       notificationService.notifyAdmins(
-        "Mở khóa tài khoản học viên 🔓",
+        "Mở khóa tài khoản học viên",
         `Tài khoản của học viên ${student.username} (${student.email}) đã được mở khóa hoạt động trở lại.`
       ).catch(() => {});
     }

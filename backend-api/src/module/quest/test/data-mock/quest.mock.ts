@@ -1,7 +1,7 @@
 export const mockDailyQuests = [
   {
     id: "quest_login",
-    title: "Điểm danh ngày mới ☀️",
+    title: "Điểm danh ngày mới",
     description: "Đăng nhập ứng dụng và sẵn sàng học tập",
     icon: "sunny",
     target: 1,
@@ -9,7 +9,7 @@ export const mockDailyQuests = [
   },
   {
     id: "quest_test",
-    title: "Chiến binh tri thức 📚",
+    title: "Chiến binh tri thức",
     description: "Hoàn thành ít nhất 1 bài luyện tập hoặc kiểm tra",
     icon: "book",
     target: 1,
@@ -17,7 +17,7 @@ export const mockDailyQuests = [
   },
   {
     id: "quest_game",
-    title: "Cao thủ giải trí 🎮",
+    title: "Cao thủ giải trí",
     description: "Chơi 1 ván mini-game (Mario, Nối từ, Lật thẻ)",
     icon: "game-controller",
     target: 1,

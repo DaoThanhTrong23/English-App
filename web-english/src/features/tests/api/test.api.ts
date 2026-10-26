@@ -1,10 +1,23 @@
 import { axiosClient } from '../../../config/axios';
 
-export const fetchTests = async (ceftLevel?: string, search?: string, lessonId?: number) => {
-  const params: any = {};
-  if (ceftLevel) params.ceftLevel = ceftLevel;
-  if (search) params.search = search;
-  if (lessonId !== undefined) params.lessonId = lessonId;
+export interface FetchTestsParams {
+  page?: number;
+  limit?: number;
+  ceftLevel?: string;
+  search?: string;
+  lessonId?: number;
+  type?: 'placement' | 'lesson' | 'all';
+}
+
+export const fetchTests = async (paramsOrLevel?: FetchTestsParams | string, search?: string, lessonId?: number) => {
+  let params: any = {};
+  if (typeof paramsOrLevel === 'object' && paramsOrLevel !== null) {
+    params = { ...paramsOrLevel };
+  } else {
+    if (paramsOrLevel) params.ceftLevel = paramsOrLevel;
+    if (search) params.search = search;
+    if (lessonId !== undefined) params.lessonId = lessonId;
+  }
   const response = await axiosClient.get('/admin/tests', { params });
   return response.data;
 };

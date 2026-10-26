@@ -1,66 +1,15 @@
 import { prisma } from "../../config/prisma.js";
+import { BaseGameService, GameProgressState } from "../game/base-game.service.js";
 
-// Cấu trúc lưu tiến trình tạm theo User trong RAM
-export interface WordMatchingProgress {
-  userId: number;
-  lessonId?: number;
-  currentMatchedPairs: number;
-  totalPairs: number;
-  connectedPairs: { wordId: number; selectedMeaningId: number }[];
-  updatedAt: Date;
-}
+export type WordMatchingProgress = GameProgressState;
 
 // Bảng tạm lưu tiến trình theo userId trong bộ nhớ RAM
 const progressStore = new Map<number, WordMatchingProgress>();
 
 export class WordMatchingRepository {
-  // 1. Lấy danh sách từ vựng theo bài học hoặc ngẫu nhiên từ database
+  // 1. Lấy danh sách từ vựng theo bài học hoặc ngẫu nhiên từ database an toàn
   async getWordsForGame(userId: number, fallbackLimit: number = 6, lessonId?: number) {
-    let limit = fallbackLimit;
-    if (!fallbackLimit || fallbackLimit === 6) {
-      const gameSetting = await prisma.gameSetting.findFirst({
-        where: { game: { code: 'MATCHING' }, difficulty: 'NORMAL' }
-      });
-      if (gameSetting) {
-        limit = gameSetting.itemCount;
-      }
-    }
-
-    if (lessonId) {
-      const lessonWords = await prisma.lessonWord.findMany({
-        where: { lessonId },
-        take: limit,
-        include: { word: true },
-      });
-      return lessonWords.map((lw) => lw.word);
-    }
-
-    // Lấy từ vựng user đang học
-    const userWords = await prisma.userProgress.findMany({
-      where: { userId },
-      take: limit,
-      include: { word: true },
-      orderBy: { updatedAt: 'desc' }
-    });
-
-    let words = userWords.map(uw => uw.word);
-
-    // Bù thêm từ vựng ngẫu nhiên nếu thiếu (ORDER BY RAND())
-    if (words.length < limit) {
-      const needed = limit - words.length;
-      let randomWords = [];
-      
-      if (words.length > 0) {
-        const usedIds = words.map(w => w.id).join(',');
-        randomWords = await prisma.$queryRawUnsafe<any[]>(`SELECT * FROM words WHERE id NOT IN (${usedIds}) ORDER BY RAND() LIMIT ${needed}`);
-      } else {
-        randomWords = await prisma.$queryRawUnsafe<any[]>(`SELECT * FROM words ORDER BY RAND() LIMIT ${needed}`);
-      }
-      
-      words = [...words, ...randomWords.map(w => ({ ...w, imageUrl: w.image_url, audioUrl: w.audio_url, partOfSpeech: w.part_of_speech, headword: w.headword, meaning: w.meaning }))];
-    }
-    
-    return words.sort(() => 0.5 - Math.random());
+    return BaseGameService.getWordsForGame('MATCHING', userId, fallbackLimit, lessonId);
   }
 
   // 2. Lấy danh sách chi tiết các từ theo danh sách ID để đối chiếu chấm điểm
@@ -77,7 +26,7 @@ export class WordMatchingRepository {
     progressStore.set(progress.userId, progress);
   }
 
-  // 4. Lấy tiến trình tạm (nếu cần phục hồi khi vào lại game)
+  // 4. Lấy tiến trình tạm
   async getTemporaryProgress(userId: number): Promise<WordMatchingProgress | null> {
     return progressStore.get(userId) || null;
   }
@@ -87,30 +36,24 @@ export class WordMatchingRepository {
     progressStore.delete(userId);
   }
 
-  // 6. Chốt điểm cuối cùng: Cộng điểm XP vào bảng user và xóa tạm
+  // 6. Chốt điểm cuối cùng với Anti-cheat & Daily XP Cap
   async finalizeGameResult(userId: number, earnedXp: number, totalQuestions: number, correctCount: number) {
-      await prisma.gameHistory.create({
-        data: {
-          userId: userId,
-          gameCode: 'MATCHING',
-          score: earnedXp,
-          durationSec: 0, // Word matching doesn't track duration yet
-          correctPairs: correctCount,
-          totalPairs: totalQuestions
-        }
-      });
-      const updatedUser = await prisma.user.update({
-      where: { id: userId },
-      data: {
-        xpPoints: { increment: earnedXp },
-      },
+    const result = await BaseGameService.finalizeGameResult({
+      userId,
+      gameCode: 'MATCHING',
+      score: earnedXp,
+      duration: 10, // Default duration if not measured
+      correctPairs: correctCount,
+      totalPairs: totalQuestions,
+      maxScorePerPair: 20,
+      maxTotalScore: 200,
     });
 
     // Giải phóng tiến trình tạm trong RAM
     progressStore.delete(userId);
 
     return {
-      currentXp: updatedUser.xpPoints,
+      currentXp: result.currentXp,
     };
   }
 }

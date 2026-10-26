@@ -1,6 +1,17 @@
 import axios from 'axios';
 
-const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:3000/api';
+const getBaseUrl = (): string => {
+  const envUrl = (import.meta as any).env?.VITE_API_URL;
+  if (!envUrl || envUrl.trim() === '') {
+    return 'http://localhost:3000/api';
+  }
+  const clean = envUrl.trim().replace(/\/+$/, '');
+  return clean.endsWith('/api') ? clean : `${clean}/api`;
+};
+
+const API_BASE_URL = getBaseUrl();
+
+// const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || 'https://english-app-trong.loca.lt';
 
 export const axiosClient = axios.create({
   baseURL: API_BASE_URL,

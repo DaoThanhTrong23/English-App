@@ -76,7 +76,7 @@ export class NotificationService {
       for (const st of recentStudents) {
         initialNotifications.push({
           userId: adminUserId,
-          title: "Học viên mới đăng ký 🎉",
+          title: "Học viên mới đăng ký",
           body: `Học viên ${st.username} (${st.email}) vừa tham gia vào hệ thống EnglishApp.`,
           isRead: false,
           createdAt: st.createdAt
@@ -85,7 +85,7 @@ export class NotificationService {
         if (st.cefrLevel) {
           initialNotifications.push({
             userId: adminUserId,
-            title: "Học viên được xếp hạng trình độ 🎓",
+            title: "Học viên được xếp hạng trình độ",
             body: `Học viên ${st.username} đã hoàn thành đánh giá ban đầu và đạt trình độ ${st.cefrLevel}.`,
             isRead: false,
             createdAt: new Date(st.createdAt.getTime() + 1000 * 60 * 15)
@@ -95,7 +95,7 @@ export class NotificationService {
         if (st.isLocked) {
           initialNotifications.push({
             userId: adminUserId,
-            title: "Tài khoản học viên bị khóa 🔒",
+            title: "Tài khoản học viên bị khóa",
             body: `Tài khoản học viên ${st.username} đã bị khóa trạng thái truy cập.`,
             isRead: false,
             createdAt: new Date()

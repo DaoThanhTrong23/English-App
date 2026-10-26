@@ -93,6 +93,20 @@ describe('StudentTestService - Unit Tests (QC 10-Year Standard)', () => {
       expect(res.xpGained).toBe(0);
     });
 
+    it('[STT-01c-improved] Nộp bài thi thi lại (retake) có tiến bộ: cập nhật Elo và gắn cờ isImproved', async () => {
+      (prisma.test.findUnique as any).mockResolvedValue(mockStudentTest);
+      (prisma.user.findUnique as any).mockResolvedValue(mockTestUser);
+      (prisma.userTestResult.findFirst as any).mockResolvedValue({ id: 99, totalScore: 10 });
+
+      const res = await service.submitTest(1, 1, mockTestSubmission);
+
+      expect(res.totalScore).toBe(20);
+      expect(res.isRetake).toBe(true);
+      expect(res.isImproved).toBe(true);
+      expect(res.xpGained).toBe(0);
+      expect(res.newElo.vocab).toBeGreaterThan(mockTestUser.vocabElo);
+    });
+
     it('[STT-01d] Thí sinh làm bài thi trình độ tương thích (A1 làm bài A2) thành công', async () => {
       const compatibleTest = { ...mockStudentTest, ceftLevel: 'A2' };
       (prisma.test.findUnique as any).mockResolvedValue(compatibleTest);

@@ -987,7 +987,7 @@ Yêu cầu trả về kết quả theo đúng cấu trúc JSON sau (toàn bộ g
       targetIpa: formattedTargetIpa,
       spokenText,
       overallScore,
-      cefrLevel: overallScore >= 85 ? "B2" : overallScore >= 70 ? "B1" : overallScore >= 50 ? "A2" : "A1",
+      cefrLevel: overallScore >= 95 ? "C2" : overallScore >= 85 ? "C1" : overallScore >= 75 ? "B2" : overallScore >= 60 ? "B1" : overallScore >= 45 ? "A2" : "A1",
       details: {
         vowelAccuracy,
         consonantAccuracy,

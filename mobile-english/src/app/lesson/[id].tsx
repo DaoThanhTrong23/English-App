@@ -5,8 +5,8 @@ import { useCallback } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Speech from 'expo-speech';
-import { axiosClient } from '../../../api/axiosClient';
-import { useAppTheme } from '../../../context/ThemeContext';
+import { axiosClient } from '../../api/axiosClient';
+import { useAppTheme } from '../../context/ThemeContext';
 
 export default function LessonScreen() {
   const { id } = useLocalSearchParams();
@@ -36,7 +36,7 @@ export default function LessonScreen() {
     if (router.canGoBack()) {
       router.back();
     } else if (lesson?.topicId) {
-      router.replace({ pathname: '/(tabs)/course/[id]', params: { id: lesson.topicId } } as any);
+      router.replace(`/course/${lesson.topicId}` as any);
     } else {
       router.replace('/(tabs)');
     }
@@ -164,7 +164,7 @@ export default function LessonScreen() {
         {/* MASCOT GREETING */}
         <View style={[styles.greetingCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
           <View style={styles.greetingHeader}>
-            <Image source={require('../../../../assets/images/gacon.gif')} style={styles.mascotImg} />
+            <Image source={require('../../../assets/images/gacon.gif')} style={styles.mascotImg} />
             <View style={{ flex: 1 }}>
               <Text style={[styles.greetingTitle, { color: theme.text }]}>Chào mừng đến với bài học mới!</Text>
               <Text style={[styles.greetingText, { color: theme.subtext }]}>Hãy bắt đầu với 5 kỹ năng để nắm chắc từ vựng và phát âm.</Text>

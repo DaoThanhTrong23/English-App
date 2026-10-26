@@ -9,6 +9,7 @@ import {
   mockSaveWordMatchingProgressInput,
 } from '../data-mock/word-matching.mock.js';
 
+vi.mock('../../../../middleware/authorize.middleware.js', () => ({ requirePermission: () => (_req: any, _res: any, next: any) => next() }));
 vi.mock('../../../../middleware/authenticate.middleware.js', () => ({
   Authenticate: (req: any, _res: any, next: any) => {
     req.user = { userId: 1, role: 'student' };
