@@ -154,6 +154,63 @@ export class KeywordSettingService {
     return dict;
   }
 
+  public resolveExpandedKeywords(interestsOrJobs: string[]): Set<string> {
+    const dict = this.getSynonymDict();
+    const expanded = new Set<string>();
+
+    for (const raw of interestsOrJobs) {
+      const norm = raw.trim().toLowerCase();
+      if (!norm) continue;
+
+      expanded.add(norm);
+
+      // 1. Direct match
+      if (dict[norm]) {
+        dict[norm].forEach(s => expanded.add(s.toLowerCase()));
+        continue;
+      }
+
+      // 2. Normalize "hàng ngày" vs "hằng ngày"
+      const variant1 = norm.replace(/hàng ngày/g, 'hằng ngày');
+      if (dict[variant1]) {
+        dict[variant1].forEach(s => expanded.add(s.toLowerCase()));
+        continue;
+      }
+      const variant2 = norm.replace(/hằng ngày/g, 'hàng ngày');
+      if (dict[variant2]) {
+        dict[variant2].forEach(s => expanded.add(s.toLowerCase()));
+        continue;
+      }
+
+      // 3. Job-specific expansions
+      if (norm.includes('sinh viên') || norm.includes('học sinh')) {
+        const base = dict['học thuật'] || [];
+        base.concat(['sinh viên', 'học sinh', 'trường học', 'lớp học', 'thầy cô', 'bài tập']).forEach(s => expanded.add(s));
+        continue;
+      }
+      if (norm.includes('người đi làm') || norm.includes('đi làm')) {
+        const base = dict['kinh doanh'] || [];
+        base.concat(['đi làm', 'công sở', 'văn phòng', 'đồng nghiệp', 'công việc', 'doanh nghiệp']).forEach(s => expanded.add(s));
+        continue;
+      }
+      if (norm.includes('giáo viên')) {
+        const base = dict['học thuật'] || [];
+        base.concat(['giáo viên', 'giảng dạy', 'sư phạm', 'bài giảng']).forEach(s => expanded.add(s));
+        continue;
+      }
+
+      // 4. Partial substring or keyword inclusion
+      for (const [k, v] of Object.entries(dict)) {
+        if (k.includes(norm) || norm.includes(k) || v.includes(norm)) {
+          v.forEach(s => expanded.add(s.toLowerCase()));
+          break;
+        }
+      }
+    }
+
+    return expanded;
+  }
+
   public createGroup(groupName: string, keywords: string[]): KeywordGroup {
     const cleanGroup = groupName.trim();
     if (!cleanGroup) {

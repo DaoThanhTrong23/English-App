@@ -6,7 +6,6 @@ import {
   Modal,
   TouchableOpacity,
   ScrollView,
-  Image,
   Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -61,120 +60,171 @@ export default function CertificateModal({
   if (!certificate) return null;
 
   return (
-    <Modal visible={visible} animationType="slide" transparent={true} onRequestClose={onClose}>
+    <Modal visible={visible} animationType="fade" transparent={true} onRequestClose={onClose}>
       <View style={styles.overlay}>
-        <View style={[styles.container, { backgroundColor: isDark ? '#18181b' : '#ffffff' }]}>
-          {/* Header Close */}
-          <View style={styles.topBar}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <Ionicons name="ribbon" size={20} color="#f59e0b" />
-              <Text style={[styles.topTitle, { color: theme.text }]}>Chứng chỉ vinh danh</Text>
+        <View style={[styles.container, { backgroundColor: isDark ? '#0f172a' : '#ffffff' }]}>
+          {/* Header Bar */}
+          <View style={[styles.topBar, { borderBottomColor: isDark ? '#1e293b' : '#f1f5f9' }]}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <View style={styles.topIconBox}>
+                <Ionicons name="ribbon" size={18} color="#d97706" />
+              </View>
+              <Text style={[styles.topTitle, { color: theme.text }]}>Chứng Chỉ Tốt Nghiệp CEFR</Text>
             </View>
-            <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-              <Ionicons name="close" size={22} color={theme.text} />
+            <TouchableOpacity onPress={onClose} style={[styles.closeBtn, { backgroundColor: isDark ? '#1e293b' : '#f1f5f9' }]}>
+              <Ionicons name="close" size={18} color={theme.text} />
             </TouchableOpacity>
           </View>
 
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollBody}>
-            {/* CERTIFICATE DIPLOMA CARD */}
-            <View style={[styles.diplomaCard, { backgroundColor: isDark ? '#09090b' : '#fffdfa' }]}>
-              {/* Outer Golden Border */}
-              <View style={styles.innerBorder}>
-                {/* Corner Decorations */}
-                <Ionicons name="sparkles" size={13} color="#d97706" style={[styles.cornerStar, { top: 6, left: 6 }]} />
-                <Ionicons name="sparkles" size={13} color="#d97706" style={[styles.cornerStar, { top: 6, right: 6 }]} />
-                <Ionicons name="sparkles" size={13} color="#d97706" style={[styles.cornerStar, { bottom: 6, left: 6 }]} />
-                <Ionicons name="sparkles" size={13} color="#d97706" style={[styles.cornerStar, { bottom: 6, right: 6 }]} />
-
-                {/* Academy Emblem */}
-                <View style={styles.emblemContainer}>
-                  <Image
-                    source={require('../../assets/images/gacon.gif')}
-                    style={styles.emblemImg}
-                  />
-                  <Text style={styles.academyName}>ENGMASTER ACADEMY</Text>
-                  <Text style={styles.academySub}>VIỆN ĐÀO TẠO TIẾNG ANH CHUẨN QUỐC TẾ CEFR</Text>
+            {/* LUXURY DIPLOMA CARD */}
+            <View style={[styles.diplomaCard, { backgroundColor: isDark ? '#090d16' : '#fcfbf7', borderColor: isDark ? '#b45309' : '#d97706' }]}>
+              
+              {/* Outer Double Frame */}
+              <View style={[styles.innerFrame, { borderColor: isDark ? '#78350f' : '#fde68a' }]}>
+                
+                {/* 4 Corner Geometric Ornaments */}
+                <View style={[styles.cornerBox, styles.cornerTL]}>
+                  <View style={[styles.cornerLineH, { backgroundColor: '#d97706' }]} />
+                  <View style={[styles.cornerLineV, { backgroundColor: '#d97706' }]} />
+                </View>
+                <View style={[styles.cornerBox, styles.cornerTR]}>
+                  <View style={[styles.cornerLineH, { backgroundColor: '#d97706' }]} />
+                  <View style={[styles.cornerLineV, { backgroundColor: '#d97706' }]} />
+                </View>
+                <View style={[styles.cornerBox, styles.cornerBL]}>
+                  <View style={[styles.cornerLineH, { backgroundColor: '#d97706' }]} />
+                  <View style={[styles.cornerLineV, { backgroundColor: '#d97706' }]} />
+                </View>
+                <View style={[styles.cornerBox, styles.cornerBR]}>
+                  <View style={[styles.cornerLineH, { backgroundColor: '#d97706' }]} />
+                  <View style={[styles.cornerLineV, { backgroundColor: '#d97706' }]} />
                 </View>
 
-                {/* Certificate Title */}
-                <View style={styles.titleDivider} />
-                <Text style={styles.certificateMainTitle}>CHỨNG NHẬN TỐT NGHIỆP</Text>
-                <Text style={styles.certificateEnglishTitle}>CERTIFICATE OF COMPLETION</Text>
-                <View style={styles.titleDivider} />
+                {/* Institute Crest & Brand */}
+                <View style={styles.crestContainer}>
+                  <View style={[styles.crestCircle, { backgroundColor: isDark ? '#1e293b' : '#fef3c7', borderColor: '#d97706' }]}>
+                    <Ionicons name="school" size={26} color="#d97706" />
+                  </View>
+                  <Text style={styles.institutionName}>ENGMASTER ACADEMY</Text>
+                  <Text style={styles.institutionSub}>INTERNATIONAL CEFR LANGUAGE ASSESSMENT</Text>
+                  <View style={styles.crestDivider}>
+                    <View style={styles.crestDividerLine} />
+                    <Ionicons name="star" size={10} color="#d97706" style={{ marginHorizontal: 6 }} />
+                    <View style={styles.crestDividerLine} />
+                  </View>
+                </View>
 
-                {/* Recipient */}
-                <Text style={[styles.certifyText, { color: isDark ? '#a1a1aa' : '#6b7280' }]}>
-                  Chứng nhận học viên xuất sắc:
+                {/* Main Heading */}
+                <Text style={[styles.certificateHeading, { color: isDark ? '#fbbf24' : '#92400e' }]}>
+                  CHỨNG CHỈ VINH DANH
                 </Text>
-                <Text style={styles.recipientName}>{certificate.recipientName}</Text>
-
-                {/* Level Completed */}
-                <Text style={[styles.reasonText, { color: isDark ? '#a1a1aa' : '#4b5563' }]}>
-                  Đã hoàn thành 100% chương trình học tập, nắm vững từ vựng và vượt qua toàn bộ các bài đánh giá năng lực 5 kỹ năng theo khung tham chiếu Châu Âu:
+                <Text style={styles.certificateSubHeading}>
+                  CERTIFICATE OF PROFICIENCY & ACHIEVEMENT
                 </Text>
 
-                <View style={styles.levelBadgeContainer}>
-                  <Text style={styles.levelBadgeText}>
-                    CẤP ĐỘ {certificate.levelTitle ? certificate.levelTitle.toUpperCase() : certificate.level}
+                {/* Presentation Wording */}
+                <Text style={[styles.presentText, { color: isDark ? '#94a3b8' : '#64748b' }]}>
+                  Trân trọng chứng nhận học viên:
+                </Text>
+
+                {/* Recipient Name */}
+                <View style={styles.recipientContainer}>
+                  <Text style={[styles.recipientName, { color: isDark ? '#ffffff' : '#0f172a' }]}>
+                    {certificate.recipientName}
+                  </Text>
+                  <View style={styles.recipientUnderline} />
+                </View>
+
+                {/* Performance Description */}
+                <Text style={[styles.descriptionText, { color: isDark ? '#cbd5e1' : '#475569' }]}>
+                  Đã hoàn thành xuất sắc toàn bộ khóa học, nắm vững hệ thống từ vựng học thuật và vượt qua các bài kiểm tra đánh giá năng lực 5 kỹ năng đạt chuẩn quốc tế:
+                </Text>
+
+                {/* CEFR Level Honor Plaque */}
+                <View style={[styles.levelPlaque, { backgroundColor: isDark ? '#1e293b' : '#1e3a8a' }]}>
+                  <Ionicons name="medal" size={16} color="#fbbf24" style={{ marginRight: 6 }} />
+                  <Text style={styles.levelPlaqueText}>
+                    CHUẨN CEFR: {certificate.levelTitle ? certificate.levelTitle.toUpperCase() : certificate.level}
                   </Text>
                 </View>
 
-                {/* Stats Summary */}
-                <View style={[styles.statsRow, { backgroundColor: isDark ? '#18181b' : '#f8fafc' }]}>
-                  <View style={styles.statCol}>
-                    <Text style={styles.statNum}>{certificate.totalLessons}</Text>
-                    <Text style={styles.statLbl}>Bài học</Text>
+                {/* Academic Metrics Row */}
+                <View style={[styles.metricsContainer, { backgroundColor: isDark ? '#131b2e' : '#f8fafc', borderColor: isDark ? '#1e293b' : '#e2e8f0' }]}>
+                  <View style={styles.metricItem}>
+                    <Text style={[styles.metricValue, { color: isDark ? '#38bdf8' : '#0284c7' }]}>
+                      {certificate.totalLessons}
+                    </Text>
+                    <Text style={styles.metricLabel}>BÀI HỌC</Text>
                   </View>
-                  <View style={styles.statDivider} />
-                  <View style={styles.statCol}>
-                    <Text style={styles.statNum}>{certificate.totalWords}</Text>
-                    <Text style={styles.statLbl}>Từ vựng</Text>
+                  <View style={styles.metricSeparator} />
+                  <View style={styles.metricItem}>
+                    <Text style={[styles.metricValue, { color: isDark ? '#34d399' : '#059669' }]}>
+                      {certificate.totalWords}
+                    </Text>
+                    <Text style={styles.metricLabel}>TỪ VỰNG</Text>
                   </View>
-                  <View style={styles.statDivider} />
-                  <View style={styles.statCol}>
-                    <Text style={styles.statNum}>{certificate.xpPoints || 100}%</Text>
-                    <Text style={styles.statLbl}>Hoàn thành</Text>
+                  <View style={styles.metricSeparator} />
+                  <View style={styles.metricItem}>
+                    <Text style={[styles.metricValue, { color: isDark ? '#fbbf24' : '#d97706' }]}>
+                      {certificate.xpPoints || 0}
+                    </Text>
+                    <Text style={styles.metricLabel}>ĐIỂM XP</Text>
+                  </View>
+                  <View style={styles.metricSeparator} />
+                  <View style={styles.metricItem}>
+                    <Text style={[styles.metricValue, { color: '#10b981' }]}>
+                      100%
+                    </Text>
+                    <Text style={styles.metricLabel}>TIẾN ĐỘ</Text>
                   </View>
                 </View>
 
-                {/* Signature & Seal Footer */}
+                {/* Footer: Credential Metadata & Gold Seal */}
                 <View style={styles.certFooter}>
-                  <View style={styles.certMeta}>
-                    <Text style={[styles.metaLabel, { color: isDark ? '#a1a1aa' : '#6b7280' }]}>
-                      Mã chứng chỉ:
-                    </Text>
-                    <Text style={[styles.metaVal, { color: theme.text }]}>
-                      {certificate.certificateId}
-                    </Text>
-                    <Text style={[styles.metaLabel, { color: isDark ? '#a1a1aa' : '#6b7280', marginTop: 4 }]}>
-                      Ngày cấp:
-                    </Text>
-                    <Text style={[styles.metaVal, { color: theme.text }]}>
-                      {certificate.issuedDate}
-                    </Text>
+                  {/* Metadata Left */}
+                  <View style={styles.metaCol}>
+                    <View style={styles.metaRow}>
+                      <Text style={[styles.metaKey, { color: isDark ? '#64748b' : '#94a3b8' }]}>MÃ SỐ:</Text>
+                      <Text style={[styles.metaVal, { color: theme.text }]}>{certificate.certificateId}</Text>
+                    </View>
+                    <View style={styles.metaRow}>
+                      <Text style={[styles.metaKey, { color: isDark ? '#64748b' : '#94a3b8' }]}>NGÀY CẤP:</Text>
+                      <Text style={[styles.metaVal, { color: theme.text }]}>{certificate.issuedDate}</Text>
+                    </View>
+                    <View style={styles.signatureLine}>
+                      <View style={[styles.sigDash, { backgroundColor: isDark ? '#334155' : '#cbd5e1' }]} />
+                      <Text style={[styles.sigTitle, { color: isDark ? '#94a3b8' : '#64748b' }]}>Hội đồng Khảo thí EngMaster</Text>
+                    </View>
                   </View>
 
-                  <View style={styles.goldSealBox}>
-                    <View style={styles.goldSealCircle}>
-                      <Ionicons name="ribbon" size={24} color="#b45309" />
-                      <Text style={styles.goldSealText}>VERIFIED</Text>
-                      <Text style={styles.goldSealSub}>CEFR</Text>
+                  {/* Gold Embossed Seal Right */}
+                  <View style={styles.sealContainer}>
+                    <View style={[styles.sealOuterRing, { borderColor: '#d97706' }]}>
+                      <View style={[styles.sealMiddleRing, { borderColor: '#f59e0b' }]}>
+                        <View style={[styles.sealInnerBadge, { backgroundColor: isDark ? '#451a03' : '#fef3c7' }]}>
+                          <Ionicons name="shield-checkmark" size={20} color="#b45309" />
+                          <Text style={styles.sealVerified}>VERIFIED</Text>
+                          <Text style={styles.sealStandard}>CEFR STANDARD</Text>
+                        </View>
+                      </View>
                     </View>
                   </View>
                 </View>
+
               </View>
             </View>
 
-            {/* PHẦN CHỌN CẤP ĐỘ TIẾP THEO (DỄ, TRUNG BÌNH, KHÓ - GIỐNG NHƯ ONBOARDING) */}
+            {/* NEXT LEVEL GOAL SECTION */}
             <View style={styles.nextLevelSection}>
               <View style={styles.nextLevelHeader}>
-                <Ionicons name="sparkles" size={18} color="#f59e0b" />
+                <Ionicons name="rocket-outline" size={20} color="#3b82f6" />
                 <Text style={[styles.nextLevelSectionTitle, { color: theme.text }]}>
-                  Chọn mục tiêu học tập tiếp theo
+                  Lộ trình tiếp tục sau tốt nghiệp
                 </Text>
               </View>
               <Text style={[styles.nextLevelSectionSub, { color: theme.subtext }]}>
-                Chúc mừng bạn đã hoàn thành cấp độ này! Hãy chọn cấp độ tiếp theo để tiếp tục lộ trình học:
+                Hệ thống đề xuất bước tiến phù hợp để nâng cao năng lực phản xạ tiếng Anh của bạn:
               </Text>
 
               {THREE_LEVEL_OPTIONS.map((group) => {
@@ -221,11 +271,9 @@ export default function CertificateModal({
                           {group.title}
                         </Text>
                         {isSuggested && (
-                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-                            <Ionicons name="sparkles" size={13} color="#f59e0b" />
-                            <Text style={{ fontSize: 12, color: isDark ? '#34d399' : '#047857', fontWeight: 'bold' }}>
-                              (Gợi ý tiếp theo)
-                            </Text>
+                          <View style={styles.recBadge}>
+                            <Ionicons name="sparkles" size={12} color="#047857" />
+                            <Text style={styles.recBadgeText}>Đề xuất</Text>
                           </View>
                         )}
                       </View>
@@ -246,17 +294,17 @@ export default function CertificateModal({
                     </View>
 
                     <Text style={[styles.choiceCardDesc, { color: theme.subtext }]}>
-                      {isCurrent ? `${group.desc} • Đã tốt nghiệp 100% (Chạm để học lại)` : group.desc}
+                      {isCurrent ? `${group.desc} • Đã tốt nghiệp 100% (Nhấn để học lại & ôn tập)` : group.desc}
                     </Text>
                   </TouchableOpacity>
                 );
               })}
 
               <TouchableOpacity
-                style={[styles.closeBottomBtn, { backgroundColor: isDark ? '#27272a' : '#f1f5f9', marginTop: 10 }]}
+                style={[styles.closeBottomBtn, { backgroundColor: isDark ? '#1e293b' : '#f1f5f9', marginTop: 12 }]}
                 onPress={onClose}
               >
-                <Text style={[styles.closeBottomText, { color: theme.text }]}>Đóng</Text>
+                <Text style={[styles.closeBottomText, { color: theme.text }]}>Đóng cửa sổ</Text>
               </TouchableOpacity>
             </View>
           </ScrollView>
@@ -269,226 +317,336 @@ export default function CertificateModal({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
+    backgroundColor: 'rgba(2, 6, 23, 0.78)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 14,
+    padding: 12,
   },
   container: {
     width: '100%',
-    maxHeight: '92%',
-    borderRadius: 20,
+    maxHeight: '94%',
+    borderRadius: 22,
     overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.35,
+    shadowRadius: 20,
+    elevation: 12,
   },
   topBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: 18,
+    paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(150,150,150,0.15)',
+  },
+  topIconBox: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#fef3c7',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   topTitle: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '700',
+    letterSpacing: 0.3,
   },
   closeBtn: {
-    padding: 4,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   scrollBody: {
     padding: 16,
     alignItems: 'center',
   },
 
-  /* DIPLOMA STYLES */
+  /* EXECUTIVE DIPLOMA STYLES */
   diplomaCard: {
     width: '100%',
-    borderRadius: 16,
-    borderWidth: 3,
-    borderColor: '#d97706',
-    padding: 8,
-    shadowColor: '#d97706',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
+    borderRadius: 14,
+    borderWidth: 2,
+    padding: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
     shadowRadius: 10,
-    elevation: 8,
+    elevation: 6,
   },
-  innerBorder: {
-    borderWidth: 1.5,
-    borderColor: '#fbbf24',
+  innerFrame: {
+    borderWidth: 1,
     borderRadius: 10,
-    borderStyle: 'dashed',
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingTop: 18,
+    paddingBottom: 16,
     alignItems: 'center',
     position: 'relative',
   },
-  cornerStar: {
+
+  /* Corner Geometric Accents */
+  cornerBox: {
     position: 'absolute',
-    color: '#d97706',
-    fontSize: 12,
-    fontWeight: 'bold',
+    width: 14,
+    height: 14,
   },
-  emblemContainer: {
+  cornerTL: { top: 4, left: 4 },
+  cornerTR: { top: 4, right: 4, transform: [{ rotate: '90deg' }] },
+  cornerBL: { bottom: 4, left: 4, transform: [{ rotate: '-90deg' }] },
+  cornerBR: { bottom: 4, right: 4, transform: [{ rotate: '180deg' }] },
+  cornerLineH: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: 14,
+    height: 2,
+  },
+  cornerLineV: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: 2,
+    height: 14,
+  },
+
+  /* Crest */
+  crestContainer: {
     alignItems: 'center',
-    marginTop: 6,
     marginBottom: 10,
   },
-  emblemImg: {
+  crestCircle: {
     width: 48,
     height: 48,
-    marginBottom: 4,
+    borderRadius: 24,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 6,
   },
-  academyName: {
-    fontSize: 14,
+  institutionName: {
+    fontSize: 13,
     fontWeight: '900',
     color: '#b45309',
-    letterSpacing: 2,
+    letterSpacing: 2.2,
   },
-  academySub: {
-    fontSize: 9,
+  institutionSub: {
+    fontSize: 8,
+    fontWeight: '700',
     color: '#92400e',
-    fontWeight: '600',
-    letterSpacing: 0.8,
+    letterSpacing: 1.1,
     marginTop: 2,
   },
-  titleDivider: {
-    width: 60,
-    height: 1.5,
-    backgroundColor: '#f59e0b',
-    marginVertical: 4,
+  crestDivider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: 140,
+    marginTop: 6,
   },
-  certificateMainTitle: {
-    fontSize: 19,
+  crestDividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#d97706',
+    opacity: 0.4,
+  },
+
+  /* Titles */
+  certificateHeading: {
+    fontSize: 18,
     fontWeight: '900',
-    color: '#b45309',
     textAlign: 'center',
-    letterSpacing: 1,
+    letterSpacing: 1.5,
     marginTop: 4,
   },
-  certificateEnglishTitle: {
-    fontSize: 11,
+  certificateSubHeading: {
+    fontSize: 9.5,
     fontWeight: '700',
-    color: '#d97706',
-    letterSpacing: 1.5,
-    marginBottom: 4,
+    color: '#b45309',
+    letterSpacing: 1.2,
+    marginTop: 2,
+    marginBottom: 10,
   },
-  certifyText: {
-    fontSize: 12,
+  presentText: {
+    fontSize: 11,
     fontStyle: 'italic',
-    marginTop: 8,
+    letterSpacing: 0.2,
+  },
+
+  /* Recipient */
+  recipientContainer: {
+    alignItems: 'center',
+    marginVertical: 6,
   },
   recipientName: {
     fontSize: 22,
-    fontWeight: 'bold',
-    color: '#2563eb',
+    fontWeight: '800',
+    letterSpacing: 0.6,
     textAlign: 'center',
-    marginVertical: 6,
-    textDecorationLine: 'underline',
   },
-  reasonText: {
-    fontSize: 12,
-    textAlign: 'center',
-    lineHeight: 18,
-    paddingHorizontal: 8,
-    marginVertical: 6,
-  },
-  levelBadgeContainer: {
-    backgroundColor: '#fef3c7',
-    borderColor: '#f59e0b',
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingVertical: 6,
-    paddingHorizontal: 14,
-    marginVertical: 8,
-  },
-  levelBadgeText: {
-    color: '#92400e',
-    fontSize: 13,
-    fontWeight: 'bold',
-    letterSpacing: 0.5,
+  recipientUnderline: {
+    width: 100,
+    height: 2,
+    backgroundColor: '#d97706',
+    marginTop: 4,
+    borderRadius: 1,
   },
 
-  statsRow: {
+  /* Description */
+  descriptionText: {
+    fontSize: 11,
+    lineHeight: 17,
+    textAlign: 'center',
+    paddingHorizontal: 8,
+    marginVertical: 8,
+  },
+
+  /* Level Honor Plaque */
+  levelPlaque: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 7,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    marginVertical: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  levelPlaqueText: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: 1,
+  },
+
+  /* Metrics Container */
+  metricsContainer: {
     flexDirection: 'row',
     width: '100%',
     borderRadius: 10,
+    borderWidth: 1,
     paddingVertical: 10,
-    paddingHorizontal: 12,
     marginVertical: 10,
     alignItems: 'center',
     justifyContent: 'space-around',
   },
-  statCol: {
+  metricItem: {
     alignItems: 'center',
+    flex: 1,
   },
-  statNum: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#10b981',
+  metricValue: {
+    fontSize: 17,
+    fontWeight: '800',
   },
-  statLbl: {
-    fontSize: 11,
-    color: '#6b7280',
+  metricLabel: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: '#64748b',
+    letterSpacing: 0.5,
     marginTop: 2,
   },
-  statDivider: {
+  metricSeparator: {
     width: 1,
     height: 24,
-    backgroundColor: 'rgba(150,150,150,0.2)',
+    backgroundColor: '#cbd5e1',
+    opacity: 0.4,
   },
 
+  /* Footer & Seal */
   certFooter: {
     flexDirection: 'row',
     width: '100%',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-end',
     marginTop: 10,
-    paddingTop: 8,
+    paddingTop: 10,
     borderTopWidth: 1,
     borderTopColor: 'rgba(217, 119, 6, 0.2)',
   },
-  certMeta: {
+  metaCol: {
     flex: 1,
+    paddingRight: 8,
   },
-  metaLabel: {
-    fontSize: 10,
-    fontWeight: '500',
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 3,
+  },
+  metaKey: {
+    fontSize: 8.5,
+    fontWeight: '700',
+    letterSpacing: 0.6,
+    width: 60,
   },
   metaVal: {
-    fontSize: 11,
-    fontWeight: 'bold',
+    fontSize: 9.5,
+    fontWeight: '700',
   },
-  goldSealBox: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    borderWidth: 2,
-    borderColor: '#f59e0b',
-    padding: 2,
+  signatureLine: {
+    marginTop: 8,
   },
-  goldSealCircle: {
-    flex: 1,
-    borderRadius: 28,
-    backgroundColor: '#fef3c7',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#d97706',
+  sigDash: {
+    height: 1,
+    width: 120,
+    marginBottom: 4,
   },
-  goldSealText: {
-    fontSize: 7,
-    fontWeight: '900',
-    color: '#b45309',
-    letterSpacing: 0.5,
-  },
-  goldSealSub: {
-    fontSize: 6,
-    fontWeight: 'bold',
-    color: '#d97706',
+  sigTitle: {
+    fontSize: 8.5,
+    fontStyle: 'italic',
   },
 
-  /* Next Level Selection */
+  /* Seal */
+  sealContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sealOuterRing: {
+    width: 66,
+    height: 66,
+    borderRadius: 33,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 2,
+  },
+  sealMiddleRing: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 31,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 2,
+  },
+  sealInnerBadge: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 29,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sealVerified: {
+    fontSize: 7.5,
+    fontWeight: '900',
+    color: '#b45309',
+    letterSpacing: 0.8,
+    marginTop: 1,
+  },
+  sealStandard: {
+    fontSize: 5.5,
+    fontWeight: '700',
+    color: '#92400e',
+    letterSpacing: 0.3,
+  },
+
+  /* Next Level Section */
   nextLevelSection: {
     width: '100%',
     marginTop: 18,
@@ -499,15 +657,15 @@ const styles = StyleSheet.create({
   nextLevelHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
     marginBottom: 4,
   },
   nextLevelSectionTitle: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '700',
   },
   nextLevelSectionSub: {
-    fontSize: 13,
+    fontSize: 12.5,
     lineHeight: 18,
     marginBottom: 14,
   },
@@ -525,20 +683,34 @@ const styles = StyleSheet.create({
   },
   choiceCardTitle: {
     fontSize: 15,
-    fontWeight: 'bold',
+    fontWeight: '700',
+  },
+  recBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: '#d1fae5',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  recBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#047857',
   },
   choiceActionBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingHorizontal: 9,
+    paddingVertical: 5,
     borderRadius: 8,
   },
   choiceActionBadgeText: {
     color: '#ffffff',
     fontSize: 11,
-    fontWeight: 'bold',
+    fontWeight: '700',
   },
   choiceCardDesc: {
     fontSize: 12,

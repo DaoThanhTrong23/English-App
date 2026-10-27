@@ -12,6 +12,7 @@ export default function SettingsScreen() {
   const router = useRouter();
   const { isDark, theme, toggleDarkMode } = useAppTheme();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [habitTime, setHabitTime] = useState<string | null>(null);
 
   // Modals state
   const [helpModalVisible, setHelpModalVisible] = useState(false);
@@ -27,6 +28,14 @@ export default function SettingsScreen() {
         if (storedNotif !== null) {
           setNotificationsEnabled(storedNotif === 'true');
         }
+
+        axiosClient.get('/student/notifications/preferred-time')
+          .then((res) => {
+            if (res.data?.success && res.data.data?.formattedTime) {
+              setHabitTime(res.data.data.formattedTime);
+            }
+          })
+          .catch(() => {});
       } catch (err) {
         console.log('Error loading settings:', err);
       }
@@ -38,8 +47,9 @@ export default function SettingsScreen() {
     setNotificationsEnabled(value);
     await SecureStore.setItemAsync('notificationsEnabled', value ? 'true' : 'false');
     if (value) {
-      await notificationService.scheduleDailyStudyReminder(20, 0);
-      Alert.alert('Thành công', 'Đã bật nhắc nhở học tập hàng ngày vào lúc 20:00!');
+      const res = await notificationService.syncAndScheduleHabitReminder();
+      const timeStr = res?.formattedTime || habitTime || '20:00';
+      Alert.alert('Thành công', `Đã bật nhắc nhở học tập hàng ngày (tự động theo thói quen lúc ${timeStr})!`);
     } else {
       await notificationService.cancelAllNotifications();
       Alert.alert('Thông báo', 'Đã tắt nhắc nhở học tập.');
@@ -131,7 +141,11 @@ export default function SettingsScreen() {
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={[styles.settingText, { color: theme.text }]}>Thông báo nhắc nhở</Text>
-                <Text style={[styles.settingSubtext, { color: theme.subtext }]}>Nhắc học tập mỗi ngày lúc 20:00</Text>
+                <Text style={[styles.settingSubtext, { color: theme.subtext }]}>
+                  {notificationsEnabled 
+                    ? `Nhắc học tập mỗi ngày lúc ${habitTime || '20:00'}`
+                    : 'Đang tắt thông báo'}
+                </Text>
               </View>
             </View>
             <Switch 
@@ -141,26 +155,6 @@ export default function SettingsScreen() {
             />
           </View>
 
-          {/* 
-            2. THẺ HIỆU ỨNG ÂM THANH (TẠM ẨN THEO YÊU CẦU NGƯỜI DÙNG)
-            <View style={[styles.settingDivider, { backgroundColor: theme.border }]} />
-            <View style={styles.settingItem}>
-              <View style={styles.settingLeft}>
-                <View style={[styles.settingIconBox, { backgroundColor: '#f0fdf4' }]}>
-                  <Ionicons name="volume-high" size={20} color="#16a34a" />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={[styles.settingText, { color: theme.text }]}>Hiệu ứng âm thanh</Text>
-                  <Text style={[styles.settingSubtext, { color: theme.subtext }]}>Âm thanh câu đúng, câu sai & mini-game</Text>
-                </View>
-              </View>
-              <Switch 
-                value={soundEnabled} 
-                onValueChange={handleToggleSound} 
-                trackColor={{ true: '#16a34a', false: '#d1d5db' }} 
-              />
-            </View>
-          */}
 
           <View style={[styles.settingDivider, { backgroundColor: theme.border }]} />
 

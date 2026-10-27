@@ -13,7 +13,7 @@ import * as SecureStore from 'expo-secure-store';
 import { useAppTheme } from '../context/ThemeContext';
 
 export default function PracticeScreen() {
-  const { type, lessonId } = useLocalSearchParams();
+  const { type, lessonId, courseId } = useLocalSearchParams();
   const router = useRouter();
   const { isDark, theme } = useAppTheme();
   
@@ -429,8 +429,19 @@ export default function PracticeScreen() {
           </ScrollView>
         )}
 
-        <TouchableOpacity style={[styles.submitBtn, { backgroundColor: theme.primary }]} onPress={() => router.back()}>
-          <Text style={styles.submitBtnText}>QUAY LẠI</Text>
+        <TouchableOpacity 
+          style={[styles.submitBtn, { backgroundColor: theme.primary }]} 
+          onPress={() => {
+            if (lessonId) {
+              router.replace({ pathname: `/lesson/${lessonId}`, params: { courseId: courseId ? String(courseId) : undefined } } as any);
+            } else if (router.canGoBack()) {
+              router.back();
+            } else {
+              router.replace('/(tabs)');
+            }
+          }}
+        >
+          <Text style={styles.submitBtnText}>QUAY LẠI BÀI HỌC</Text>
         </TouchableOpacity>
       </SafeAreaView>
     );

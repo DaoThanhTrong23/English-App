@@ -195,15 +195,17 @@ export class StudentLessonRepository {
     });
     if (tests.length === 0) return false;
 
-    const result = await prisma.userTestResult.findFirst({
+    const results = await prisma.userTestResult.findMany({
       where: {
         userId,
         testId: { in: tests.map((t) => t.id) },
         totalScore: { gt: 0 },
       },
+      select: { testId: true },
     });
 
-    return Boolean(result);
+    const completedSet = new Set(results.map((r) => r.testId));
+    return tests.every((t) => completedSet.has(t.id));
   }
 
   /**

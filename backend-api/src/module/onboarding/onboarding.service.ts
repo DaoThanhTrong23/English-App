@@ -258,19 +258,11 @@ export class OnboardingService {
     );
     const cefrLevel = getCEFRLevel(avgElo);
 
-    // Xử lý Interests và mở rộng từ khóa đồng nghĩa từ synonyms.csv
-    const userTopics = interests.split(',').map(x => x.trim()).filter(Boolean);
-    const synonymDict = keywordSettingService.getSynonymDict();
-    const expandedKeywords = new Set<string>();
-
-    userTopics.forEach((t: string) => {
-      const syns = synonymDict[t.toLowerCase()];
-      if (syns) {
-        syns.forEach(s => expandedKeywords.add(s.toLowerCase()));
-      } else {
-        expandedKeywords.add(t.toLowerCase());
-      }
-    });
+    // Xử lý cả Sở thích (Interests) và Nghề nghiệp (Job) để mở rộng từ khóa đồng nghĩa
+    const interestList = interests.split(',').map(x => x.trim()).filter(Boolean);
+    const jobList = job && job !== 'Khác' ? [job.trim()] : [];
+    const userTopics = Array.from(new Set([...interestList, ...jobList])).filter(Boolean);
+    const expandedKeywords = keywordSettingService.resolveExpandedKeywords(userTopics);
 
     // 4. Lấy bài học trong Database để Recommender hệ thống FAME-KT đánh giá
     const allCoursesDB = await prisma.topic.findMany({ include: { lessons: true } });

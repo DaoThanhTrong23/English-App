@@ -23,19 +23,11 @@ export class StudentLessonService {
   async getCoursesList(userId: number, query: GetStudentCoursesQueryInput & { targetLevelGroup?: string }) {
     const user = await prisma.user.findUnique({ where: { id: userId } });
     const userCefr = user?.cefrLevel || 'A1';
-    const userTopics = user?.interests ? user.interests.split(',').map((t: string) => t.trim().toLowerCase()) : [];
+    const userInterests = user?.interests ? user.interests.split(',').map((t: string) => t.trim()) : [];
+    const userJob = user?.job && user.job !== 'Khác' ? [user.job.trim()] : [];
+    const userTopics = Array.from(new Set([...userInterests, ...userJob])).filter(Boolean);
 
-    const SYNONYM_DICT = keywordSettingService.getSynonymDict();
-
-    const expandedKeywords = new Set<string>();
-    userTopics.forEach((topic: string) => {
-      const synonyms = SYNONYM_DICT[topic];
-      if (synonyms) {
-        synonyms.forEach(s => expandedKeywords.add(s));
-      } else {
-        expandedKeywords.add(topic);
-      }
-    });
+    const expandedKeywords = keywordSettingService.resolveExpandedKeywords(userTopics);
 
     let { courses } = await this.studentLessonRepo.findCourses({ ...query, limit: 1000, page: 1 });
     
@@ -309,9 +301,9 @@ export class StudentLessonService {
     const completedTestIds = new Set(userResults.map(r => r.testId));
 
     const lessonsWithStatus = course.lessons.map((lesson) => {
-      const testsOfLesson = testsInCourse.filter(t => t.lessonId === lesson.id);
-      const isCompleted = testsOfLesson.some(t => completedTestIds.has(t.id));
+            const testsOfLesson = testsInCourse.filter(t => t.lessonId === lesson.id);
       const completedTestsCount = testsOfLesson.filter(t => completedTestIds.has(t.id)).length;
+      const isCompleted = testsOfLesson.length > 0 && completedTestsCount === testsOfLesson.length;
       return {
         id: lesson.id,
         title: lesson.title,
@@ -501,6 +493,7 @@ export class StudentLessonService {
 
     return {
       id: lesson.id,
+      topicId: lesson.topicId,
       title: lesson.title,
       description: lesson.description,
       content: lesson.content, // Nội dung lý thuyết Rich Text / HTML

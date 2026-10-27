@@ -1,4 +1,5 @@
 import * as Notifications from 'expo-notifications';
+import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 import { axiosClient } from '../api/axiosClient';
 
@@ -57,6 +58,12 @@ export const notificationService = {
    */
   async scheduleDailyStudyReminder(hour = 20, minute = 0) {
     try {
+      const isEnabled = await SecureStore.getItemAsync('notificationsEnabled');
+      if (isEnabled === 'false') {
+        console.log('[NotificationService] Người dùng đã tắt thông báo trong Cài đặt, bỏ qua lên lịch.');
+        return;
+      }
+
       const hasPermission = await this.requestPermissions();
       if (!hasPermission) return;
 
@@ -88,6 +95,11 @@ export const notificationService = {
    */
   async syncAndScheduleHabitReminder(): Promise<{ preferredHour: number; preferredMinute: number; formattedTime: string; totalLogins: number } | null> {
     try {
+      const isEnabled = await SecureStore.getItemAsync('notificationsEnabled');
+      if (isEnabled === 'false') {
+        return null;
+      }
+
       const res = await axiosClient.get('/student/notifications/preferred-time');
       if (res.data?.success && res.data.data) {
         const { preferredHour, preferredMinute, formattedTime, totalLogins } = res.data.data;

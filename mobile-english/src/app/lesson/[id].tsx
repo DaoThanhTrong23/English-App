@@ -9,7 +9,7 @@ import { axiosClient } from '../../api/axiosClient';
 import { useAppTheme } from '../../context/ThemeContext';
 
 export default function LessonScreen() {
-  const { id } = useLocalSearchParams();
+  const { id, courseId: paramCourseId } = useLocalSearchParams();
   const router = useRouter();
   const { isDark, theme } = useAppTheme();
   const [lesson, setLesson] = useState<any>(null);
@@ -33,10 +33,11 @@ export default function LessonScreen() {
   };
 
   const handleBack = () => {
-    if (router.canGoBack()) {
+    const targetCourseId = lesson?.course?.id || lesson?.topicId || paramCourseId;
+    if (targetCourseId) {
+      router.replace(`/course/${targetCourseId}` as any);
+    } else if (router.canGoBack()) {
       router.back();
-    } else if (lesson?.topicId) {
-      router.replace(`/course/${lesson.topicId}` as any);
     } else {
       router.replace('/(tabs)');
     }
@@ -90,6 +91,9 @@ export default function LessonScreen() {
 
   const completedSkills = ['listening', 'reading', 'writing', 'speaking', 'test']
     .filter(type => getSkillScore(type).score > 0).length;
+
+  const skillOrder = ['listening', 'reading', 'writing', 'speaking', 'test'];
+  const nextSkill = skillOrder.find(type => getSkillScore(type).score === 0) || 'listening';
 
   // Tính toán tiến độ thực tế chính xác dựa trên kỹ năng hoàn thành và từ vựng đã học
   const isCompleted = lesson.summary?.isCompleted;
@@ -145,7 +149,8 @@ export default function LessonScreen() {
 
 
   const navigateToPractice = (skillType: string) => {
-    router.push({ pathname: '/practice', params: { lessonId: id, type: skillType } } as any);
+    const targetCourseId = lesson?.course?.id || lesson?.topicId || paramCourseId;
+    router.push({ pathname: '/practice', params: { lessonId: id, courseId: targetCourseId ? String(targetCourseId) : undefined, type: skillType } } as any);
   };
 
   return (
@@ -328,9 +333,21 @@ export default function LessonScreen() {
         </View>
 
         {/* FOOTER BUTTON */}
-        <TouchableOpacity style={styles.startBtn} onPress={() => navigateToPractice('listening')}>
-          <Text style={styles.startBtnText}>Bắt đầu học</Text>
-        </TouchableOpacity>
+        {isCompleted ? (
+          <TouchableOpacity 
+            style={[styles.startBtn, { backgroundColor: '#10b981' }]} 
+            onPress={handleBack}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+              <Ionicons name="checkmark-circle" size={20} color="#ffffff" />
+              <Text style={styles.startBtnText}>Hoàn thành bài học • Học bài tiếp theo</Text>
+            </View>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity style={styles.startBtn} onPress={() => navigateToPractice(nextSkill)}>
+            <Text style={styles.startBtnText}>{completedSkills > 0 ? `Tiếp tục học (${completedSkills}/5 kỹ năng)` : 'Bắt đầu học'}</Text>
+          </TouchableOpacity>
+        )}
 
       </ScrollView>
     </SafeAreaView>

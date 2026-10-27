@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Image, Alert } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Image, Alert, BackHandler } from 'react-native';
+import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { axiosClient } from '../../api/axiosClient';
@@ -17,12 +17,14 @@ export default function CourseDetailScreen() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [xpPoints, setXpPoints] = useState(0);
 
-  useEffect(() => {
-    if (id) {
-      fetchCourseDetail();
-      fetchUserXP();
-    }
-  }, [id]);
+  useFocusEffect(
+    useCallback(() => {
+      if (id) {
+        fetchCourseDetail();
+        fetchUserXP();
+      }
+    }, [id])
+  );
 
   const fetchUserXP = async () => {
     try {
@@ -43,7 +45,9 @@ export default function CourseDetailScreen() {
 
   const fetchCourseDetail = async () => {
     try {
-      setLoading(true);
+      if (!courseData) {
+        setLoading(true);
+      }
       setErrorMsg(null);
       const res = await axiosClient.get(`/student/courses/${id}`);
       if (res.data?.success && res.data.data) {
@@ -63,12 +67,17 @@ export default function CourseDetailScreen() {
   };
 
   const handleBack = () => {
-    if (router.canGoBack()) {
-      router.back();
-    } else {
-      router.replace('/(tabs)');
-    }
+    router.replace('/(tabs)');
   };
+
+  useEffect(() => {
+    const onBackPress = () => {
+      handleBack();
+      return true;
+    };
+    const sub = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => sub.remove();
+  }, []);
 
   if (loading) {
     return (
@@ -251,7 +260,7 @@ export default function CourseDetailScreen() {
                     Alert.alert('Chưa mở khóa', 'Bạn hãy hoàn thành bài học trước để mở khóa bài học này nhé!');
                     return;
                   }
-                  router.push(`/lesson/${lesson.id}` as any);
+                  router.push({ pathname: `/lesson/${lesson.id}`, params: { courseId: String(id) } } as any);
                 }}
                 >
                   <View style={styles.lessonRow}>
