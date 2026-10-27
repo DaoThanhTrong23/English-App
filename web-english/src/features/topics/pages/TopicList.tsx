@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminLayout from '../../../components/layout/AdminLayout';
-import { Plus, Edit, Trash2, BookOpen, ArrowUp, ArrowDown, Upload, Image as ImageIcon, X, Eye } from 'lucide-react';
-import { fetchTopics, createTopic, updateTopic, deleteTopic } from '../api/topic.api';
+import { Plus, Edit, Trash2, RotateCcw, BookOpen, ArrowUp, ArrowDown, Upload, Image as ImageIcon, X, Eye } from 'lucide-react';
+import { fetchTopics, createTopic, updateTopic, deleteTopic, restoreTopic } from '../api/topic.api';
 import { uploadMedia } from '../../tests/api/test.api';
 import { useToast } from '../../../context/ToastContext';
 import '../../courses/pages/CourseList.css';
@@ -104,6 +104,17 @@ const TopicList: React.FC = () => {
     }
   };
 
+  
+  const handleRestore = async (id: number) => {
+    try {
+      await restoreTopic(id);
+      toast.success('Khôi phục chủ đề và các bài học liên quan thành công!');
+      loadTopics();
+    } catch (e: any) {
+      toast.error('Lỗi khi khôi phục chủ đề');
+    }
+  };
+
   const handleDelete = (id: number) => {
     confirmModal({
       title: 'Xóa chủ đề',
@@ -190,9 +201,16 @@ const TopicList: React.FC = () => {
                 </thead>
                 <tbody>
                   {getSortedTopics().map((topic) => (
-                    <tr key={topic.id} style={{ cursor: 'pointer' }} onClick={(e) => { if ((e.target as Element).closest('.action-buttons')) return; navigate('/admin/courses?topicId=' + topic.id); }}>
-                      <td>{topic.id}</td>
-                      <td>
+                    <tr 
+                      key={topic.id} 
+                      style={{ 
+                        cursor: 'pointer', 
+                        backgroundColor: topic.deletedAt ? '#fef2f2' : undefined 
+                      }} 
+                      onClick={(e) => { if ((e.target as Element).closest('.action-buttons')) return; navigate('/admin/courses?topicId=' + topic.id); }}
+                    >
+                      <td style={{ opacity: topic.deletedAt ? 0.45 : 1 }}>{topic.id}</td>
+                      <td style={{ opacity: topic.deletedAt ? 0.45 : 1 }}>
                         {topic.imageUrl ? (
                           <img 
                             src={topic.imageUrl} 
@@ -209,13 +227,20 @@ const TopicList: React.FC = () => {
                           </div>
                         )}
                       </td>
-                      <td><strong>{topic.title}</strong></td>
-                      <td style={{ maxWidth: '200px' }}>
+                      <td style={{ opacity: topic.deletedAt ? 0.45 : 1 }}>
+                        <strong>{topic.title}</strong>
+                        {topic.deletedAt && (
+                          <span style={{ marginLeft: '8px', fontSize: '11px', padding: '2px 8px', background: '#fee2e2', color: '#b91c1c', borderRadius: '4px', fontWeight: 'bold' }}>
+                            Đã xóa
+                          </span>
+                        )}
+                      </td>
+                      <td style={{ maxWidth: '200px', opacity: topic.deletedAt ? 0.45 : 1 }}>
                         <div className="description-truncate" title={topic.description || ''}>
                           {topic.description || <span style={{ color: '#94a3b8' }}>Chưa có mô tả</span>}
                         </div>
                       </td>
-                      <td>
+                      <td style={{ opacity: topic.deletedAt ? 0.45 : 1 }}>
                         {topic.cefrLevel ? (
                           <span className={`cefr-badge badge-${topic.cefrLevel.toLowerCase()}`}>
                             {topic.cefrLevel}
@@ -224,8 +249,8 @@ const TopicList: React.FC = () => {
                           <span style={{ color: '#94a3b8' }}>N/A</span>
                         )}
                       </td>
-                      <td>{topic.lessons?.length || 0}</td>
-                      <td>{new Date(topic.createdAt).toLocaleDateString('vi-VN')}</td>
+                      <td style={{ opacity: topic.deletedAt ? 0.45 : 1 }}>{topic.lessons?.length || 0}</td>
+                      <td style={{ opacity: topic.deletedAt ? 0.45 : 1 }}>{new Date(topic.createdAt).toLocaleDateString('vi-VN')}</td>
                       <td>
                         <div className="action-buttons">
                           <button
@@ -251,12 +276,41 @@ const TopicList: React.FC = () => {
                           >
                             <Eye size={15} /> Xem chi tiết
                           </button>
-                          <button className="btn-edit" onClick={() => handleOpenModal(topic)}>
-                            <Edit size={18} />
-                          </button>
-                          <button className="btn-delete" onClick={() => handleDelete(topic.id)}>
-                            <Trash2 size={18} />
-                          </button>
+                          {topic.deletedAt ? (
+                            <button
+                              className="btn-restore"
+                              title="Khôi phục chủ đề"
+                              style={{
+                                backgroundColor: '#10b981',
+                                color: '#ffffff',
+                                border: 'none',
+                                borderRadius: '6px',
+                                padding: '6px 14px',
+                                fontSize: '0.85rem',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                boxShadow: '0 1px 3px rgba(16, 185, 129, 0.4)'
+                              }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleRestore(topic.id);
+                              }}
+                            >
+                              <RotateCcw size={15} /> Khôi phục
+                            </button>
+                          ) : (
+                            <>
+                              <button className="btn-edit" onClick={() => handleOpenModal(topic)}>
+                                <Edit size={18} />
+                              </button>
+                              <button className="btn-delete" onClick={() => handleDelete(topic.id)}>
+                                <Trash2 size={18} />
+                              </button>
+                            </>
+                          )}
                         </div>
                       </td>
                     </tr>

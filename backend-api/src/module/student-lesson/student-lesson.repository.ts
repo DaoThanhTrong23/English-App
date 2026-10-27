@@ -7,23 +7,42 @@ export class StudentLessonRepository {
    * Lấy danh sách khóa học (Topics) đang hoạt động kèm số lượng bài học
    */
   @logExecution()
-  async findCourses(filter: GetStudentCoursesQueryInput) {
-    const { page = 1, limit, search, cefrLevel } = filter;
+  async findCourses(filter: GetStudentCoursesQueryInput & { preferredIds?: number[] }) {
+    const { page = 1, limit, search, cefrLevel, isExplore, preferredIds = [] } = filter as any;
     const safeLimit = limit || 10;
     const skip = (page - 1) * safeLimit;
 
-    const whereCondition: any = {};
+    const conditions: any[] = [];
 
     if (search) {
-      whereCondition.OR = [
+      conditions.push({ OR: [
         { title: { contains: search } },
         { description: { contains: search } },
-      ];
+      ] });
     }
 
     if (cefrLevel) {
-      whereCondition.cefrLevel = cefrLevel;
+      conditions.push({ cefrLevel });
     }
+
+    if (isExplore) {
+      // Trang Khám Phá: Tuyệt đối KHÔNG hiển thị bất kỳ chủ đề nào đang bị xóa mềm
+      conditions.push({ deletedAt: null });
+    } else {
+      // Danh sách học: Hiển thị chủ đề chưa xóa mềm HOẶC các chủ đề học viên đã ghi danh
+      if (preferredIds.length > 0) {
+        conditions.push({
+          OR: [
+            { deletedAt: null },
+            { id: { in: preferredIds } },
+          ],
+        });
+      } else {
+        conditions.push({ deletedAt: null });
+      }
+    }
+
+    const whereCondition = conditions.length > 0 ? { AND: conditions } : {};
 
     const [totalItems, courses] = await Promise.all([
       prisma.topic.count({ where: whereCondition }),

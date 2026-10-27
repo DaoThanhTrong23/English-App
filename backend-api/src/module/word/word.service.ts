@@ -1,15 +1,17 @@
 import { ApiError } from '../../shared/http/api-error.js';
 import { wordRepository } from './word.repository.js';
-import { CreateWordInput, UpdateWordInput } from './word.schema.js';
+import { CreateWordInput, UpdateWordInput, GetWordsQueryInput } from './word.schema.js';
 
 export const wordService = {
-  async fetchWords(page: number, limit: number, cefrLevel?: string, search?: string) {
-    const result = await wordRepository.getWords(page, limit, cefrLevel, search);
+  async fetchWords(query: GetWordsQueryInput) {
+    const page = parseInt(query.page) || 1;
+    const limit = parseInt(query.limit) || 10;
+    const result = await wordRepository.getWords(query);
     return {
       data: result.words,
       meta: {
         currentPage: page,
-        totalPages: Math.ceil(result.total / limit),
+        totalPages: Math.ceil(result.total / limit) || 1,
         totalItems: result.total
       }
     };
@@ -41,6 +43,9 @@ export const wordService = {
     return await wordRepository.deleteWord(id);
   },
 
+  async restoreWord(id: string) {
+    return await wordRepository.restoreWord(id);
+  },
 
   async countWord(){
     return await wordRepository.countWord();

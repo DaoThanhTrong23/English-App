@@ -177,8 +177,8 @@ const TestList: React.FC = () => {
             className={`test-category-tab ${activeTab === 'placement' ? 'active' : ''}`}
             onClick={() => setActiveTab('placement')}
           >
-            <Sparkles size={16} /> Đề kiểm tra đầu vào (Placement Test)
-            <span className="tab-count-badge">{tabCounts.placement} đề • 100 câu</span>
+             Đề kiểm tra đầu vào
+            <span className="tab-count-badge">{tabCounts.placement} đề</span>
           </button>
           <button 
             className={`test-category-tab ${activeTab === 'lesson' ? 'active' : ''}`}
@@ -198,9 +198,8 @@ const TestList: React.FC = () => {
 
         {activeTab === 'placement' && (
           <div className="placement-info-banner">
-            <div className="banner-icon"><Target size={30} color="#2563eb" /></div>
             <div className="banner-text">
-              <h4>Ngân hàng câu hỏi bài kiểm tra phân loại đầu vào (Placement Test - FAME-KT)</h4>
+              <h4>Ngân hàng câu hỏi bài kiểm tra phân loại đầu vào</h4>
               <p>
                 Bộ 100 câu hỏi chuẩn hóa qua 4 kỹ năng (Ngữ pháp, Từ vựng, Đọc hiểu, Nghe) trải dài từ A1 đến C1.
                 Admin có thể bấm <strong>"Xem chi tiết"</strong> ở từng cấp độ để xem danh sách câu hỏi, chỉnh sửa độ khó Elo, đáp án, hoặc thêm/xóa câu hỏi tùy chỉnh. Mọi thay đổi sẽ đồng bộ ngay lập tức cho học viên làm bài trên Mobile.

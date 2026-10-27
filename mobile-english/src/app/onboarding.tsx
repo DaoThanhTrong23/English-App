@@ -12,8 +12,41 @@ export default function OnboardingScreen() {
   const router = useRouter();
   const { isDark, theme } = useAppTheme();
 
-  const JOB_OPTIONS = ['Học sinh / Sinh viên', 'Người đi làm', 'Giáo viên', 'Khác'];
-  const INTEREST_OPTIONS = ['Công nghệ (IT)', 'Du lịch', 'Kinh doanh', 'Giải trí / Game', 'Văn hóa nghệ thuật', 'Giao tiếp hàng ngày', 'Kỹ năng mềm', 'Học thuật'];
+  const DEFAULT_JOB_OPTIONS = ['Học sinh / Sinh viên', 'Người đi làm', 'Giáo viên', 'Khác'];
+  const DEFAULT_INTEREST_OPTIONS = [
+    'Công nghệ (IT)', 'Du lịch', 'Kinh doanh', 'Giải trí / Game',
+    'Văn hóa nghệ thuật', 'Giao tiếp hàng ngày', 'Kỹ năng mềm', 'Học thuật'
+  ];
+
+  const [jobOptions, setJobOptions] = useState<string[]>(DEFAULT_JOB_OPTIONS);
+  const [interestOptions, setInterestOptions] = useState<string[]>(DEFAULT_INTEREST_OPTIONS);
+  const [loadingOptions, setLoadingOptions] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchOptions = async () => {
+      try {
+        setLoadingOptions(true);
+        const res = await axiosClient.get('/onboarding/options');
+        if (isMounted && res.data?.data) {
+          if (Array.isArray(res.data.data.interests) && res.data.data.interests.length > 0) {
+            setInterestOptions(res.data.data.interests);
+          }
+          if (Array.isArray(res.data.data.jobs) && res.data.data.jobs.length > 0) {
+            setJobOptions(res.data.data.jobs);
+          }
+        }
+      } catch (e) {
+        // Giữ các tùy chọn mặc định nếu mạng chưa sẵn sàng
+      } finally {
+        if (isMounted) setLoadingOptions(false);
+      }
+    };
+    fetchOptions();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const toggleInterest = (val: string) => {
     if (interests.includes(val)) {
@@ -24,7 +57,7 @@ export default function OnboardingScreen() {
   };
 
   const [step, setStep] = useState(1);
-  const [job, setJob] = useState('Sinh viên');
+  const [job, setJob] = useState('Học sinh / Sinh viên');
   const [interests, setInterests] = useState<string[]>([]);
   
   // Test Data
@@ -158,7 +191,7 @@ export default function OnboardingScreen() {
           <View style={styles.inputGroup}>
             <Text style={[styles.label, { color: theme.text }]}>Nghề nghiệp hiện tại của bạn:</Text>
             <View style={styles.chipContainer}>
-              {JOB_OPTIONS.map((opt) => (
+              {jobOptions.map((opt) => (
                 <TouchableOpacity 
                   key={opt}
                   style={[
@@ -175,9 +208,12 @@ export default function OnboardingScreen() {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={[styles.label, { color: theme.text }]}>Sở thích cá nhân (Chọn nhiều):</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+              <Text style={[styles.label, { color: theme.text, marginBottom: 0 }]}>Sở thích cá nhân (Chọn nhiều):</Text>
+              {loadingOptions && <ActivityIndicator size="small" color={theme.primary} />}
+            </View>
             <View style={styles.chipContainer}>
-              {INTEREST_OPTIONS.map((opt) => (
+              {interestOptions.map((opt) => (
                 <TouchableOpacity 
                   key={opt}
                   style={[

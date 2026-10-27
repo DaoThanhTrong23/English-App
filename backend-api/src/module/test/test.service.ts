@@ -110,43 +110,98 @@ export class TestService {
 
       const importedQuestions = [];
 
+      // Helper lấy giá trị linh hoạt từ nhiều tên cột (Việt / Anh, hoa / thường, có khoảng trắng)
+      const getVal = (row: any, aliases: string[]): string | null => {
+        const rowKeys = Object.keys(row);
+        for (const alias of aliases) {
+          const target = alias.toLowerCase().trim();
+          const matchedKey = rowKeys.find(k => k.toLowerCase().trim() === target);
+          if (matchedKey && row[matchedKey] !== undefined && row[matchedKey] !== null) {
+            const val = String(row[matchedKey]).trim();
+            if (val !== '') return val;
+          }
+        }
+        return null;
+      };
+
       for (const row of data as any[]) {
-        if (!row['Câu hỏi']) continue; // Bỏ qua dòng trống
+        const quesionText = getVal(row, [
+          'câu hỏi', 'cau hoi', 'question', 'question text', 'questiontext', 'quesiontext', 'nội dung câu hỏi', 'noi dung'
+        ]);
+        if (!quesionText) continue; // Bỏ qua dòng trống
 
-        const quesionText = row['Câu hỏi'];
-        const typeStr = row['Loại']?.toString().toLowerCase() || 'trắc nghiệm';
-        const questionType: "multiple_choice" | "fill_in_blank" | "listening" | "speaking" | "writing" =
-          typeStr.includes('điền') ? 'fill_in_blank' :
-          typeStr.includes('nghe') ? 'listening' :
-          typeStr.includes('nói') ? 'speaking' :
-          typeStr.includes('viết') ? 'writing' : 'multiple_choice';
-        const points = Number(row['Điểm']) || 10;
+        const rawType = (getVal(row, ['loại', 'loai', 'loại câu hỏi', 'loai cau hoi', 'type', 'question type', 'questiontype']) || '').toLowerCase();
+        let questionType: "multiple_choice" | "fill_in_blank" | "listening" | "speaking" | "writing" = 'multiple_choice';
+
+        if (rawType.includes('điền') || rawType.includes('dien') || rawType.includes('blank') || rawType.includes('fill')) {
+          questionType = 'fill_in_blank';
+        } else if (rawType.includes('nghe') || rawType.includes('listen')) {
+          questionType = 'listening';
+        } else if (rawType.includes('nói') || rawType.includes('noi') || rawType.includes('speak')) {
+          questionType = 'speaking';
+        } else if (rawType.includes('viết') || rawType.includes('viet') || rawType.includes('writ')) {
+          questionType = 'writing';
+        } else {
+          questionType = 'multiple_choice';
+        }
+
+        const points = Number(getVal(row, ['điểm', 'diem', 'points', 'point', 'score'])) || 10;
         
-        const answers = [];
-        const correctIndex = Number(row['Đáp án đúng']) || 1; // 1, 2, 3, 4
+        // Đọc các lựa chọn đáp án (tối đa 6 đáp án: 1-6 hoặc A-F)
+        const optionCandidates: string[] = [];
+        const letterMap: Record<number, string> = { 1: 'a', 2: 'b', 3: 'c', 4: 'd', 5: 'e', 6: 'f' };
 
-        for (let i = 1; i <= 6; i++) { // Hỗ trợ tối đa 6 đáp án cột Đáp án 1 -> 6
-          const ans = row[`Đáp án ${i}`];
-          if (ans !== undefined && ans !== null && ans !== '') {
-            answers.push({
-              answerText: ans.toString(),
-              isCorrect: (i === correctIndex)
-            });
+        for (let i = 1; i <= 6; i++) {
+          const letter = letterMap[i];
+          const ans = getVal(row, [
+            `đáp án ${i}`, `dap an ${i}`, `option ${i}`, `answer ${i}`, `câu trả lời ${i}`,
+            `đáp án ${letter}`, `dap an ${letter}`, `option ${letter}`, `answer ${letter}`, letter
+          ]);
+          if (ans !== null && ans !== '') {
+            optionCandidates.push(ans);
           }
         }
 
-        // Đảm bảo có ít nhất 1 đáp án
-        if (answers.length === 0) {
-          answers.push({ answerText: 'Đáp án tự động', isCorrect: true });
+        // Xác định đáp án đúng linh hoạt: số (1, 2..), chữ cái (A, B, C, D) hoặc nội dung trực tiếp
+        const rawCorrect = getVal(row, [
+          'đáp án đúng', 'dap an dung', 'correct', 'correct answer', 'correctanswer', 'answer', 'key'
+        ]) || '';
+
+        let targetIndex = -1; // 0-based
+        const numVal = parseInt(rawCorrect, 10);
+        if (!isNaN(numVal) && numVal >= 1 && numVal <= optionCandidates.length) {
+          targetIndex = numVal - 1;
+        } else {
+          const upper = rawCorrect.toUpperCase();
+          if (['A', 'B', 'C', 'D', 'E', 'F'].includes(upper)) {
+            targetIndex = upper.charCodeAt(0) - 65; // A -> 0, B -> 1,...
+          } else {
+            // Thử so khớp chính xác với nội dung các đáp án
+            targetIndex = optionCandidates.findIndex(opt => opt.toLowerCase().trim() === rawCorrect.toLowerCase().trim());
+          }
+        }
+        if (targetIndex < 0) targetIndex = 0; // Mặc định đáp án 1 nếu không chỉ định
+
+        const answers = optionCandidates.map((optText, idx) => ({
+          answerText: optText,
+          isCorrect: (idx === targetIndex)
+        }));
+
+        // Với trắc nghiệm / điền khuyết: đảm bảo có ít nhất 1 đáp án
+        if (answers.length === 0 && questionType !== 'speaking' && questionType !== 'writing') {
+          const singleAns = rawCorrect || 'Đáp án đúng';
+          answers.push({ answerText: singleAns, isCorrect: true });
         }
 
-        const difficultyElo = Number(row['Độ khó']) || Number(row['Elo']) || 1200;
-        const skillCategory = row['Kỹ năng'] || row['Skill'] || (
+        const difficultyElo = Number(getVal(row, ['độ khó', 'do kho', 'elo', 'difficulty', 'difficultielo'])) || 1200;
+        const skillCategory = getVal(row, ['kỹ năng', 'ky nang', 'skill', 'skillcategory']) || (
           questionType === 'listening' ? 'Listening' :
           questionType === 'speaking' ? 'Speaking' :
           questionType === 'writing' ? 'Writing' : 'Vocabulary'
         );
-        const topic = row['Chủ đề'] || row['Topic'] || null;
+        const topic = getVal(row, ['chủ đề', 'chu de', 'topic']) || null;
+        const audioUrl = getVal(row, ['audio', 'audiourl', 'âm thanh', 'am thanh', 'sound']) || null;
+        const imageUrl = getVal(row, ['image', 'imageurl', 'hình ảnh', 'hinh anh', 'ảnh', 'anh', 'photo']) || null;
 
         const q = await this.testRepo.createQuestionWithAnswers(testId, {
           quesionText,
@@ -154,7 +209,9 @@ export class TestService {
           points,
           difficultyElo,
           skillCategory,
-          topic
+          topic,
+          audioUrl,
+          imageUrl
         }, answers);
         
         importedQuestions.push(q);

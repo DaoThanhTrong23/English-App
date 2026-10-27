@@ -349,6 +349,7 @@ model word {
   meaning         String?  @db.Text
   exampleSentence String?  @map("example_sentence") @db.Text
   createdAt       DateTime @default(now()) @map("created_at")
+  deletedAt       DateTime? @map("deleted_at")
 
   lessonWords  LessonWord[]
   userProgress UserProgress[]
@@ -365,6 +366,7 @@ model Topic {
   cefrLevel   String?  @map("cefr_level") @db.VarChar(10)
   imageUrl    String?  @map("image_url") @db.Text
   createdAt   DateTime @default(now()) @map("created_at")
+  deletedAt   DateTime? @map("deleted_at")
 
   lessons Lesson[]
 

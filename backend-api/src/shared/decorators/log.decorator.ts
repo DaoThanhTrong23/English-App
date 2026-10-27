@@ -68,6 +68,7 @@ function sanitizeArgs(args: any[]) {
 
 export function logExecution() {
     return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+        if (!descriptor || !descriptor.value) return;
         const originalMethod = descriptor.value;
 
         descriptor.value = async function (...args: any[]) {

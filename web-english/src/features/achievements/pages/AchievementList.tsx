@@ -119,7 +119,7 @@ const AchievementList: React.FC = () => {
       <div className="course-list-container">
         <div className="course-list-main">
           <div className="course-list-header">
-            <h2><Trophy size={24} style={{ display: 'inline', marginRight: '8px', color: '#f59e0b' }} /> Quản lý danh hiệu</h2>
+            <h2>Quản lý danh hiệu</h2>
             <button className="add-course-btn" onClick={() => handleOpenModal()}>
               <Plus size={18} /> Thêm danh hiệu
             </button>

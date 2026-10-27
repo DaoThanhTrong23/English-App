@@ -34,7 +34,12 @@ topicRouter.put("/:id", requirePermission(PermissionName.UPDATE_TOPIC), validate
 
 topicRouter.delete("/:id", requirePermission(PermissionName.DELETE_TOPIC), asyncHandler(async (req, res) => {
   await topicService.deleteTopic(parseInt(req.params.id as string));
-  res.status(200).json({ success: true, message: "Xóa thành công" });
+  res.status(200).json({ success: true, message: "Xóa chủ đề thành công" });
+}));
+
+topicRouter.patch("/:id/restore", requirePermission(PermissionName.UPDATE_TOPIC), asyncHandler(async (req, res) => {
+  const topic = await topicService.restoreTopic(parseInt(req.params.id as string));
+  res.status(200).json({ success: true, message: "Khôi phục chủ đề thành công", data: topic });
 }));
 
 export { topicRouter };

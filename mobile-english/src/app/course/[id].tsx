@@ -264,13 +264,32 @@ export default function CourseDetailScreen() {
                 }}
                 >
                   <View style={styles.lessonRow}>
-                    <View style={[styles.lessonCircle, { backgroundColor: circleBg }]}>
-                      {isLocked ? (
-                        <Ionicons name="lock-closed" size={16} color={isDark ? '#71717a' : '#9ca3af'} />
-                      ) : (
-                        <Text style={[styles.lessonCircleText, { color: circleColor }]}>{index + 1}</Text>
-                      )}
-                    </View>
+                    {Boolean(lesson.thumbnailUrl) ? (
+                      <View style={styles.lessonThumbBox}>
+                        <Image 
+                          source={{ uri: getFullMediaUrl(lesson.thumbnailUrl) || '' }} 
+                          style={styles.lessonThumbImg} 
+                          resizeMode="cover" 
+                        />
+                        {isLocked ? (
+                          <View style={styles.thumbLockOverlay}>
+                            <Ionicons name="lock-closed" size={14} color="#ffffff" />
+                          </View>
+                        ) : (
+                          <View style={styles.thumbIndexBadge}>
+                            <Text style={styles.thumbIndexText}>{index + 1}</Text>
+                          </View>
+                        )}
+                      </View>
+                    ) : (
+                      <View style={[styles.lessonCircle, { backgroundColor: circleBg }]}>
+                        {isLocked ? (
+                          <Ionicons name="lock-closed" size={16} color={isDark ? '#71717a' : '#9ca3af'} />
+                        ) : (
+                          <Text style={[styles.lessonCircleText, { color: circleColor }]}>{index + 1}</Text>
+                        )}
+                      </View>
+                    )}
 
                     <View style={styles.lessonInfo}>
                       <Text style={[styles.lessonTitle, { color: isLocked ? theme.subtext : theme.text }]}>Bài {index + 1}: {lesson.title}</Text>
@@ -337,6 +356,43 @@ const styles = StyleSheet.create({
   lessonCard: { backgroundColor: '#ffffff', borderRadius: 16, padding: 15, elevation: 2, shadowColor: '#000', shadowOffset: {width: 0, height: 1}, shadowOpacity: 0.05, shadowRadius: 3 },
   lessonRow: { flexDirection: 'row', alignItems: 'center' },
   lessonCircle: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center', marginRight: 15 },
+  lessonThumbBox: {
+    width: 44,
+    height: 44,
+    borderRadius: 10,
+    overflow: 'hidden',
+    position: 'relative',
+    marginRight: 15,
+    backgroundColor: '#0f172a',
+  },
+  lessonThumbImg: {
+    width: '100%',
+    height: '100%',
+  },
+  thumbLockOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  thumbIndexBadge: {
+    position: 'absolute',
+    bottom: 1,
+    right: 1,
+    backgroundColor: 'rgba(0,0,0,0.65)',
+    borderRadius: 4,
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+  },
+  thumbIndexText: {
+    color: '#ffffff',
+    fontSize: 9,
+    fontWeight: 'bold',
+  },
   lessonCircleText: { fontSize: 16, fontWeight: 'bold' },
   lessonInfo: { flex: 1, paddingRight: 10 },
   lessonTitle: { fontSize: 14, fontWeight: 'bold', color: '#111827', marginBottom: 4 },

@@ -20,3 +20,8 @@ export const deleteTopic = async (id: number) => {
   const response = await axiosClient.delete(`/admin/topics/${id}`);
   return response.data;
 };
+
+export const restoreTopic = async (id: number) => {
+  const response = await axiosClient.patch(`/admin/topics/${id}/restore`);
+  return response.data;
+};

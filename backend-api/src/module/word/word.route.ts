@@ -19,7 +19,7 @@ router.get('/totalWord', requirePermission(PermissionName.READ_WORD_COUNT), asyn
 // LẤY DS ,TÌM KIẾM
 router.get('/', requirePermission(PermissionName.READ_WORD_LIST), asyncHandler(async (req: Request, res: Response) => {
   const query = getWordsQuerySchema.parse(req.query);
-  const result = await wordService.fetchWords(parseInt(query.page), parseInt(query.limit), query.cefrLevel, query.search);
+  const result = await wordService.fetchWords(query);
   res.status(200).json({ success: true, ...result });
 }));
 
@@ -45,11 +45,18 @@ router.put('/:id', requirePermission(PermissionName.UPDATE_WORD), asyncHandler(a
   res.status(200).json({ message: 'Sửa từ vựng thành công', data: word });
 }));
 
-// XÓA
+// XÓA MỀM
 router.delete('/:id', requirePermission(PermissionName.DELETE_WORD), asyncHandler(async (req, res) => {
   const id = req.params.id as string; 
   await wordService.deleteWord(id);
-  res.status(200).json({ message: 'Xóa từ vựng thành công' });
+  res.status(200).json({ success: true, message: 'Xóa từ vựng thành công' });
+}));
+
+// KHÔI PHỤC TỪ VỰNG
+router.patch('/:id/restore', requirePermission(PermissionName.UPDATE_WORD), asyncHandler(async (req, res) => {
+  const id = req.params.id as string;
+  const word = await wordService.restoreWord(id);
+  res.status(200).json({ success: true, message: 'Khôi phục từ vựng thành công', data: word });
 }));
 
 export const wordRouter = router;

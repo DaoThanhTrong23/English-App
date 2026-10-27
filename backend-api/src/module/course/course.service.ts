@@ -26,6 +26,8 @@ export class CourseService {
       createdAt: course.createdAt,
       deletedAt: course.deletedAt,
       isDeleted: course.deletedAt !== null,
+      topic: course.topic,
+      isTopicDeleted: Boolean(course.topic?.deletedAt),
       totalWords: course._count.lessonWords,
     }));
 

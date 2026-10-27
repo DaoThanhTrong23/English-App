@@ -8,9 +8,12 @@ export class CourseRepository {
     const { page, limit, search, cefrLevel, isDeleted, sortBy, sortOrder, topicId } = filter;
     const skip = (page - 1) * limit;
 
-    const whereCondition: any = {
-      deletedAt: isDeleted ? { not: null } : null,
-    };
+    const whereCondition: any = {};
+    if ((isDeleted as any) === true || (isDeleted as any) === 'true') {
+      whereCondition.deletedAt = { not: null };
+    } else if ((isDeleted as any) === false || (isDeleted as any) === 'false') {
+      whereCondition.deletedAt = null;
+    }
 
     if (search) {
       whereCondition.OR = [
@@ -41,7 +44,8 @@ export class CourseRepository {
           deletedAt: true,
           topic: {
             select: {
-              title: true
+              title: true,
+              deletedAt: true
             }
           },
           _count: {

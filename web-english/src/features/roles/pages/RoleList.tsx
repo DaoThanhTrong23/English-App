@@ -410,8 +410,8 @@ const RoleList: React.FC = () => {
         <div className="role-header">
           <div>
             <h1 className="role-header-title">
-              <ShieldCheck size={28} color="#2563eb" />
-              Quản lý Vai trò & Phân quyền (RBAC)
+              {/* <ShieldCheck size={28} color="#2563eb" /> */}
+              Quản lý vai trò & phân quyền
             </h1>
             <p className="role-header-desc">
               Quản lý danh sách vai trò người dùng và cấu hình ma trận quyền hạn tương ứng theo từng module.

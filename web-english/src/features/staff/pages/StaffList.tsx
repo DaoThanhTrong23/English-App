@@ -436,11 +436,11 @@ const StaffList: React.FC = () => {
         <div className="staff-header">
           <div>
             <h1 className="staff-header-title">
-              <UserCheck size={28} color="#2563eb" />
-              Quản lý Nhân viên & Phân quyền
+              {/* <UserCheck size={28} color="#2563eb" /> */}
+              Quản lý nhân viên & phân quyền
             </h1>
             <p className="staff-header-desc">
-              Quản lý danh sách nhân viên, gán vai trò quyền hạn, tạo mới và nâng cấp tài khoản lên Quản trị viên (Admin).
+              Quản lý danh sách nhân viên, gán vai trò quyền hạn, tạo mới và nâng cấp tài khoản lên quản trị viên.
             </p>
           </div>
 
@@ -466,10 +466,11 @@ const StaffList: React.FC = () => {
 
         {/* Security Rule Banner */}
         <div className="staff-rule-banner">
-          <ShieldAlert size={22} style={{ flexShrink: 0, marginTop: 2, color: '#2563eb' }} />
+          {/* <ShieldAlert size={22} style={{ flexShrink: 0, marginTop: 2, color: '#2563eb' }} /> */}
           <div>
-            <strong>Quy tắc bảo mật hệ thống:</strong> Quản trị viên này không thể can thiệp thông tin của Quản trị viên khác. <strong>Chỉ có Quản trị viên (Admin) mới có quyền tạo mới hoặc nâng cấp tài khoản lên Quản trị viên</strong> (các nhân viên khác dù có quyền quản lý nhân sự cũng không thể tự ý nâng cấp tài khoản lên Admin).
+            <strong>Quy tắc bảo mật hệ thống:</strong> Quản trị viên này không thể can thiệp thông tin của quản trị viên khác. <strong>Chỉ có Quản trị viên mới có quyền tạo mới hoặc nâng cấp tài khoản lên quản trị viên</strong> các nhân viên khác dù có quyền quản lý nhân sự cũng không thể tự ý nâng cấp tài khoản lên admin.
           </div>
+
         </div>
 
         {/* Stats Grid */}

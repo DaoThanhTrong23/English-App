@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Plus, Edit, Trash2, BookOpen } from 'lucide-react';
-import { fetchCourses, createCourse, updateCourse, deleteCourse } from '../api/course.api';
-import { fetchTopics } from '../../topics/api/topic.api';
+import { Plus, Edit, Trash2, RotateCcw, BookOpen } from 'lucide-react';
+import { fetchCourses, createCourse, updateCourse, deleteCourse, restoreCourse } from '../api/course.api';
+import { fetchTopics, restoreTopic } from '../../topics/api/topic.api';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import { useToast } from '../../../context/ToastContext';
 import './CourseList.css';
@@ -132,6 +132,27 @@ const CourseList: React.FC = () => {
     }
   };
 
+  
+  const handleRestore = async (id: number) => {
+    try {
+      await restoreCourse(id);
+      toast.success('Khôi phục bài học thành công!');
+      loadCourses();
+    } catch (e: any) {
+      toast.error('Lỗi khi khôi phục bài học');
+    }
+  };
+
+  const handleRestoreTopic = async (topicId: number) => {
+    try {
+      await restoreTopic(topicId);
+      toast.success('Khôi phục chủ đề liên quan thành công!');
+      loadCourses();
+    } catch (e: any) {
+      toast.error('Lỗi khi khôi phục chủ đề');
+    }
+  };
+
   const handleDelete = (id: string | number) => {
     confirmModal({
       title: 'Xóa bài học',
@@ -202,7 +223,7 @@ const CourseList: React.FC = () => {
                 <tr>
                   <th>ID</th>
                   <th>Tiêu đề</th>
-                  <th>Chủ đề</th>
+                  {/* <th>Chủ đề</th> */}
                   <th>Cấp độ</th>
                   <th>Mô tả</th>
                   <th>Ngày tạo</th>
@@ -216,9 +237,14 @@ const CourseList: React.FC = () => {
                   </tr>
                 ) : (
                   courses.map(course => (
-                    <tr key={course.id}>
-                      <td>#{course.id}</td>
-                      <td>
+                    <tr 
+                      key={course.id} 
+                      style={{ 
+                        backgroundColor: course.deletedAt ? '#fef2f2' : (course.isTopicDeleted ? '#fffbeb' : undefined) 
+                      }}
+                    >
+                      <td style={{ opacity: (course.deletedAt || course.isTopicDeleted) ? 0.45 : 1 }}>#{course.id}</td>
+                      <td style={{ opacity: (course.deletedAt || course.isTopicDeleted) ? 0.45 : 1 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                           {course.thumbnailUrl && (
                             <img 
@@ -231,13 +257,25 @@ const CourseList: React.FC = () => {
                               }}
                             />
                           )}
-                          <strong>{course.title}</strong>
+                          <div>
+                            <strong>{course.title}</strong>
+                            {course.deletedAt && (
+                              <span style={{ marginLeft: '8px', fontSize: '11px', padding: '2px 8px', background: '#fee2e2', color: '#b91c1c', borderRadius: '4px', fontWeight: 'bold' }}>
+                                Đã xóa
+                              </span>
+                            )}
+                            {!course.deletedAt && course.isTopicDeleted && (
+                              <span style={{ marginLeft: '8px', fontSize: '11px', padding: '2px 8px', background: '#fef3c7', color: '#b45309', borderRadius: '4px', fontWeight: 'bold' }}>
+                                Chủ đề liên quan đã bị xóa
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </td>
-                      <td>
+                      {/* <td>
                         {course.topic?.title || <span style={{ color: '#94a3b8' }}>Không phân loại</span>}
-                      </td>
-                      <td>
+                      </td> */}
+                      <td style={{ opacity: (course.deletedAt || course.isTopicDeleted) ? 0.45 : 1 }}>
                         <span style={{ 
                           padding: '4px 8px', 
                           backgroundColor: '#f1f5f9', 
@@ -248,10 +286,10 @@ const CourseList: React.FC = () => {
                           {course.cefrLevel || 'N/A'}
                         </span>
                       </td>
-                      <td style={{ maxWidth: '250px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <td style={{ maxWidth: '250px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', opacity: (course.deletedAt || course.isTopicDeleted) ? 0.45 : 1 }}>
                         {course.description}
                       </td>
-                      <td>{new Date(course.createdAt).toLocaleDateString('vi-VN')}</td>
+                      <td style={{ opacity: (course.deletedAt || course.isTopicDeleted) ? 0.45 : 1 }}>{new Date(course.createdAt).toLocaleDateString('vi-VN')}</td>
                       <td>
                         <div className="action-buttons">
                           <button 
@@ -274,12 +312,60 @@ const CourseList: React.FC = () => {
                           >
                             <BookOpen size={15} /> Xem chi tiết & quản lý
                           </button>
-                          <button className="btn-edit" onClick={() => handleOpenModal(course)}>
-                            <Edit size={18} />
-                          </button>
-                          <button className="btn-delete" onClick={() => handleDelete(course.id)}>
-                            <Trash2 size={18} />
-                          </button>
+                          {course.deletedAt ? (
+                            <button
+                              className="btn-restore"
+                              title="Khôi phục bài học"
+                              style={{
+                                backgroundColor: '#10b981',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '6px',
+                                padding: '6px 14px',
+                                fontSize: '0.85rem',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                boxShadow: '0 1px 3px rgba(16, 185, 129, 0.4)'
+                              }}
+                              onClick={() => handleRestore(course.id)}
+                            >
+                              <RotateCcw size={15} /> Khôi phục
+                            </button>
+                          ) : course.isTopicDeleted ? (
+                            <button
+                              className="btn-restore-topic"
+                              title="Khôi phục chủ đề liên quan"
+                              style={{
+                                backgroundColor: '#f59e0b',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '6px',
+                                padding: '6px 14px',
+                                fontSize: '0.85rem',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                boxShadow: '0 1px 3px rgba(245, 158, 11, 0.4)'
+                              }}
+                              onClick={() => course.topicId && handleRestoreTopic(course.topicId)}
+                            >
+                              <RotateCcw size={15} /> Khôi phục chủ đề
+                            </button>
+                          ) : (
+                            <>
+                              <button className="btn-edit" onClick={() => handleOpenModal(course)}>
+                                <Edit size={18} />
+                              </button>
+                              <button className="btn-delete" onClick={() => handleDelete(course.id)}>
+                                <Trash2 size={18} />
+                              </button>
+                            </>
+                          )}
                         </div>
                       </td>
                     </tr>

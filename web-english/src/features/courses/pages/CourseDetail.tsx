@@ -9,6 +9,33 @@ import { ArrowLeft, BookOpen, CheckSquare, Plus, Trash2, Edit } from 'lucide-rea
 import { useToast } from '../../../context/ToastContext';
 import './CourseList.css'; // Reuse CSS
 
+
+const htmlToPlainText = (html: string): string => {
+  if (!html) return '';
+  if (!/<[a-z][\s\S]*>/i.test(html)) return html;
+  return html
+    .replace(/<h[1-6][^>]*>(.*?)<\/h[1-6]>/gi, '\n📌 $1\n')
+    .replace(/<li[^>]*>(.*?)<\/li>/gi, '\n• $1')
+    .replace(/<br\s*[\/]?>/gi, '\n')
+    .replace(/<\/p>/gi, '\n\n')
+    .replace(/<b[^>]*>(.*?)<\/b>/gi, '$1')
+    .replace(/<strong[^>]*>(.*?)<\/strong>/gi, '$1')
+    .replace(/<i[^>]*>(.*?)<\/i>/gi, '$1')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+};
+
+const getYouTubeId = (url?: string | null) => {
+  if (!url) return null;
+  const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+  return match ? match[1] : null;
+};
+
 const CourseDetail: React.FC = () => {
   const { courseId } = useParams();
   const navigate = useNavigate();
@@ -59,7 +86,7 @@ const CourseDetail: React.FC = () => {
     loadTopics();
   }, []);
 
-  const [infoForm, setInfoForm] = useState({ title: '', description: '', cefrLevel: '', topicId: '' as any, content: '', videoUrl: '' });
+  const [infoForm, setInfoForm] = useState({ title: '', description: '', cefrLevel: '', topicId: '' as any, content: '', videoUrl: '', thumbnailUrl: '' });
 
   const loadCourse = async (id: number) => {
     try {
@@ -71,8 +98,9 @@ const CourseDetail: React.FC = () => {
           description: res.data.description || '',
           cefrLevel: res.data.cefrLevel || '',
           topicId: res.data.topicId || '',
-          content: res.data.content || '',
-          videoUrl: res.data.videoUrl || ''
+          content: htmlToPlainText(res.data.content || ''),
+          videoUrl: res.data.videoUrl || '',
+          thumbnailUrl: res.data.thumbnailUrl || ''
         });
       }
     } catch (error) {
@@ -93,17 +121,20 @@ const CourseDetail: React.FC = () => {
     if (!course) return;
     try {
       await updateCourse(course.id, { 
-        title: infoForm.title,
-        description: infoForm.description,
-        cefrLevel: infoForm.cefrLevel,
+        title: infoForm.title.trim(),
+        description: infoForm.description || null,
+        cefrLevel: infoForm.cefrLevel || null,
         topicId: infoForm.topicId ? parseInt(infoForm.topicId) : null,
-        content: infoForm.content,
-        videoUrl: infoForm.videoUrl
+        content: infoForm.content || null,
+        videoUrl: infoForm.videoUrl?.trim() || null,
+        thumbnailUrl: infoForm.thumbnailUrl?.trim() || null
       });
       toast.success('Cập nhật thông tin Bài học thành công!');
       loadCourse(course.id);
-    } catch (error) {
-      toast.error('Lỗi khi cập nhật thông tin');
+    } catch (error: any) {
+      console.error('Error updating course:', error);
+      const msg = error?.response?.data?.message || error?.message || 'Lỗi khi cập nhật thông tin';
+      toast.error(msg);
     }
   };
 
@@ -273,34 +304,189 @@ const CourseDetail: React.FC = () => {
               </select>
             </div>
 
-            <div className="form-group" style={{ marginBottom: '16px' }}>
-              <label>Link Audio/Video bài nghe, bài giảng (URL hoặc tải lên)</label>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <input type="text" placeholder="https://..." style={{ flex: 1, padding: '8px' }} value={infoForm.videoUrl} onChange={e => setInfoForm({...infoForm, videoUrl: e.target.value})} />
-                  <input type="file" id="course-media-upload" style={{ display: 'none' }} accept="audio/*,video/*" onChange={async (e) => {
+            <div className="form-group" style={{ marginBottom: '20px' }}>
+              <label style={{ fontWeight: '600', color: '#1e293b', marginBottom: '6px', display: 'block' }}>
+                Ảnh bìa / Thumbnail bài học (URL hoặc tải ảnh lên)
+              </label>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <input 
+                  type="text" 
+                  placeholder="https://... hoặc tải ảnh lên" 
+                  style={{ flex: 1, padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '14px' }} 
+                  value={infoForm.thumbnailUrl} 
+                  onChange={e => setInfoForm({...infoForm, thumbnailUrl: e.target.value})} 
+                />
+                <input 
+                  type="file" 
+                  id="course-thumb-upload" 
+                  style={{ display: 'none' }} 
+                  accept="image/*" 
+                  onChange={async (e) => {
                     const file = e.target.files?.[0];
                     if (!file) return;
                     try {
                       const res = await uploadMedia(file);
                       if (res?.data?.url) {
-                        setInfoForm({ ...infoForm, videoUrl: res.data.url });
-                        toast.success('Tải file phương tiện thành công!');
+                        setInfoForm(prev => ({ ...prev, thumbnailUrl: res.data.url }));
+                        toast.success('Tải ảnh bìa thành công!');
                       }
                     } catch(err) {
-                      toast.error('Lỗi khi tải file lên');
+                      toast.error('Lỗi khi tải ảnh lên');
                     } finally {
                       e.target.value = '';
                     }
-                  }} />
-                  <button type="button" style={{ padding: '8px 16px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }} onClick={() => document.getElementById('course-media-upload')?.click()}>Tải file lên</button>
+                  }} 
+                />
+                <button 
+                  type="button" 
+                  style={{ padding: '10px 18px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '500' }} 
+                  onClick={() => document.getElementById('course-thumb-upload')?.click()}
+                >
+                  Tải ảnh lên
+                </button>
+                {infoForm.thumbnailUrl && (
+                  <button 
+                    type="button" 
+                    style={{ padding: '10px 14px', background: '#f1f5f9', color: '#dc2626', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer', fontWeight: '500' }} 
+                    onClick={() => setInfoForm({...infoForm, thumbnailUrl: ''})}
+                  >
+                    Xóa ảnh
+                  </button>
+                )}
+              </div>
+
+              {/* Xem trước ảnh bìa */}
+              {infoForm.thumbnailUrl && (
+                <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '14px', padding: '10px 12px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                  <img 
+                    src={infoForm.thumbnailUrl.startsWith('http') ? infoForm.thumbnailUrl : `http://localhost:3000${infoForm.thumbnailUrl}`} 
+                    alt="Lesson Thumbnail" 
+                    style={{ width: '100px', height: '65px', objectFit: 'cover', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                  />
+                  <div>
+                    <div style={{ fontSize: '13px', fontWeight: '600', color: '#0f172a' }}>Ảnh bìa bài học</div>
+                    <div style={{ fontSize: '12px', color: '#64748b' }}>Hình ảnh đại diện sẽ hiển thị nổi bật trên danh sách bài học của ứng dụng Mobile.</div>
+                  </div>
                 </div>
+              )}
+            </div>
+
+            <div className="form-group" style={{ marginBottom: '20px' }}>
+              <label style={{ fontWeight: '600', color: '#1e293b', marginBottom: '6px', display: 'block' }}>
+                Link Audio/Video bài nghe, bài giảng (URL hoặc tải lên)
+              </label>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <input 
+                  type="text" 
+                  placeholder="Dán link YouTube (https://www.youtube.com/watch?v=...) hoặc đường dẫn media..." 
+                  style={{ flex: 1, padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '14px' }} 
+                  value={infoForm.videoUrl} 
+                  onChange={e => setInfoForm({...infoForm, videoUrl: e.target.value})} 
+                />
+                <input type="file" id="course-media-upload" style={{ display: 'none' }} accept="audio/*,video/*" onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  try {
+                    const res = await uploadMedia(file);
+                    if (res?.data?.url) {
+                      setInfoForm(prev => ({ ...prev, videoUrl: res.data.url }));
+                      toast.success('Tải file phương tiện thành công!');
+                    }
+                  } catch(err) {
+                    toast.error('Lỗi khi tải file lên');
+                  } finally {
+                    e.target.value = '';
+                  }
+                }} />
+                <button 
+                  type="button" 
+                  style={{ padding: '10px 18px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '500' }} 
+                  onClick={() => document.getElementById('course-media-upload')?.click()}
+                >
+                  Tải file lên
+                </button>
+              </div>
+
+              {/* Xem trước Video YouTube nếu có */}
+              {getYouTubeId(infoForm.videoUrl) && (
+                <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '14px', padding: '12px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                  <div style={{ position: 'relative', width: '120px', height: '68px', borderRadius: '6px', overflow: 'hidden', backgroundColor: '#000' }}>
+                    <img 
+                      src={`https://img.youtube.com/vi/${getYouTubeId(infoForm.videoUrl)}/mqdefault.jpg`} 
+                      alt="YouTube Preview" 
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                    <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.25)' }}>
+                      <div style={{ width: '28px', height: '28px', borderRadius: '14px', background: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '14px' }}>▶</div>
+                    </div>
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: '13px', fontWeight: '600', color: '#0f172a' }}>Video bài giảng YouTube đã sẵn sàng</div>
+                    <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>Học viên trên ứng dụng di động có thể xem trực tiếp bài giảng này.</div>
+                    <a href={infoForm.videoUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: '12px', color: '#2563eb', textDecoration: 'none', fontWeight: '500', display: 'inline-block', marginTop: '4px' }}>
+                      Xem thử video ↗
+                    </a>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="form-group" style={{ marginBottom: '16px' }}>
-              <label>Lý thuyết / Ngữ pháp (Nội dung bài học)</label>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                <label style={{ fontWeight: '600', color: '#1e293b' }}>Lý thuyết / Ngữ pháp (Nội dung bài học)</label>
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                  <button
+                    type="button"
+                    style={{ fontSize: '12px', padding: '4px 8px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '4px', cursor: 'pointer', color: '#334155' }}
+                    onClick={() => setInfoForm(prev => ({ ...prev, content: (prev.content ? prev.content + '\n\n' : '') + '📌 Tiêu đề mục:\n' }))}
+                  >
+                    + Tiêu đề
+                  </button>
+                  <button
+                    type="button"
+                    style={{ fontSize: '12px', padding: '4px 8px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '4px', cursor: 'pointer', color: '#334155' }}
+                    onClick={() => setInfoForm(prev => ({ ...prev, content: (prev.content ? prev.content + '\n' : '') + '👉 Cấu trúc: ' }))}
+                  >
+                    + Cấu trúc
+                  </button>
+                  <button
+                    type="button"
+                    style={{ fontSize: '12px', padding: '4px 8px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '4px', cursor: 'pointer', color: '#334155' }}
+                    onClick={() => setInfoForm(prev => ({ ...prev, content: (prev.content ? prev.content + '\n' : '') + '💡 Ví dụ: ' }))}
+                  >
+                    + Ví dụ
+                  </button>
+                  <button
+                    type="button"
+                    style={{ fontSize: '12px', padding: '4px 8px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '4px', cursor: 'pointer', color: '#334155' }}
+                    onClick={() => setInfoForm(prev => ({ ...prev, content: (prev.content ? prev.content + '\n' : '') + '⚠️ Lưu ý: ' }))}
+                  >
+                    + Lưu ý
+                  </button>
+                  {/<[a-z][\s\S]*>/i.test(infoForm.content) && (
+                    <button
+                      type="button"
+                      style={{ fontSize: '12px', padding: '4px 8px', background: '#fee2e2', border: '1px solid #f87171', borderRadius: '4px', cursor: 'pointer', color: '#b91c1c', fontWeight: 'bold' }}
+                      onClick={() => {
+                        setInfoForm(prev => ({ ...prev, content: htmlToPlainText(prev.content) }));
+                        toast.success('Đã chuyển đổi mã code sang văn bản thuần sạch sẽ!');
+                      }}
+                    >
+                      🧹 Làm sạch mã code HTML
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Hướng dẫn giáo viên */}
+              {/* <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '6px', padding: '10px 12px', marginBottom: '8px', fontSize: '13px', color: '#166534', lineHeight: '1.5' }}>
+              <strong>Dành cho Giáo viên:</strong> Soạn thảo văn bản thông thường (xuống dòng để tách đoạn, dùng dấu <code>-</code> hoặc <code>•</code> để liệt kê). <strong>Không cần viết mã code HTML</strong>, hệ thống sẽ tự động trình bày đẹp mắt trên ứng dụng di động cho học viên.
+              </div> */}
+
               <textarea 
-                placeholder="Nhập nội dung lý thuyết ở đây..." 
-                style={{ width: '100%', padding: '8px', minHeight: '150px' }} 
+                placeholder="Nhập nội dung bài học, lý thuyết ngữ pháp, quy tắc hoặc hướng dẫn học tập tại đây..." 
+                style={{ width: '100%', padding: '12px', minHeight: '180px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '14px', lineHeight: '1.6', fontFamily: 'inherit' }} 
                 value={infoForm.content} 
                 onChange={e => setInfoForm({...infoForm, content: e.target.value})} 
               />

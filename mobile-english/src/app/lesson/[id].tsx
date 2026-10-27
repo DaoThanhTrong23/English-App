@@ -6,6 +6,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Speech from 'expo-speech';
 import { axiosClient } from '../../api/axiosClient';
+import * as WebBrowser from 'expo-web-browser';
+import { getFullMediaUrl } from '../../utils/media';
 import { useAppTheme } from '../../context/ThemeContext';
 
 export default function LessonScreen() {
@@ -16,6 +18,40 @@ export default function LessonScreen() {
   const [loading, setLoading] = useState(true);
   const [showAllWords, setShowAllWords] = useState(false);
   const [savingWordId, setSavingWordId] = useState<number | null>(null);
+  const [isTheoryExpanded, setIsTheoryExpanded] = useState(false);
+
+  const getYouTubeId = (url?: string | null): string | null => {
+    if (!url) return null;
+    const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+    return match ? match[1] : null;
+  };
+
+  const formatTheoryContent = (raw?: string | null): string => {
+    if (!raw) return '';
+    return raw
+      .replace(/<h[1-6][^>]*>(.*?)<\/h[1-6]>/gi, '\n📌 $1\n')
+      .replace(/<li[^>]*>(.*?)<\/li>/gi, '\n• $1')
+      .replace(/<br\s*[\/]?>/gi, '\n')
+      .replace(/<\/p>/gi, '\n\n')
+      .replace(/<[^>]+>/g, '')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+  };
+
+  const handleOpenMedia = async () => {
+    if (!lesson?.videoUrl) return;
+    const fullUrl = getFullMediaUrl(lesson.videoUrl);
+    if (!fullUrl) return;
+    try {
+      await WebBrowser.openBrowserAsync(fullUrl);
+    } catch (err) {
+      Alert.alert('Thông báo', 'Không thể mở trình phát video/audio');
+    }
+  };
 
   useFocusEffect(useCallback(() => { fetchLessonDetail(); }, [id]));
 
@@ -166,6 +202,22 @@ export default function LessonScreen() {
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         
+        {/* BANNER ẢNH BÌA BÀI HỌC (NẾU CÓ) */}
+        {Boolean(lesson.thumbnailUrl) && (
+          <View style={styles.bannerContainer}>
+            <Image 
+              source={{ uri: getFullMediaUrl(lesson.thumbnailUrl) || '' }} 
+              style={styles.bannerImage} 
+              resizeMode="cover" 
+            />
+            {lesson.cefrLevel && (
+              <View style={styles.levelBadgeOverlay}>
+                <Text style={styles.levelBadgeText}>{lesson.cefrLevel}</Text>
+              </View>
+            )}
+          </View>
+        )}
+
         {/* MASCOT GREETING */}
         <View style={[styles.greetingCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
           <View style={styles.greetingHeader}>
@@ -180,6 +232,112 @@ export default function LessonScreen() {
             <Text style={[styles.chatText, { color: isDark ? '#93c5fd' : '#2563eb' }]}>Hello! Let's start.</Text>
           </View>
         </View>
+
+        {/* BÀI GIẢNG VIDEO & LÝ THUYẾT NGỮ PHÁP (NẾU CÓ) */}
+        {(Boolean(lesson.videoUrl) || Boolean(lesson.content)) && (
+          <View style={{ marginBottom: 16, gap: 12 }}>
+            
+            {/* 1. KHỐI VIDEO BÀI GIẢNG */}
+            {Boolean(lesson.videoUrl) && (() => {
+              const ytId = getYouTubeId(lesson.videoUrl);
+              return (
+                <View style={[styles.cardContainer, { backgroundColor: theme.card, borderColor: theme.border }]}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <Ionicons name="videocam" size={18} color="#ef4444" />
+                      <Text style={[styles.cardHeaderTitle, { color: theme.text }]}>Video Bài giảng</Text>
+                    </View>
+                    <View style={[styles.badgePill, { backgroundColor: isDark ? '#450a0a' : '#fee2e2' }]}>
+                      <Text style={{ fontSize: 11, fontWeight: '700', color: isDark ? '#f87171' : '#dc2626' }}>
+                        {ytId ? 'YOUTUBE' : 'MEDIA'}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <TouchableOpacity 
+                    style={styles.videoPreviewBox} 
+                    onPress={handleOpenMedia}
+                    activeOpacity={0.85}
+                  >
+                    {ytId ? (
+                      <Image 
+                        source={{ uri: `https://img.youtube.com/vi/${ytId}/hqdefault.jpg` }} 
+                        style={styles.videoThumbnail} 
+                        resizeMode="cover"
+                      />
+                    ) : (
+                      <View style={[styles.videoThumbnail, { backgroundColor: isDark ? '#1e293b' : '#334155', justifyContent: 'center', alignItems: 'center' }]}>
+                        <Ionicons name="play-circle" size={48} color="#ffffff" />
+                      </View>
+                    )}
+                    <View style={styles.videoOverlay}>
+                      <View style={styles.playButtonCircle}>
+                        <Ionicons name="play" size={24} color="#ffffff" style={{ marginLeft: 3 }} />
+                      </View>
+                      <Text style={styles.videoOverlayText}>Bấm để mở video bài giảng</Text>
+                    </View>
+                  </TouchableOpacity>
+                </View>
+              );
+            })()}
+
+            {/* 2. KHỐI LÝ THUYẾT & NGỮ PHÁP */}
+            {Boolean(lesson.content) && (() => {
+              const cleanText = formatTheoryContent(lesson.content);
+              if (!cleanText) return null;
+              return (
+                <View style={[styles.cardContainer, { backgroundColor: theme.card, borderColor: theme.border }]}>
+                  <TouchableOpacity 
+                    style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}
+                    onPress={() => setIsTheoryExpanded(prev => !prev)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
+                      <View style={[styles.iconCircle, { backgroundColor: isDark ? '#1e293b' : '#e0f2fe' }]}>
+                        <Ionicons name="book-outline" size={18} color={theme.primary} />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={[styles.cardHeaderTitle, { color: theme.text }]}>Lý thuyết & Ngữ pháp bài học</Text>
+                        <Text style={{ fontSize: 12, color: theme.subtext, marginTop: 2 }}>
+                          {isTheoryExpanded ? 'Bấm để thu gọn' : 'Đọc kiến thức trọng tâm trước khi làm bài'}
+                        </Text>
+                      </View>
+                    </View>
+                    <Ionicons 
+                      name={isTheoryExpanded ? 'chevron-up-circle' : 'chevron-down-circle'} 
+                      size={22} 
+                      color={theme.primary} 
+                    />
+                  </TouchableOpacity>
+
+                  {/* Nội dung lý thuyết */}
+                  <View style={{ marginTop: 12 }}>
+                    <Text 
+                      style={[
+                        styles.theoryText, 
+                        { color: theme.text },
+                        !isTheoryExpanded && { maxHeight: 90, overflow: 'hidden' }
+                      ]}
+                      numberOfLines={isTheoryExpanded ? undefined : 4}
+                    >
+                      {cleanText}
+                    </Text>
+
+                    <TouchableOpacity 
+                      style={{ marginTop: 8, alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 4 }}
+                      onPress={() => setIsTheoryExpanded(prev => !prev)}
+                    >
+                      <Text style={{ color: theme.primary, fontSize: 13, fontWeight: '700' }}>
+                        {isTheoryExpanded ? 'Thu gọn lý thuyết ▲' : 'Xem toàn bộ lý thuyết ▼'}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              );
+            })()}
+
+          </View>
+        )}
 
         {/* PROGRESS */}
         <View style={[styles.progressCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
@@ -365,6 +523,35 @@ const styles = StyleSheet.create({
   greetingCard: { padding: 15, borderRadius: 12, borderWidth: 1, borderColor: '#bfdbfe', backgroundColor: '#ffffff', marginBottom: 15 },
   greetingHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 15 },
   mascotImg: { width: 50, height: 50, marginRight: 15 },
+  bannerContainer: {
+    width: '100%',
+    height: 140,
+    borderRadius: 14,
+    overflow: 'hidden',
+    marginBottom: 15,
+    position: 'relative',
+    backgroundColor: '#0f172a',
+  },
+  bannerImage: {
+    width: '100%',
+    height: '100%',
+  },
+  levelBadgeOverlay: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    backgroundColor: 'rgba(0,0,0,0.65)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+  },
+  levelBadgeText: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
   greetingTitle: { fontSize: 15, fontWeight: 'bold', color: '#111827', marginBottom: 4 },
   greetingText: { fontSize: 12, color: '#6b7280', lineHeight: 18 },
   chatBubble: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#eff6ff', padding: 10, borderRadius: 8 },
@@ -430,5 +617,77 @@ const styles = StyleSheet.create({
   vocabDesc: { textAlign: 'center', color: '#6b7280', fontSize: 13, paddingVertical: 10 },
 
   startBtn: { backgroundColor: '#3b82f6', paddingVertical: 16, borderRadius: 12, alignItems: 'center', marginBottom: 20 },
-  startBtnText: { color: '#ffffff', fontSize: 16, fontWeight: 'bold' }
+  startBtnText: { color: '#ffffff', fontSize: 16, fontWeight: 'bold' },
+
+  cardContainer: {
+    padding: 15,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+    backgroundColor: '#ffffff',
+  },
+  cardHeaderTitle: {
+    fontSize: 15,
+    fontWeight: 'bold',
+  },
+  badgePill: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  videoPreviewBox: {
+    width: '100%',
+    height: 180,
+    borderRadius: 10,
+    overflow: 'hidden',
+    position: 'relative',
+    backgroundColor: '#0f172a',
+  },
+  videoThumbnail: {
+    width: '100%',
+    height: '100%',
+  },
+  videoOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+  },
+  playButtonCircle: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#ef4444',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  videoOverlayText: {
+    color: '#ffffff',
+    fontSize: 13,
+    fontWeight: '600',
+    textShadowColor: 'rgba(0,0,0,0.7)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
+  },
+  iconCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  theoryText: {
+    fontSize: 14,
+    lineHeight: 22,
+  }
 });

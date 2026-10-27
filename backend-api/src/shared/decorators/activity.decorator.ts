@@ -6,6 +6,7 @@ export function recordActivity(
     getDescription?: (result: any, ...args: any[]) => string
 ) {
     return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+        if (!descriptor || !descriptor.value) return;
         const originalMethod = descriptor.value;
 
         descriptor.value = async function (...args: any[]) {

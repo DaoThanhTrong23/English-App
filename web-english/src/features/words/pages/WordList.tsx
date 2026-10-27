@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { fetchWords, deleteWord, updateWord } from '../api/words.api';
+import { fetchWords, deleteWord, updateWord, restoreWord } from '../api/words.api';
 import AdminLayout from '../../../components/layout/AdminLayout';
-import { Plus, Edit2, Trash2 } from 'lucide-react';
+import { Plus, Edit2, Trash2, Search, X, RotateCcw, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { useToast } from '../../../context/ToastContext';
 import './WordList.css';
 
@@ -14,9 +14,17 @@ const WordList: React.FC = () => {
 
   // Pagination & Search
   const [page, setPage] = useState(1);
-  const [limit] = useState(10);
+  const [limit, setLimit] = useState(10);
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState('');
+
+  // Filters & Sorting
+  const [cefrFilter, setCefrFilter] = useState('all');
+  const [posFilter, setPosFilter] = useState('all');
+  const [hasImageFilter, setHasImageFilter] = useState<'all' | 'yes' | 'no'>('all');
+  const [hasAudioFilter, setHasAudioFilter] = useState<'all' | 'yes' | 'no'>('all');
+  const [sortBy, setSortBy] = useState<'headword' | 'cefrLevel' | 'partOfSpeech' | 'createdAt' | 'id'>('id');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
   // Edit Modal State
   const [editingWord, setEditingWord] = useState<any | null>(null);
@@ -27,7 +35,17 @@ const WordList: React.FC = () => {
   const loadWords = async () => {
     setLoading(true);
     try {
-      const res = await fetchWords(page, limit, search);
+      const res = await fetchWords({
+        page,
+        limit,
+        search: search.trim() || undefined,
+        cefrLevel: cefrFilter !== 'all' ? cefrFilter : undefined,
+        partOfSpeech: posFilter !== 'all' ? posFilter : undefined,
+        hasImage: hasImageFilter,
+        hasAudio: hasAudioFilter,
+        sortBy,
+        sortOrder
+      });
       setWords(res.data);
       setTotal(res.meta.totalItems);
     } catch (error) {
@@ -43,7 +61,52 @@ const WordList: React.FC = () => {
       loadWords();
     }, 300);
     return () => clearTimeout(timer);
-  }, [page, search]);
+  }, [page, limit, search, cefrFilter, posFilter, hasImageFilter, hasAudioFilter, sortBy, sortOrder]);
+
+  const handleResetFilters = () => {
+    setSearch('');
+    setCefrFilter('all');
+    setPosFilter('all');
+    setHasImageFilter('all');
+    setHasAudioFilter('all');
+    setSortBy('id');
+    setSortOrder('asc');
+    setPage(1);
+  };
+
+  const hasActiveFilters = search.trim() !== '' || cefrFilter !== 'all' || posFilter !== 'all' || hasImageFilter !== 'all' || hasAudioFilter !== 'all' || sortBy !== 'id' || sortOrder !== 'asc';
+
+  const handleSort = (field: 'headword' | 'cefrLevel' | 'partOfSpeech' | 'createdAt' | 'id') => {
+    if (sortBy === field) {
+      setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(field);
+      setSortOrder(field === 'headword' ? 'asc' : 'desc');
+    }
+    setPage(1);
+  };
+
+  const renderSortIcon = (field: string) => {
+    if (sortBy !== field) {
+      return <ArrowUpDown size={14} style={{ opacity: 0.35 }} />;
+    }
+    return sortOrder === 'asc' ? (
+      <ArrowUp size={14} style={{ color: '#2563eb' }} />
+    ) : (
+      <ArrowDown size={14} style={{ color: '#2563eb' }} />
+    );
+  };
+
+  
+  const handleRestore = async (id: string, headword: string) => {
+    try {
+      await restoreWord(id);
+      toast.success(`Khôi phục từ vựng "${headword}" thành công`);
+      loadWords();
+    } catch (error) {
+      toast.error('Khôi phục từ vựng thất bại');
+    }
+  };
 
   const handleDelete = (id: string, headword: string) => {
     confirmModal({
@@ -219,17 +282,139 @@ const WordList: React.FC = () => {
           </button>
         </div>
 
-        <div className="word-list-controls">
-          <input
-            type="text"
-            placeholder="Tìm kiếm từ vựng..."
-            className="word-search-input"
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
-          />
+        <div className="word-filters-container">
+          <div className="word-filter-row-top">
+            <div className="word-search-wrapper">
+              <Search size={18} className="word-search-icon" />
+              <input
+                type="text"
+                placeholder="Tìm kiếm theo từ tiếng Anh hoặc nghĩa tiếng Việt..."
+                className="word-search-input"
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setPage(1);
+                }}
+              />
+              {search ? (
+                <button 
+                  className="word-search-clear" 
+                  onClick={() => { setSearch(''); setPage(1); }}
+                  title="Xóa tìm kiếm"
+                >
+                  <X size={16} />
+                </button>
+              ) : null}
+            </div>
+
+            <div className="word-filter-stats">
+              Hiển thị <strong>{words.length}</strong> / <strong>{total}</strong> từ vựng
+            </div>
+          </div>
+
+          <div className="word-filter-row-bottom">
+            <div className="filter-group">
+              <span className="filter-label">Cấp độ (CEFR):</span>
+              <select 
+                className="filter-select"
+                value={cefrFilter} 
+                onChange={(e) => { setCefrFilter(e.target.value); setPage(1); }}
+              >
+                <option value="all">Tất cả cấp độ</option>
+                <option value="A1">A1 - Beginner</option>
+                <option value="A2">A2 - Elementary</option>
+                <option value="B1">B1 - Intermediate</option>
+                <option value="B2">B2 - Upper Intermediate</option>
+                <option value="C1">C1 - Advanced</option>
+                <option value="C2">C2 - Proficient</option>
+              </select>
+            </div>
+
+            <div className="filter-group">
+              <span className="filter-label">Loại từ:</span>
+              <select 
+                className="filter-select"
+                value={posFilter} 
+                onChange={(e) => { setPosFilter(e.target.value); setPage(1); }}
+              >
+                <option value="all">Tất cả loại từ</option>
+                <option value="noun">Danh từ (Noun)</option>
+                <option value="verb">Động từ (Verb)</option>
+                <option value="adjective">Tính từ (Adjective)</option>
+                <option value="adverb">Trạng từ (Adverb)</option>
+                <option value="preposition">Giới từ (Preposition)</option>
+                <option value="conjunction">Liên từ (Conjunction)</option>
+                <option value="pronoun">Đại từ (Pronoun)</option>
+                <option value="determiner">Từ hạn định (Determiner)</option>
+              </select>
+            </div>
+
+            <div className="filter-group">
+              <span className="filter-label">Hình ảnh:</span>
+              <select 
+                className="filter-select"
+                value={hasImageFilter} 
+                onChange={(e) => { setHasImageFilter(e.target.value as any); setPage(1); }}
+              >
+                <option value="all">Tất cả</option>
+                <option value="yes">Có hình ảnh</option>
+                <option value="no">Chưa có ảnh</option>
+              </select>
+            </div>
+
+            <div className="filter-group">
+              <span className="filter-label">Âm thanh:</span>
+              <select 
+                className="filter-select"
+                value={hasAudioFilter} 
+                onChange={(e) => { setHasAudioFilter(e.target.value as any); setPage(1); }}
+              >
+                <option value="all">Tất cả</option>
+                <option value="yes">Có phát âm audio</option>
+                <option value="no">Chưa có audio</option>
+              </select>
+            </div>
+
+            <div className="filter-group">
+              <span className="filter-label">Sắp xếp:</span>
+              <select 
+                className="filter-select"
+                value={sortBy} 
+                onChange={(e) => { 
+                  const val = e.target.value as any;
+                  setSortBy(val); 
+                  setSortOrder(val === 'headword' ? 'asc' : 'desc');
+                  setPage(1); 
+                }}
+              >
+                <option value="id">Theo ID (Mặc định)</option>
+                <option value="headword">Từ vựng (A - Z)</option>
+                <option value="cefrLevel">Cấp độ CEFR</option>
+                <option value="partOfSpeech">Loại từ</option>
+                <option value="createdAt">Thời gian tạo</option>
+              </select>
+            </div>
+
+            <button
+              className="filter-select"
+              style={{ fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+              onClick={() => { setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc'); setPage(1); }}
+              title="Đổi chiều sắp xếp"
+            >
+              {sortOrder === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />}
+              <span>{sortOrder === 'asc' ? 'Tăng dần' : 'Giảm dần'}</span>
+            </button>
+
+            {hasActiveFilters && (
+              <button 
+                className="filter-reset-btn"
+                onClick={handleResetFilters}
+                title="Xóa tất cả các bộ lọc đang chọn"
+              >
+                <RotateCcw size={14} /> Đặt lại bộ lọc
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="word-table-container">
@@ -239,9 +424,24 @@ const WordList: React.FC = () => {
             <table className="word-table">
               <thead>
                 <tr>
-                  <th>Từ vựng</th>
-                  <th>Loại từ</th>
-                  <th>Cấp độ</th>
+                  <th className="th-sortable" onClick={() => handleSort('headword')} title="Sắp xếp theo từ vựng">
+                    <div className="th-sort-content">
+                      <span>Từ vựng</span>
+                      {renderSortIcon('headword')}
+                    </div>
+                  </th>
+                  <th className="th-sortable" onClick={() => handleSort('partOfSpeech')} title="Sắp xếp theo loại từ">
+                    <div className="th-sort-content">
+                      <span>Loại từ</span>
+                      {renderSortIcon('partOfSpeech')}
+                    </div>
+                  </th>
+                  <th className="th-sortable" onClick={() => handleSort('cefrLevel')} title="Sắp xếp theo cấp độ CEFR">
+                    <div className="th-sort-content">
+                      <span>Cấp độ</span>
+                      {renderSortIcon('cefrLevel')}
+                    </div>
+                  </th>
                   <th>Nghĩa</th>
                   <th>Hình ảnh</th>
                   <th>Thao tác</th>
@@ -254,15 +454,27 @@ const WordList: React.FC = () => {
                   </tr>
                 ) : (
                   words.map((w: any) => (
-                    <tr key={w.id}>
-                      <td className="word-cell">
-                        <strong>{w.headword}</strong>
+                    <tr 
+                      key={w.id} 
+                      style={{ 
+                        backgroundColor: w.deletedAt ? '#fef2f2' : undefined 
+                      }}
+                    >
+                      <td className="word-cell" style={{ opacity: w.deletedAt ? 0.45 : 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <strong>{w.headword}</strong>
+                          {w.deletedAt && (
+                            <span style={{ fontSize: '10px', padding: '2px 8px', background: '#fee2e2', color: '#b91c1c', borderRadius: '4px', fontWeight: 'bold' }}>
+                              Đã xóa
+                            </span>
+                          )}
+                        </div>
                         <span className="phonetic">{w.phonetic}</span>
                       </td>
-                      <td>{w.partOfSpeech}</td>
-                      <td><span className={`cefr-badge cefr-${w.cefrLevel?.toLowerCase()}`}>{w.cefrLevel}</span></td>
-                      <td>{w.meaning}</td>
-                      <td>
+                      <td style={{ opacity: w.deletedAt ? 0.45 : 1 }}>{w.partOfSpeech}</td>
+                      <td style={{ opacity: w.deletedAt ? 0.45 : 1 }}><span className={`cefr-badge cefr-${w.cefrLevel?.toLowerCase()}`}>{w.cefrLevel}</span></td>
+                      <td style={{ opacity: w.deletedAt ? 0.45 : 1 }}>{w.meaning}</td>
+                      <td style={{ opacity: w.deletedAt ? 0.45 : 1 }}>
                         {w.imageUrl ? (
                           <img 
                             src={w.imageUrl} 
@@ -279,12 +491,37 @@ const WordList: React.FC = () => {
                       </td>
                       <td>
                         <div className="action-buttons">
-                          <button className="edit-btn" onClick={() => handleEditClick(w)} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                            <Edit2 size={13} /> Sửa
-                          </button>
-                          <button className="delete-btn" onClick={() => handleDelete(w.id, w.headword)} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                            <Trash2 size={13} /> Xóa
-                          </button>
+                          {w.deletedAt ? (
+                            <button 
+                              className="btn-restore" 
+                              onClick={() => handleRestore(w.id, w.headword)} 
+                              style={{ 
+                                display: 'inline-flex', 
+                                alignItems: 'center', 
+                                gap: '6px', 
+                                padding: '6px 14px', 
+                                background: '#10b981', 
+                                color: 'white', 
+                                border: 'none', 
+                                borderRadius: '6px', 
+                                cursor: 'pointer', 
+                                fontWeight: 700, 
+                                fontSize: '0.85rem',
+                                boxShadow: '0 1px 3px rgba(16, 185, 129, 0.4)'
+                              }}
+                            >
+                              <RotateCcw size={14} /> Khôi phục
+                            </button>
+                          ) : (
+                            <>
+                              <button className="edit-btn" onClick={() => handleEditClick(w)} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                <Edit2 size={13} /> Sửa
+                              </button>
+                              <button className="delete-btn" onClick={() => handleDelete(w.id, w.headword)} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                <Trash2 size={13} /> Xóa
+                              </button>
+                            </>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -296,20 +533,36 @@ const WordList: React.FC = () => {
         </div>
 
         {/* Pagination */}
-        <div className="pagination">
-          <button
-            disabled={page === 1}
-            onClick={() => setPage(p => p - 1)}
-          >
-            Trang trước
-          </button>
-          <span>Trang {page} / {totalPages}</span>
-          <button
-            disabled={page >= totalPages}
-            onClick={() => setPage(p => p + 1)}
-          >
-            Trang sau
-          </button>
+        <div className="pagination" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '0.85rem', color: '#64748b' }}>Hiển thị:</span>
+            <select
+              value={limit}
+              onChange={(e) => { setLimit(Number(e.target.value)); setPage(1); }}
+              style={{ padding: '4px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.85rem', backgroundColor: '#ffffff', cursor: 'pointer' }}
+            >
+              <option value={10}>10 từ / trang</option>
+              <option value={20}>20 từ / trang</option>
+              <option value={50}>50 từ / trang</option>
+              <option value={100}>100 từ / trang</option>
+            </select>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <button
+              disabled={page === 1}
+              onClick={() => setPage(p => p - 1)}
+            >
+              Trang trước
+            </button>
+            <span>Trang {page} / {totalPages}</span>
+            <button
+              disabled={page >= totalPages}
+              onClick={() => setPage(p => p + 1)}
+            >
+              Trang sau
+            </button>
+          </div>
         </div>
       </div>
 

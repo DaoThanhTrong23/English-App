@@ -32,9 +32,9 @@ export default function ExploreScreen() {
   const fetchCourses = async () => {
     try {
       setLoading(true);
-      // Lấy tối đa 100 chủ đề để load đầy đủ mọi mục CEFR
+      // Lấy tối đa 100 chủ đề để load đầy đủ mọi mục CEFR (Trang khám phá chỉ hiển thị chủ đề chưa xóa mềm)
       const res = await axiosClient.get('/student/courses', {
-        params: { limit: 100 }
+        params: { limit: 100, isExplore: true }
       });
       setCourses(res.data?.data?.items || res.data?.data || []);
     } catch (error) {

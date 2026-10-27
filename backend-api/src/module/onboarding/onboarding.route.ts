@@ -8,6 +8,15 @@ import { ApiError } from "../../shared/http/api-error.js";
 
 const router = Router();
 
+// GET: Lấy danh sách options (sở thích từ cài đặt từ khóa, nghề nghiệp)
+router.get(
+  "/options",
+  asyncHandler(async (req: any, res) => {
+    const options = onboardingService.getOnboardingOptions();
+    res.status(200).json({ success: true, data: options });
+  })
+);
+
 // GET: Lấy đề test đầu vào (Placement Test)
 router.get(
   "/placement-test",

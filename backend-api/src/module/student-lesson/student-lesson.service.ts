@@ -29,12 +29,17 @@ export class StudentLessonService {
 
     const expandedKeywords = keywordSettingService.resolveExpandedKeywords(userTopics);
 
-    let { courses } = await this.studentLessonRepo.findCourses({ ...query, limit: 1000, page: 1 });
-    
     // Danh sách các khóa học học viên đã đăng ký / chọn học
     const preferredCourseIds = user?.preferredTopics
       ? user.preferredTopics.split(',').map((id: string) => parseInt(id.trim(), 10)).filter((id: number) => !isNaN(id))
       : [];
+
+    let { courses } = await this.studentLessonRepo.findCourses({
+      ...query,
+      preferredIds: preferredCourseIds,
+      limit: 1000,
+      page: 1,
+    });
 
     // 1. Lọc theo targetLevelGroup do người dùng chọn lúc Onboarding hoặc chọn trên giao diện
     if (query.targetLevelGroup) {
@@ -165,6 +170,16 @@ export class StudentLessonService {
 
     const isAlreadyInPreferred = preferredCourseIds.includes(courseId);
 
+    // Nếu chủ đề đã bị xóa mềm và học viên chưa từng đăng ký: KHÔNG cho phép đăng ký mới
+    if (course.deletedAt && !isAlreadyInPreferred) {
+      throw new ApiError(400, "course_deleted", "Chủ đề này không còn khả dụng hoặc đã bị gỡ bỏ");
+    }
+
+    // Nếu chủ đề đã bị xóa mềm và học viên chưa từng đăng ký: KHÔNG cho phép đăng ký mới
+    if (course.deletedAt && !isAlreadyInPreferred) {
+      throw new ApiError(400, "course_deleted", "Chủ đề này không còn khả dụng hoặc đã bị gỡ bỏ");
+    }
+
     // Kiểm tra xem học viên đã từng làm bài test nào thuộc chủ đề này chưa
     const lessonIds = course.lessons.map((l: any) => l.id);
     let hasStudiedTests = false;
@@ -265,21 +280,26 @@ export class StudentLessonService {
       throw new ApiError(404, "course_not_found", "Không tìm thấy khóa học yêu cầu");
     }
 
-    // Tự động ghi nhận chủ đề vào preferredTopics nếu chưa có
-    try {
-      const user = await prisma.user.findUnique({ where: { id: userId }, select: { preferredTopics: true } });
-      if (user) {
-        const preferredIds = user.preferredTopics
-          ? user.preferredTopics.split(',').map((s: string) => parseInt(s.trim(), 10)).filter((n: number) => !isNaN(n))
-          : [];
-        if (!preferredIds.includes(courseId)) {
-          await prisma.user.update({
-            where: { id: userId },
-            data: { preferredTopics: [...preferredIds, courseId].join(',') }
-          });
-        }
-      }
-    } catch (_) {}
+    const user = await prisma.user.findUnique({ where: { id: userId }, select: { preferredTopics: true } });
+    const preferredIds = user?.preferredTopics
+      ? user.preferredTopics.split(',').map((s: string) => parseInt(s.trim(), 10)).filter((n: number) => !isNaN(n))
+      : [];
+    const isEnrolled = preferredIds.includes(courseId);
+
+    // Nếu khóa học đã bị xóa mềm mà học viên chưa từng thêm vào danh sách học -> Không cho phép truy cập
+    if (course.deletedAt && !isEnrolled) {
+      throw new ApiError(404, "course_not_found", "Chủ đề này không còn khả dụng hoặc đã bị gỡ bỏ");
+    }
+
+    // Tự động ghi nhận chủ đề vào preferredTopics nếu chưa có và chủ đề KHÔNG bị xóa mềm
+    if (!isEnrolled && !course.deletedAt) {
+      try {
+        await prisma.user.update({
+          where: { id: userId },
+          data: { preferredTopics: [...preferredIds, courseId].join(',') }
+        });
+      } catch (_) {}
+    }
 
     // Lấy thông tin bài học và trạng thái hoàn thành dựa trên kết quả test thực tế
     const lessonIds = course.lessons.map(l => l.id);
@@ -394,24 +414,32 @@ export class StudentLessonService {
       );
     }
 
-    // Tự động ghi nhận chủ đề của bài học vào preferredTopics nếu chưa có
-    try {
-      const topicId = (lesson as any).topic?.id || (lesson as any).topicId;
-      if (topicId) {
-        const user = await prisma.user.findUnique({ where: { id: userId }, select: { preferredTopics: true } });
-        if (user) {
-          const preferredIds = user.preferredTopics
-            ? user.preferredTopics.split(',').map((s: string) => parseInt(s.trim(), 10)).filter((n: number) => !isNaN(n))
-            : [];
-          if (!preferredIds.includes(topicId)) {
-            await prisma.user.update({
-              where: { id: userId },
-              data: { preferredTopics: [...preferredIds, topicId].join(',') }
-            });
-          }
-        }
-      }
-    } catch (_) {}
+    const topicId = (lesson as any).topic?.id || (lesson as any).topicId;
+    const user = await prisma.user.findUnique({ where: { id: userId }, select: { preferredTopics: true } });
+    const preferredIds = user?.preferredTopics
+      ? user.preferredTopics.split(',').map((s: string) => parseInt(s.trim(), 10)).filter((n: number) => !isNaN(n))
+      : [];
+    const isTopicEnrolled = topicId ? preferredIds.includes(topicId) : false;
+
+    let isTopicDeleted = false;
+    if (topicId) {
+      const topic = await prisma.topic.findUnique({ where: { id: topicId }, select: { deletedAt: true } });
+      isTopicDeleted = !!topic?.deletedAt;
+    }
+
+    if (isTopicDeleted && !isTopicEnrolled) {
+      throw new ApiError(404, "lesson_not_found", "Bài học thuộc chủ đề đã bị gỡ bỏ");
+    }
+
+    // Tự động ghi nhận chủ đề của bài học vào preferredTopics nếu chưa có và chủ đề KHÔNG bị xóa mềm
+    if (topicId && !isTopicEnrolled && !isTopicDeleted) {
+      try {
+        await prisma.user.update({
+          where: { id: userId },
+          data: { preferredTopics: [...preferredIds, topicId].join(',') }
+        });
+      } catch (_) {}
+    }
 
     // 1. Trích xuất danh sách wordIds và testIds của bài học
     const wordIds = lesson.lessonWords.map((lw) => lw.wordId);
@@ -564,8 +592,12 @@ export class StudentLessonService {
   async getLevelsProgress(userId: number) {
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, username: true, cefrLevel: true, xpPoints: true }
+      select: { id: true, username: true, cefrLevel: true, xpPoints: true, preferredTopics: true }
     });
+
+    const preferredIds = user?.preferredTopics
+      ? user.preferredTopics.split(',').map((s: string) => parseInt(s.trim(), 10)).filter((n: number) => !isNaN(n))
+      : [];
 
     const LEVEL_GROUPS = [
       { id: 'A1-A2', name: 'Dễ', title: 'Dễ (A1 - A2)', desc: 'Dành cho người mới bắt đầu', levels: ['A1', 'A2'], nextGroupId: 'B1-B2' },
@@ -583,6 +615,12 @@ export class StudentLessonService {
     ];
 
     const topics: any[] = await prisma.topic.findMany({
+      where: preferredIds.length > 0 ? {
+        OR: [
+          { deletedAt: null },
+          { id: { in: preferredIds } }
+        ]
+      } : { deletedAt: null },
       include: {
         lessons: {
           where: { deletedAt: null },
@@ -766,7 +804,7 @@ export class StudentLessonService {
     const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: { cefrLevel: baseCefr },
-      select: { id: true, username: true, cefrLevel: true, xpPoints: true }
+      select: { id: true, username: true, cefrLevel: true, xpPoints: true, preferredTopics: true }
     });
 
     return {

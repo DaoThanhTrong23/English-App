@@ -62,12 +62,44 @@ export class OnboardingService {
     }
   }
 
+  getOnboardingOptions() {
+    const defaultJobs = ['Học sinh / Sinh viên', 'Người đi làm', 'Giáo viên', 'Khác'];
+
+    const PRETTY_NAMES: Record<string, string> = {
+      'công nghệ (it)': 'Công nghệ (IT)',
+      'du lịch': 'Du lịch',
+      'kinh doanh': 'Kinh doanh',
+      'giải trí / game': 'Giải trí / Game',
+      'văn hóa nghệ thuật': 'Văn hóa nghệ thuật',
+      'giao tiếp hằng ngày': 'Giao tiếp hàng ngày',
+      'giao tiếp hàng ngày': 'Giao tiếp hàng ngày',
+      'kỹ năng mềm': 'Kỹ năng mềm',
+      'học thuật': 'Học thuật',
+    };
+
+    const rawGroups = keywordSettingService.getAll();
+    const interests = rawGroups.map(g => {
+      const name = g.group.trim();
+      const lower = name.toLowerCase();
+      if (PRETTY_NAMES[lower]) {
+        return PRETTY_NAMES[lower];
+      }
+      return name.charAt(0).toUpperCase() + name.slice(1);
+    });
+
+    return {
+      jobs: defaultJobs,
+      interests: Array.from(new Set(interests)).filter(Boolean)
+    };
+  }
+
   async getPlacementQuestions() {
     await this.loadQuestionBank();
     
     const count = FAME_KT_CONFIG.TEST_SETTINGS.PLACEMENT_QUESTIONS_COUNT || 15;
-    const levels = ['A1', 'A2', 'B1', 'B2', 'C1'];
-    const perLevel = Math.max(1, Math.floor(count / levels.length)); // 3 câu mỗi cấp độ
+    const hasC2 = this.questionBank.some(q => q.cefr === 'C2');
+    const levels = hasC2 ? ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'] : ['A1', 'A2', 'B1', 'B2', 'C1'];
+    const perLevel = Math.max(1, Math.floor(count / levels.length));
 
     const selectedQuestions: any[] = [];
     const globalSkillCounts: Record<string, number> = { Grammar: 0, Vocabulary: 0, Reading: 0, Listening: 0 };
@@ -265,7 +297,7 @@ export class OnboardingService {
     const expandedKeywords = keywordSettingService.resolveExpandedKeywords(userTopics);
 
     // 4. Lấy bài học trong Database để Recommender hệ thống FAME-KT đánh giá
-    const allCoursesDB = await prisma.topic.findMany({ include: { lessons: true } });
+    const allCoursesDB = await prisma.topic.findMany({ where: { deletedAt: null }, include: { lessons: true } });
     
     const algoCourses = allCoursesDB.map((c, idx) => {
       const titleLower = (c.title || '').toLowerCase();
@@ -301,7 +333,7 @@ export class OnboardingService {
 
     let finalCourses = recommendedCourses;
     if (finalCourses.length === 0) {
-      finalCourses = await prisma.topic.findMany({ take: FAME_KT_CONFIG.RECOMMENDER.RECOMMENDED_COURSES_LIMIT });
+      finalCourses = await prisma.topic.findMany({ where: { deletedAt: null }, take: FAME_KT_CONFIG.RECOMMENDER.RECOMMENDED_COURSES_LIMIT });
     }
 
     const preferredTopics = finalCourses.map((c: any) => c.id).join(',');

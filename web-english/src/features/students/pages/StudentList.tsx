@@ -6,7 +6,7 @@ import './StudentList.css';
 import '../../words/pages/WordList.css'; // For Dashboard Layout styles
 
 import AdminLayout from '../../../components/layout/AdminLayout';
-import { Lock, Unlock, CheckCircle2, Eye, X, Trophy } from 'lucide-react';
+import { Lock, Unlock, CheckCircle2, Eye, X, Trophy, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { useToast } from '../../../context/ToastContext';
 import { fetchTopics } from '../../topics/api/topic.api';
 
@@ -28,6 +28,10 @@ const StudentList: React.FC = () => {
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState('');
   const [totalPages, setTotalPages] = useState(1);
+
+  // Sorting State
+  const [sortBy, setSortBy] = useState<'createdAt' | 'lastLoginDate' | 'xpPoints' | 'username' | 'isLocked'>('createdAt');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   // Detail Modal State
   const [selectedStudent, setSelectedStudent] = useState<StudentDetailResponse['data'] | null>(null);
@@ -89,7 +93,13 @@ const StudentList: React.FC = () => {
   const loadStudents = async () => {
     setLoading(true);
     try {
-      const res = await getStudents({ page, limit, search: debouncedSearch });
+      const res = await getStudents({ 
+        page, 
+        limit, 
+        search: debouncedSearch,
+        sortBy,
+        sortOrder
+      });
       if (res.success) {
         setStudents(res.data.items);
         setTotal(res.data.pagination.totalItems);
@@ -104,7 +114,28 @@ const StudentList: React.FC = () => {
 
   useEffect(() => {
     loadStudents();
-  }, [page, debouncedSearch]);
+  }, [page, debouncedSearch, sortBy, sortOrder]);
+
+  const handleSort = (field: 'createdAt' | 'lastLoginDate' | 'xpPoints' | 'username' | 'isLocked') => {
+    if (sortBy === field) {
+      setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(field);
+      setSortOrder(field === 'username' ? 'asc' : 'desc');
+    }
+    setPage(1);
+  };
+
+  const renderSortIcon = (field: string) => {
+    if (sortBy !== field) {
+      return <ArrowUpDown size={14} style={{ marginLeft: 6, opacity: 0.35, verticalAlign: 'middle' }} />;
+    }
+    return sortOrder === 'asc' ? (
+      <ArrowUp size={14} style={{ marginLeft: 6, color: '#2563eb', verticalAlign: 'middle' }} />
+    ) : (
+      <ArrowDown size={14} style={{ marginLeft: 6, color: '#2563eb', verticalAlign: 'middle' }} />
+    );
+  };
 
   const handleViewDetail = async (id: number) => {
     try {
@@ -141,6 +172,38 @@ const StudentList: React.FC = () => {
               setPage(1);
             }}
           />
+
+          <div className="student-sort-container">
+            <span className="sort-label">Sắp xếp:</span>
+            <select
+              className="student-sort-select"
+              value={sortBy}
+              onChange={(e) => {
+                const newField = e.target.value as any;
+                setSortBy(newField);
+                setSortOrder(newField === 'username' ? 'asc' : 'desc');
+                setPage(1);
+              }}
+            >
+              <option value="createdAt">Mới tham gia nhất</option>
+              <option value="lastLoginDate">Hoạt động gần nhất</option>
+              <option value="xpPoints">Điểm XP (Cao - Thấp)</option>
+              <option value="username">Tên học viên (A - Z)</option>
+              <option value="isLocked">Trạng thái tài khoản</option>
+            </select>
+
+            <button
+              className="sort-order-btn"
+              onClick={() => {
+                setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
+                setPage(1);
+              }}
+              title={sortOrder === 'asc' ? 'Đang tăng dần, bấm để giảm dần' : 'Đang giảm dần, bấm để tăng dần'}
+            >
+              {sortOrder === 'asc' ? <ArrowUp size={15} /> : <ArrowDown size={15} />}
+              <span>{sortOrder === 'asc' ? 'Tăng dần' : 'Giảm dần'}</span>
+            </button>
+          </div>
         </div>
 
         <div className="student-table-container">
@@ -151,11 +214,31 @@ const StudentList: React.FC = () => {
               <table className="student-table">
                 <thead>
                   <tr>
-                    <th>Học viên</th>
-                    <th>Trạng thái</th>
-                    <th>Hoạt động cuối</th>
+                    <th className="th-sortable" onClick={() => handleSort('username')} title="Bấm để sắp xếp theo tên học viên">
+                      <div className="th-sort-content">
+                        <span>Học viên</span>
+                        {renderSortIcon('username')}
+                      </div>
+                    </th>
+                    <th className="th-sortable" onClick={() => handleSort('isLocked')} title="Bấm để sắp xếp theo trạng thái tài khoản">
+                      <div className="th-sort-content">
+                        <span>Trạng thái</span>
+                        {renderSortIcon('isLocked')}
+                      </div>
+                    </th>
+                    <th className="th-sortable" onClick={() => handleSort('lastLoginDate')} title="Bấm để sắp xếp theo hoạt động gần nhất">
+                      <div className="th-sort-content">
+                        <span>Hoạt động cuối</span>
+                        {renderSortIcon('lastLoginDate')}
+                      </div>
+                    </th>
                     <th>Tiến độ từ vựng</th>
-                    <th>Điểm XP</th>
+                    <th className="th-sortable" onClick={() => handleSort('xpPoints')} title="Bấm để sắp xếp theo điểm XP">
+                      <div className="th-sort-content">
+                        <span>Điểm XP</span>
+                        {renderSortIcon('xpPoints')}
+                      </div>
+                    </th>
                     <th>Thao tác</th>
                   </tr>
                 </thead>

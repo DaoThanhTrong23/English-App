@@ -15,8 +15,8 @@ export const GetCoursesQuerySchema = z.object({
       errorMap: () => ({ message: "cefrLevel phải thuộc A1, A2, B1, B2, C1 hoặc C2" }),
     }).optional(),
     isDeleted: z.preprocess(
-      (val) => (val === "true" || val === true ? true : val === "false" || val === false ? false : undefined),
-      z.boolean().optional().default(false)
+      (val) => (val === "true" || val === true ? true : val === "false" || val === false ? false : "all"),
+      z.union([z.boolean(), z.literal("all")]).optional().default("all")
     ),
     sortBy: z.enum(["createdAt", "title", "cefrLevel"]).default("createdAt"),
     sortOrder: z.enum(["asc", "desc"]).default("desc"),
@@ -41,13 +41,13 @@ export const CourseIdParamSchema = z.object({
  */
 export const CreateCourseSchema = z.object({
   body: z.object({
-    topicId: z.coerce.number().int().positive().nullish(),
+    topicId: z.coerce.number().int().positive().or(z.literal(0)).nullish(),
     title: z.string().trim().min(1, "Tiêu đề không được để trống").max(100, "Tiêu đề tối đa 100 kí tự"),
     description: z.string().trim().nullish(),
     content: z.string().trim().nullish(),
-    videoUrl: z.string().trim().url("URL video không hợp lệ").or(z.literal("")).nullish(),
-    cefrLevel: z.enum(CEFR_LEVELS).nullish(),
-    thumbnailUrl: z.string().trim().url("URL ảnh không hợp lệ").or(z.literal("")).nullish(),
+    videoUrl: z.string().trim().nullish(),
+    cefrLevel: z.enum(CEFR_LEVELS).or(z.literal("")).nullish(),
+    thumbnailUrl: z.string().trim().nullish(),
     wordIds: z.array(z.coerce.number().int().positive("Word ID không hợp lệ")).optional().default([]),
   }),
   query: z.object({}),
@@ -62,13 +62,13 @@ export const UpdateCourseSchema = z.object({
     id: z.coerce.number().int().positive("ID khóa học không hợp lệ"),
   }),
   body: z.object({
-    topicId: z.coerce.number().int().positive().nullish(),
+    topicId: z.coerce.number().int().positive().or(z.literal(0)).nullish(),
     title: z.string().trim().min(1, "Tiêu đề không được để trống").max(100, "Tiêu đề tối đa 100 kí tự").optional(),
     description: z.string().trim().nullish(),
     content: z.string().trim().nullish(),
-    videoUrl: z.string().trim().url("URL video không hợp lệ").or(z.literal("")).nullish(),
-    cefrLevel: z.enum(CEFR_LEVELS).nullish(),
-    thumbnailUrl: z.string().trim().url("URL ảnh không hợp lệ").or(z.literal("")).nullish(),
+    videoUrl: z.string().trim().nullish(),
+    cefrLevel: z.enum(CEFR_LEVELS).or(z.literal("")).nullish(),
+    thumbnailUrl: z.string().trim().nullish(),
     wordIds: z.array(z.coerce.number().int().positive("Word ID không hợp lệ")).optional(),
   }),
   query: z.object({}),

@@ -29,6 +29,12 @@ export class TopicService {
     if (!topic) throw new ApiError(404, "not_found", "Chủ đề không tồn tại");
     return await this.topicRepo.delete(id);
   }
+
+  async restoreTopic(id: number) {
+    const topic = await this.topicRepo.findById(id);
+    if (!topic) throw new ApiError(404, "not_found", "Chủ đề không tồn tại");
+    return await this.topicRepo.restore(id);
+  }
 }
 
 export const topicService = new TopicService(topicRepository);

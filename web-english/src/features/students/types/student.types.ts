@@ -2,7 +2,7 @@ export interface StudentParams {
   page?: number;
   limit?: number;
   search?: string;
-  sortBy?: 'createdAt' | 'lastLoginDate' | 'xpPoints' | 'username';
+  sortBy?: 'createdAt' | 'lastLoginDate' | 'xpPoints' | 'username' | 'email' | 'isLocked' | 'id';
   sortOrder?: 'asc' | 'desc';
 }
 

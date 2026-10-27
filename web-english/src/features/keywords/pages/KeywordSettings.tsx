@@ -143,10 +143,13 @@ const KeywordSettings: React.FC = () => {
           {/* Header */}
           <div className="course-list-header">
             <div>
-              <h2 style={{ margin: 0 }}>Cài đặt Keyword (Từ điển đồng nghĩa)</h2>
-              <p style={{ margin: '4px 0 0 0', color: '#64748b', fontSize: '0.9rem' }}>
+              <h2 style={{ margin: 0 }}>Cài đặt Keyword </h2>
+              {/* <p style={{ margin: '4px 0 0 0', color: '#64748b', fontSize: '0.9rem' }}>
                 Quản lý các nhóm từ đồng nghĩa trong file <code>synonyms.csv</code> để gợi ý bài học cá nhân hóa cho học viên.
-              </p>
+              </p> */}
+              <p style={{ margin: '4px 0 0 0', color: '#64748b', fontSize: '0.9rem' }}>
+                Quản lý các nhóm từ đồng nghĩa để gợi ý bài học cá nhân hóa cho học viên.
+              </p> 
             </div>
             <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
               <button className="btn-download-csv" onClick={handleDownloadCsv} title="Tải file synonyms.csv về máy">

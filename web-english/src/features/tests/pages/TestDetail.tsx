@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import AdminLayout from '../../../components/layout/AdminLayout';
-import { Plus, Edit, Trash2, ArrowLeft, CheckCircle2, Circle, Upload, Star, Target, Tag, Music, Image as ImageIcon } from 'lucide-react';
+import { Plus, Edit, Trash2, ArrowLeft, CheckCircle2, Circle, Upload, Download, Star, Target, Tag, Music, Image as ImageIcon } from 'lucide-react';
+import * as XLSX from 'xlsx';
 import { fetchQuestions, createQuestion, updateQuestion, deleteQuestion, importQuestionsFromExcel, uploadMedia } from '../api/test.api';
 import { useToast } from '../../../context/ToastContext';
 import './TestDetail.css';
@@ -210,6 +211,91 @@ const TestDetail: React.FC = () => {
     }
   };
 
+  const handleDownloadTemplate = () => {
+    const templateData = [
+      {
+        'Câu hỏi': 'What is the capital of the United Kingdom?',
+        'Loại': 'Trắc nghiệm',
+        'Điểm': 10,
+        'Độ khó': 1200,
+        'Kỹ năng': 'Vocabulary',
+        'Chủ đề': 'General Knowledge',
+        'Đáp án đúng': 'B',
+        'Đáp án 1': 'Paris',
+        'Đáp án 2': 'London',
+        'Đáp án 3': 'Berlin',
+        'Đáp án 4': 'Madrid',
+        'Audio': '',
+        'Hình ảnh': ''
+      },
+      {
+        'Câu hỏi': 'She ___ (go) to school by bicycle every morning.',
+        'Loại': 'Điền khuyết',
+        'Điểm': 10,
+        'Độ khó': 1250,
+        'Kỹ năng': 'Grammar',
+        'Chủ đề': 'Daily Routine',
+        'Đáp án đúng': 'goes',
+        'Đáp án 1': 'goes',
+        'Đáp án 2': '',
+        'Đáp án 3': '',
+        'Đáp án 4': '',
+        'Audio': '',
+        'Hình ảnh': ''
+      },
+      {
+        'Câu hỏi': 'Listen and choose the correct answer: What did the man buy?',
+        'Loại': 'Nghe',
+        'Điểm': 15,
+        'Độ khó': 1300,
+        'Kỹ năng': 'Listening',
+        'Chủ đề': 'Shopping',
+        'Đáp án đúng': 'A',
+        'Đáp án 1': 'A pair of shoes',
+        'Đáp án 2': 'A red hat',
+        'Đáp án 3': 'A raincoat',
+        'Đáp án 4': 'A winter jacket',
+        'Audio': 'https://example.com/audio/sample.mp3',
+        'Hình ảnh': ''
+      },
+      {
+        'Câu hỏi': 'Introduce yourself and talk about your favorite hobby.',
+        'Loại': 'Nói',
+        'Điểm': 20,
+        'Độ khó': 1350,
+        'Kỹ năng': 'Speaking',
+        'Chủ đề': 'Hobbies',
+        'Đáp án đúng': '',
+        'Đáp án 1': '',
+        'Đáp án 2': '',
+        'Đáp án 3': '',
+        'Đáp án 4': '',
+        'Audio': '',
+        'Hình ảnh': ''
+      },
+      {
+        'Câu hỏi': 'Write a short paragraph (80-120 words) about the advantages of learning English.',
+        'Loại': 'Viết',
+        'Điểm': 20,
+        'Độ khó': 1400,
+        'Kỹ năng': 'Writing',
+        'Chủ đề': 'Education',
+        'Đáp án đúng': '',
+        'Đáp án 1': '',
+        'Đáp án 2': '',
+        'Đáp án 3': '',
+        'Đáp án 4': '',
+        'Audio': '',
+        'Hình ảnh': ''
+      }
+    ];
+
+    const ws = XLSX.utils.json_to_sheet(templateData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Questions');
+    XLSX.writeFile(wb, 'mau_danh_sach_cau_hoi.xlsx');
+  };
+
   return (
     <AdminLayout>
       <div className="test-detail-main">
@@ -227,6 +313,14 @@ const TestDetail: React.FC = () => {
               ref={fileInputRef}
               onChange={handleFileUpload}
             />
+            <button
+              className="add-test-btn"
+              style={{ backgroundColor: '#475569' }}
+              onClick={handleDownloadTemplate}
+              title="Tải về file Excel mẫu định dạng chuẩn"
+            >
+              <Download size={18} /> Tải file mẫu
+            </button>
             <button
               className="add-test-btn"
               style={{ backgroundColor: '#10b981' }}
