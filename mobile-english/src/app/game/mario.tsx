@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated, Easing, Alert, ActivityIndicator, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import * as FileSystem from 'expo-file-system/legacy';
 import { axiosClient } from '../../api/axiosClient';
 import * as SecureStore from 'expo-secure-store';
@@ -18,11 +18,15 @@ const OBSTACLES = [
 
 export default function MarioVoiceRunScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams();
+  const difficulty = (params.difficulty as string) || 'NORMAL';
+  const [gameConfig, setGameConfig] = useState<any>({ pointsPerItem: 15, penaltyPoints: 5, timeLimit: 45 });
   const { isDark, theme } = useAppTheme();
   const [loading, setLoading] = useState(true);
   const [words, setWords] = useState<any[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
+  const [correctCount, setCorrectCount] = useState(0);
   const [gameOver, setGameOver] = useState(false);
 
   // Game states
@@ -69,7 +73,7 @@ export default function MarioVoiceRunScreen() {
 
   const fetchGameData = async () => {
     try {
-      const res = await axiosClient.get('/game/mario/start?limit=10');
+      const res = await axiosClient.get(`/game/mario/start?difficulty=${difficulty}`);
       if (res.data?.data?.words) {
         setWords(res.data.data.words);
         startTime.current = Date.now();
@@ -272,7 +276,10 @@ export default function MarioVoiceRunScreen() {
         <TouchableOpacity onPress={() => router.back()} style={[styles.backBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.5)' }]}>
           <Ionicons name="close" size={28} color={theme.text} />
         </TouchableOpacity>
-        <Text style={styles.scoreText}>Điểm: {score}</Text>
+        <View style={{ alignItems: 'center' }}>
+          <Text style={styles.scoreText}>Điểm: {score}</Text>
+          <Text style={{ fontSize: 11, color: '#ffffff', opacity: 0.9 }}>{difficulty} (Bỏ qua: -{gameConfig.penaltyPoints || 0}đ)</Text>
+        </View>
         <View style={[styles.stageBox, { backgroundColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.8)' }]}>
           <Text style={[styles.stageText, { color: isDark ? '#ffffff' : '#0369a1' }]}>{currentIndex + 1}/{words.length}</Text>
         </View>

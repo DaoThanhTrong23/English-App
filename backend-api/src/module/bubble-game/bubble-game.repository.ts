@@ -7,8 +7,8 @@ const progressStore = new Map<number, TemporaryProgress>();
 
 export class BubbleGameRepository {
   // 1. Lấy danh sách từ vựng an toàn
-  async getWordsForGame(userId: number, fallbackLimit: number = 6, lessonId?: number) {
-    return BaseGameService.getWordsForGame('BUBBLE', userId, fallbackLimit, lessonId);
+  async getWordsForGame(userId: number, fallbackLimit: number = 6, lessonId?: number, difficulty: string = "NORMAL") {
+    return BaseGameService.getWordsForGame('BUBBLE', userId, fallbackLimit, lessonId, difficulty);
   }
 
   // 2. Lưu tiến trình tạm thời của người chơi

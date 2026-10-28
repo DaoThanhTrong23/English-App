@@ -9,6 +9,7 @@ export const StartMemoryGameSchema = z.object({
       .int()
       .positive("lessonId phải lớn hơn 0")
       .optional(),
+    difficulty: z.enum(["EASY", "NORMAL", "HARD"]).optional().default("NORMAL"),
     limit: z.coerce
       .number({ invalid_type_error: "limit phải là số nguyên" })
       .int()

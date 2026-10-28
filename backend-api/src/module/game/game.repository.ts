@@ -32,6 +32,7 @@ export class GameRepository {
         update: {
           itemCount: s.itemCount,
           pointsPerItem: s.pointsPerItem,
+          penaltyPoints: s.penaltyPoints ?? 0,
           timeLimit: s.timeLimit,
         },
         create: {
@@ -39,6 +40,7 @@ export class GameRepository {
           difficulty: s.difficulty,
           itemCount: s.itemCount,
           pointsPerItem: s.pointsPerItem,
+          penaltyPoints: s.penaltyPoints ?? 0,
           timeLimit: s.timeLimit,
         },
       });

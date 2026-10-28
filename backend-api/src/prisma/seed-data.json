@@ -120015,6 +120015,15 @@
       "isActive": true,
       "createdAt": "2026-09-23T17:25:30.637Z",
       "updatedAt": "2026-09-23T17:25:30.637Z"
+    },
+    {
+      "id": 4,
+      "name": "Mario Phóng Thoát",
+      "code": "MARIO",
+      "description": "Đọc to phát âm tiếng Anh để vượt chướng ngại vật giúp nhân vật về đích.",
+      "isActive": true,
+      "createdAt": "2026-09-23T17:25:30.650Z",
+      "updatedAt": "2026-09-23T17:25:30.650Z"
     }
   ],
   "gameSettings": [
@@ -120026,7 +120035,8 @@
       "pointsPerItem": 10,
       "timeLimit": 60,
       "createdAt": "2026-09-23T17:25:30.610Z",
-      "updatedAt": "2026-09-23T17:25:30.610Z"
+      "updatedAt": "2026-09-23T17:25:30.610Z",
+      "penaltyPoints": 2
     },
     {
       "id": 2,
@@ -120036,7 +120046,8 @@
       "pointsPerItem": 15,
       "timeLimit": 45,
       "createdAt": "2026-09-23T17:25:30.610Z",
-      "updatedAt": "2026-09-23T17:25:30.610Z"
+      "updatedAt": "2026-09-23T17:25:30.610Z",
+      "penaltyPoints": 5
     },
     {
       "id": 3,
@@ -120046,7 +120057,8 @@
       "pointsPerItem": 20,
       "timeLimit": 30,
       "createdAt": "2026-09-23T17:25:30.610Z",
-      "updatedAt": "2026-09-23T17:25:30.610Z"
+      "updatedAt": "2026-09-23T17:25:30.610Z",
+      "penaltyPoints": 10
     },
     {
       "id": 4,
@@ -120056,7 +120068,8 @@
       "pointsPerItem": 10,
       "timeLimit": 60,
       "createdAt": "2026-09-23T17:25:30.631Z",
-      "updatedAt": "2026-09-23T17:25:30.631Z"
+      "updatedAt": "2026-09-23T17:25:30.631Z",
+      "penaltyPoints": 2
     },
     {
       "id": 5,
@@ -120066,7 +120079,8 @@
       "pointsPerItem": 15,
       "timeLimit": 45,
       "createdAt": "2026-09-23T17:25:30.631Z",
-      "updatedAt": "2026-09-23T17:25:30.631Z"
+      "updatedAt": "2026-09-23T17:25:30.631Z",
+      "penaltyPoints": 5
     },
     {
       "id": 6,
@@ -120076,7 +120090,8 @@
       "pointsPerItem": 20,
       "timeLimit": 30,
       "createdAt": "2026-09-23T17:25:30.631Z",
-      "updatedAt": "2026-09-23T17:25:30.631Z"
+      "updatedAt": "2026-09-23T17:25:30.631Z",
+      "penaltyPoints": 10
     },
     {
       "id": 7,
@@ -120086,7 +120101,8 @@
       "pointsPerItem": 10,
       "timeLimit": 60,
       "createdAt": "2026-09-23T17:25:30.642Z",
-      "updatedAt": "2026-09-23T17:25:30.642Z"
+      "updatedAt": "2026-09-23T17:25:30.642Z",
+      "penaltyPoints": 2
     },
     {
       "id": 8,
@@ -120096,7 +120112,8 @@
       "pointsPerItem": 15,
       "timeLimit": 45,
       "createdAt": "2026-09-23T17:25:30.642Z",
-      "updatedAt": "2026-09-23T17:25:30.642Z"
+      "updatedAt": "2026-09-23T17:25:30.642Z",
+      "penaltyPoints": 5
     },
     {
       "id": 9,
@@ -120106,7 +120123,41 @@
       "pointsPerItem": 20,
       "timeLimit": 30,
       "createdAt": "2026-09-23T17:25:30.642Z",
-      "updatedAt": "2026-09-23T17:25:30.642Z"
+      "updatedAt": "2026-09-23T17:25:30.642Z",
+      "penaltyPoints": 10
+    },
+    {
+      "id": 10,
+      "gameId": 4,
+      "difficulty": "EASY",
+      "itemCount": 5,
+      "pointsPerItem": 10,
+      "penaltyPoints": 2,
+      "timeLimit": 60,
+      "createdAt": "2026-09-23T17:25:30.650Z",
+      "updatedAt": "2026-09-23T17:25:30.650Z"
+    },
+    {
+      "id": 11,
+      "gameId": 4,
+      "difficulty": "NORMAL",
+      "itemCount": 10,
+      "pointsPerItem": 15,
+      "penaltyPoints": 5,
+      "timeLimit": 45,
+      "createdAt": "2026-09-23T17:25:30.650Z",
+      "updatedAt": "2026-09-23T17:25:30.650Z"
+    },
+    {
+      "id": 12,
+      "gameId": 4,
+      "difficulty": "HARD",
+      "itemCount": 15,
+      "pointsPerItem": 20,
+      "penaltyPoints": 10,
+      "timeLimit": 30,
+      "createdAt": "2026-09-23T17:25:30.650Z",
+      "updatedAt": "2026-09-23T17:25:30.650Z"
     }
   ]
 }

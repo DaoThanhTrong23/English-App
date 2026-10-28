@@ -1,3 +1,4 @@
+import { BaseGameService } from "../game/base-game.service.js";
 import { BubbleGameRepository } from "./bubble-game.repository.js";
 import { StartGameQuery, MatchPairBody, FinishGameBody } from "./bubble-game.schema.js";
 import { ApiError } from "../../shared/http/api-error.js";
@@ -25,7 +26,9 @@ export class BubbleGameService {
   @logExecution()
   @recordActivity("USER_START_GAME", (_result, userId) => `Người dùng ${userId} bắt đầu bubble game mới, nhận danh sách từ vựng`)
   async startGame(userId: number, query: StartGameQuery) {
-    const words = await this.repository.getWordsForGame(userId, query.limit || 6, query.lessonId);
+    const difficulty = query.difficulty || 'NORMAL';
+    const config = await BaseGameService.getGameConfig('BUBBLE', difficulty);
+    const words = await this.repository.getWordsForGame(userId, config.itemCount || query.limit || 6, query.lessonId, difficulty);
 
     if (!words || words.length < 4) {
       throw new ApiError(400, "not_enough_words", "Không đủ từ vựng để tạo bàn chơi (cần tối thiểu 4 từ).");

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { axiosClient } from '../../api/axiosClient';
 import { API_URL } from '../../constants/api';
 import { useAppTheme } from '../../context/ThemeContext';
@@ -15,8 +15,15 @@ const getFixedImageURI = (url: string) => {
 
 export default function WordMatchingScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams();
+  const difficulty = (params.difficulty as string) || 'NORMAL';
   const { isDark, theme } = useAppTheme();
   const [loading, setLoading] = useState(true);
+  const [gameConfig, setGameConfig] = useState<any>({
+    pointsPerItem: 15,
+    penaltyPoints: 5,
+    timeLimit: 60,
+  });
   
   const [columnA, setColumnA] = useState<any[]>([]);
   const [columnB, setColumnB] = useState<any[]>([]);
@@ -54,8 +61,14 @@ export default function WordMatchingScreen() {
 
   const fetchGameData = async () => {
     try {
-      const res = await axiosClient.get('/game/word-matching/start?limit=5');
+      const res = await axiosClient.get(`/game/word-matching/start?difficulty=${difficulty}`);
       if (res.data?.data) {
+        if (res.data.data.config) {
+          setGameConfig(res.data.data.config);
+          if (res.data.data.config.timeLimit) {
+            setTimeLeft(res.data.data.config.timeLimit);
+          }
+        }
         setColumnA(res.data.data.columnA);
         setColumnB(res.data.data.columnB);
         startTime.current = Date.now();
@@ -113,6 +126,7 @@ export default function WordMatchingScreen() {
     
     try {
       const res = await axiosClient.post('/game/word-matching/submit', {
+        difficulty,
         duration,
         answers: connections
       });

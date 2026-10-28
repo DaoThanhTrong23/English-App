@@ -6,6 +6,7 @@ export const GameSettingSchema = z.object({
   difficulty: z.enum(DIFFICULTY_LEVELS),
   itemCount: z.coerce.number().int().positive("Số lượng từ phải lớn hơn 0"),
   pointsPerItem: z.coerce.number().int().nonnegative("Điểm không được âm"),
+  penaltyPoints: z.coerce.number().int().nonnegative("Điểm trừ không được âm").default(0),
   timeLimit: z.coerce.number().int().positive().nullable().optional(),
 });
 

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, Animated, Dimensions, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { axiosClient } from '../../api/axiosClient';
 import { API_URL } from '../../constants/api';
 import { useAppTheme } from '../../context/ThemeContext';
@@ -72,8 +72,15 @@ const FloatingBubble = ({ item, isSelected, onPress, type }: any) => {
 
 export default function BubbleGameScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams();
+  const difficulty = (params.difficulty as string) || 'NORMAL';
   const { isDark, theme } = useAppTheme();
   const [loading, setLoading] = useState(true);
+  const [gameConfig, setGameConfig] = useState<any>({
+    pointsPerItem: 15,
+    penaltyPoints: 5,
+    timeLimit: 60,
+  });
   
   const [allWords, setAllWords] = useState<any[]>([]);
   const [allMeanings, setAllMeanings] = useState<any[]>([]);
@@ -112,7 +119,7 @@ export default function BubbleGameScreen() {
 
   const fetchGameData = async () => {
     try {
-      const res = await axiosClient.get('/game/bubble-game/start?limit=15'); // Fetch more to queue
+      const res = await axiosClient.get(`/game/bubble-game/start?difficulty=${difficulty}`);
       if (res.data?.data) {
         const words = res.data.data.wordBubbles;
         const meanings = res.data.data.meaningBubbles;
@@ -127,6 +134,9 @@ export default function BubbleGameScreen() {
           await Promise.all(imageUrls.map(url => Image.prefetch(url).catch(() => {})));
         }
 
+        if (res.data.data.config) {
+          setGameConfig(res.data.data.config);
+        }
         setAllWords(words);
         setAllMeanings(meanings);
         
@@ -174,9 +184,9 @@ export default function BubbleGameScreen() {
       const timeTakenMs = Date.now() - startTime.current;
 
       if (isCorrect) {
-        
         const matchId = currentSelectedWord.id;
-        
+        const reward = gameConfig.pointsPerItem || 15;
+        setScore(prev => prev + reward);
         setMatchedIds(prev => [...prev, matchId]);
         
         // Gỡ cặp này khỏi màn hình (activeIds)
@@ -193,8 +203,11 @@ export default function BubbleGameScreen() {
         });
 
       } else {
-        // Sai bị trừ điểm
-        
+        // Chọn sai bóng: trừ điểm phạt theo Admin cấu hình (mặc định nếu có)
+        const penalty = gameConfig.penaltyPoints || 0;
+        if (penalty > 0) {
+          setScore(prev => Math.max(0, prev - penalty));
+        }
       }
 
       // Reset selection
@@ -213,7 +226,11 @@ export default function BubbleGameScreen() {
   const endGame = async () => {
     setGameOver(true);
     const duration = Math.floor((Date.now() - startTime.current) / 1000);
-    const finalScore = Math.max(10, 1000 - duration * 10); // Diem tuy thuoc vao thoi gian cang nhanh cang cao
+    // Tính điểm: Điểm từ các cặp đã ghép (score) + Thưởng thời gian phản xạ nhanh nếu hoàn thành sớm
+    const targetTime = gameConfig.timeLimit || 60;
+    const speedBonus = duration < targetTime ? Math.max(0, Math.floor((targetTime - duration) * 2)) : 0;
+    const finalScore = score + speedBonus;
+    
     try {
       const res = await axiosClient.post('/game/bubble-game/finish', {
         totalScore: finalScore,
@@ -222,9 +239,14 @@ export default function BubbleGameScreen() {
         totalPairs: allWords.length
       });
       
-      Alert.alert('Hoàn thành!', 'Thời gian: ' + duration + 's\nĐiểm thưởng tốc độ: ' + finalScore, [
-        { text: 'Xong', onPress: () => router.back() }
-      ]);
+      Alert.alert(
+        'Hoàn thành!', 
+        'Cấp độ: ' + difficulty + 
+        '\nThời gian: ' + duration + 's' + 
+        (speedBonus > 0 ? ('\nThưởng tốc độ: +' + speedBonus + ' điểm') : '') + 
+        '\nTổng điểm đạt được: ' + finalScore, 
+        [{ text: 'Xong', onPress: () => router.back() }]
+      );
     } catch (e) {
       console.log(e);
       Alert.alert('Lỗi', 'Lỗi lưu kết quả', [{ text: 'Xong', onPress: () => router.back() }]);
@@ -251,7 +273,10 @@ export default function BubbleGameScreen() {
           <Ionicons name="close" size={28} color={theme.text} />
         </TouchableOpacity>
         
-        <Text style={{fontSize: 12, color: theme.subtext, fontStyle: "italic", marginLeft: 10}}>Chạm 1 Bóng Chữ & 1 Bóng Nghĩa</Text>
+        <View style={{ alignItems: 'center' }}>
+          <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#0284c7' }}>Điểm: {score}</Text>
+          <Text style={{ fontSize: 11, color: theme.subtext, fontStyle: "italic" }}>Cấp độ: {difficulty} (+{gameConfig.pointsPerItem || 15}đ/cặp{gameConfig.penaltyPoints > 0 ? (', trừ ' + gameConfig.penaltyPoints + 'đ khi sai') : ''})</Text>
+        </View>
         <View style={[styles.timerBox, { backgroundColor: isDark ? '#450a0a' : '#fee2e2' }]}>
           <Ionicons name="timer-outline" size={16} color="#ef4444" />
           <Text style={styles.timerText}>{timeElapsed}s</Text>

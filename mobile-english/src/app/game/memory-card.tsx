@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, Dimensions, Alert, ActivityIndicator, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { axiosClient } from '../../api/axiosClient';
 import { API_URL } from '../../constants/api';
 import { useAppTheme } from '../../context/ThemeContext';
@@ -20,8 +20,15 @@ const getFixedImageURI = (url: string) => {
 // Force Metro Rebuild
 export default function MemoryCardScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams();
+  const difficulty = (params.difficulty as string) || 'NORMAL';
   const { isDark, theme } = useAppTheme();
   const [loading, setLoading] = useState(true);
+  const [gameConfig, setGameConfig] = useState<any>({
+    pointsPerItem: 20,
+    penaltyPoints: 5,
+    timeLimit: 90,
+  });
   const [cards, setCards] = useState<any[]>([]);
   const [flippedIndices, setFlippedIndices] = useState<number[]>([]);
   const [matchedIds, setMatchedIds] = useState<number[]>([]);
@@ -58,8 +65,14 @@ export default function MemoryCardScreen() {
 
   const fetchGameData = async () => {
     try {
-      const res = await axiosClient.get('/game/memory-card/start?limit=6');
+      const res = await axiosClient.get(`/game/memory-card/start?difficulty=${difficulty}`);
       if (res.data?.data?.cards) {
+        if (res.data.data.config) {
+          setGameConfig(res.data.data.config);
+          if (res.data.data.config.timeLimit) {
+            setTimeLeft(res.data.data.config.timeLimit);
+          }
+        }
         setCards(res.data.data.cards);
         startTime.current = Date.now();
       }
@@ -86,12 +99,13 @@ export default function MemoryCardScreen() {
 
       if (card1.pairId === card2.pairId) {
         setTimeout(() => {
-          setScore(prev => prev + 20);
+          const reward = gameConfig.pointsPerItem || 20;
+          setScore(prev => prev + reward);
           setMatchedIds(prev => [...prev, card1.pairId]);
           setFlippedIndices([]);
           
           axiosClient.post('/game/memory-card/progress', {
-            currentScore: score + 20,
+            currentScore: score + reward,
             matchedPairs: matchedIds.length + 1,
             totalPairs: cards.length / 2,
             turns: turns + 1
@@ -99,7 +113,8 @@ export default function MemoryCardScreen() {
         }, 500);
       } else {
         setTimeout(() => {
-          setScore(prev => Math.max(0, prev - 5));
+          const penalty = gameConfig.penaltyPoints ?? 5;
+          setScore(prev => Math.max(0, prev - penalty));
           setFlippedIndices([]);
         }, 1000);
       }
@@ -150,7 +165,10 @@ export default function MemoryCardScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <Ionicons name="close" size={28} color={theme.text} />
         </TouchableOpacity>
-        <Text style={[styles.scoreText, { color: isDark ? '#a78bfa' : '#6d28d9' }]}>Điểm: {score}</Text>
+        <View style={{ alignItems: 'center' }}>
+          <Text style={[styles.scoreText, { color: isDark ? '#a78bfa' : '#6d28d9' }]}>Điểm: {score}</Text>
+          <Text style={{ fontSize: 11, color: theme.subtext }}>{difficulty} (-{gameConfig.penaltyPoints || 0}đ khi sai)</Text>
+        </View>
         <View style={[styles.timerBox, { backgroundColor: isDark ? '#450a0a' : '#fee2e2' }]}>
           <Ionicons name="timer-outline" size={16} color="#ef4444" />
           <Text style={styles.timerText}>{timeLeft}s</Text>

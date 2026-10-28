@@ -30,19 +30,33 @@ export class BaseGameService {
   /**
    * Lấy danh sách từ vựng an toàn (type-safe, chống SQL injection, không dùng $queryRawUnsafe)
    */
-  static async getWordsForGame(
+    /**
+   * Lấy cấu hình Game theo độ khó (EASY, NORMAL, HARD)
+   */
+  static async getGameConfig(gameCode: string, difficulty: string = 'NORMAL') {
+    const defaultSettings: Record<string, { itemCount: number; pointsPerItem: number; penaltyPoints: number; timeLimit: number }> = {
+      EASY: { itemCount: 6, pointsPerItem: 10, penaltyPoints: 2, timeLimit: 60 },
+      NORMAL: { itemCount: 10, pointsPerItem: 15, penaltyPoints: 5, timeLimit: 45 },
+      HARD: { itemCount: 15, pointsPerItem: 20, penaltyPoints: 10, timeLimit: 30 }
+    };
+    const fallback = defaultSettings[difficulty] || defaultSettings['NORMAL'];
+    const setting = await prisma.gameSetting.findFirst({
+      where: { game: { code: gameCode }, difficulty },
+    });
+    return setting || { difficulty, ...fallback };
+  }
+
+static async getWordsForGame(
     gameCode: string,
     userId: number,
     fallbackLimit: number = 6,
-    lessonId?: number
+    lessonId?: number,
+    difficulty: string = 'NORMAL'
   ) {
     let limit = fallbackLimit;
 
-    // Lấy cấu hình game nếu có
-    const gameSetting = await prisma.gameSetting.findFirst({
-      where: { game: { code: gameCode }, difficulty: 'NORMAL' },
-    });
-    if (gameSetting) {
+    const gameSetting = await BaseGameService.getGameConfig(gameCode, difficulty);
+    if (gameSetting?.itemCount) {
       limit = gameSetting.itemCount;
     }
 

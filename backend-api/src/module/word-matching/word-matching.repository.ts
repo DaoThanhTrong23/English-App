@@ -8,8 +8,8 @@ const progressStore = new Map<number, WordMatchingProgress>();
 
 export class WordMatchingRepository {
   // 1. Lấy danh sách từ vựng theo bài học hoặc ngẫu nhiên từ database an toàn
-  async getWordsForGame(userId: number, fallbackLimit: number = 6, lessonId?: number) {
-    return BaseGameService.getWordsForGame('MATCHING', userId, fallbackLimit, lessonId);
+  async getWordsForGame(userId: number, fallbackLimit: number = 6, lessonId?: number, difficulty: string = "NORMAL") {
+    return BaseGameService.getWordsForGame('MATCHING', userId, fallbackLimit, lessonId, difficulty);
   }
 
   // 2. Lấy danh sách chi tiết các từ theo danh sách ID để đối chiếu chấm điểm

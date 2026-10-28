@@ -574,7 +574,8 @@ model GameSetting {
   gameId        Int
   difficulty    String // EASY, NORMAL, HARD
   itemCount     Int // Số lượng từ (VD: 6, 10, 15)
-  pointsPerItem Int // Điểm mỗi câu đúng
+  pointsPerItem Int
+  penaltyPoints Int           @default(0) // Điểm mỗi câu đúng
   timeLimit     Int? // Giới hạn thời gian (giây) - nullable
 
   game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
