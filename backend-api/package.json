@@ -11,6 +11,7 @@
     "migrate": "prisma migrate deploy",
     "migrate:dev": "prisma migrate dev",
     "seed": "prisma db seed",
+    "export:seed": "tsx scripts/export-seed.ts",
     "populate:phonetics": "tsx scripts/populate-phonetics.ts",
     "populate:pos": "tsx scripts/populate-pos-sentences.ts",
     "swagger": "tsx src/swagger-gen.ts",
