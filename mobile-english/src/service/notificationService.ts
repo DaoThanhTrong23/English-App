@@ -33,15 +33,18 @@ export const notificationService = {
         return false;
       }
 
-      // Cấu hình Channel cho Android
+      // Cấu hình Channel cho Android (Hỗ trợ an toàn trên Expo Go / Android 14+)
       if (Platform.OS === 'android') {
-        await Notifications.setNotificationChannelAsync('study-reminder', {
-          name: 'Nhắc nhở học tập',
-          importance: Notifications.AndroidImportance.MAX,
-          vibrationPattern: [0, 250, 250, 250],
-          lightColor: '#2563eb',
-          sound: 'default',
-        });
+        try {
+          await Notifications.setNotificationChannelAsync('study-reminder', {
+            name: 'Nhắc nhở học tập',
+            importance: Notifications.AndroidImportance.MAX,
+            vibrationPattern: [0, 250, 250, 250],
+            lightColor: '#2563eb',
+          });
+        } catch (channelError) {
+          console.warn('[NotificationService] Bỏ qua cấu hình notification channel (hạn chế trên Expo Go):', channelError);
+        }
       }
 
       return true;

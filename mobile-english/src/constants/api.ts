@@ -37,7 +37,7 @@ const getBaseApiUrl = (): string => {
   }
 
   // 5. Fallback địa chỉ IP mạng nội bộ của máy tính
-  return 'http://192.168.0.103:3000/api';
+  return 'http://192.168.0.101:3000/api';
 };
 
 export const API_URL = getBaseApiUrl();
