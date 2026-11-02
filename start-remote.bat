@@ -20,14 +20,14 @@ start "Web Admin (Port 5173)" cmd /k "cd /d D:\KLCN_UngDungHocTiengAnh\English_A
 
 timeout /t 3 /nobreak >nul
 
-echo 4. Dang bat Cloudflare Tunnel cho Web Admin...
-start "Web Admin Cloudflare Tunnel" cmd /k "cd /d D:\KLCN_UngDungHocTiengAnh\English_App\web-english && npx --yes cloudflared tunnel --url http://localhost:5173"
+echo 4. Dang bat Localtunnel co dinh cho Web Admin...
+start "Web Admin Localtunnel" cmd /k "cd /d D:\KLCN_UngDungHocTiengAnh\English_App\web-english && npx --yes localtunnel --port 5173 --subdomain english-admin-trong"
 
 echo.
 echo ==============================================================
 echo            KHOI DONG HE THONG TU XA THANH CONG!
 echo ==============================================================
-echo - Copy link tai cua so [Web Admin Cloudflare Tunnel] gui cho ban be.
+echo - Link Web Admin co dinh: https://english-admin-trong.loca.lt
 echo - Mobile App tren dien thoai co the mo va su dung qua 4G/Wifi.
 echo ==============================================================
 pause
