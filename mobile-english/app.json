@@ -8,6 +8,7 @@
     "scheme": "mobileenglish",
     "userInterfaceStyle": "automatic",
     "ios": {
+      "bundleIdentifier": "com.daothanhtrong.mobileenglish",
       "icon": "./assets/expo.icon",
       "infoPlist": {
         "NSMicrophoneUsageDescription": "Ứng dụng cần quyền truy cập micro để kiểm tra và chấm điểm phát âm tiếng Anh."

@@ -15,6 +15,11 @@ const API_BASE_URL = getBaseUrl();
 
 export const axiosClient = axios.create({
   baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+    'Bypass-Tunnel-Reminder': 'true',
+    'ngrok-skip-browser-warning': 'true',
+  },
 });
 
 // Tự động đính kèm Token vào mọi Request
@@ -22,6 +27,10 @@ axiosClient.interceptors.request.use((config) => {
   const token = localStorage.getItem('adminToken');
   if (token && config.headers) {
     config.headers.Authorization = `Bearer ${token}`;
+  }
+  if (config.headers) {
+    config.headers['ngrok-skip-browser-warning'] = 'true';
+    config.headers['Bypass-Tunnel-Reminder'] = 'true';
   }
   return config;
 });
@@ -68,7 +77,9 @@ axiosClient.interceptors.response.use(
           refreshToken 
         }, {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('adminToken')}`
+            Authorization: `Bearer ${localStorage.getItem('adminToken')}`,
+            'ngrok-skip-browser-warning': 'true',
+            'Bypass-Tunnel-Reminder': 'true',
           }
         });
         
