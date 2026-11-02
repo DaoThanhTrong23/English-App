@@ -12,6 +12,9 @@ import { useAppTheme } from '../../context/ThemeContext';
 
 WebBrowser.maybeCompleteAuthSession();
 
+const GOOGLE_CLIENT_ID = '774080954802-jub4qqvp4eijmk5b04367fk4164omjk5.apps.googleusercontent.com';
+const FACEBOOK_APP_ID = '1417644583763676';
+
 export default function RegisterScreen() {
   const router = useRouter();
   const { isDark, theme } = useAppTheme();
@@ -30,6 +33,7 @@ export default function RegisterScreen() {
   const [isUsernameValid, setIsUsernameValid] = useState(false);
   const [isEmailValid, setIsEmailValid] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [socialLoading, setSocialLoading] = useState<'google' | 'facebook' | null>(null);
 
   // Debounce kiểm tra trùng tên đăng nhập
   useEffect(() => {
@@ -116,32 +120,52 @@ export default function RegisterScreen() {
 
   // 1. Cấu hình Google Auth Session (Lấy id_token)
   const [gRequest, gResponse, gPromptAsync] = Google.useIdTokenAuthRequest({
-    clientId: '774080954802-jub4qqvp4eijmk5b04367fk4164omjk5.apps.googleusercontent.com',
-    redirectUri: makeRedirectUri({ scheme: 'mobileenglish' }), // Thay bằng webClientId hoặc clientId phù hợp
+    clientId: GOOGLE_CLIENT_ID,
+    webClientId: GOOGLE_CLIENT_ID,
+    androidClientId: GOOGLE_CLIENT_ID,
+    iosClientId: GOOGLE_CLIENT_ID,
+    scopes: ['profile', 'email'],
+    redirectUri: makeRedirectUri({ scheme: 'mobileenglish' }),
   });
 
   // 2. Cấu hình Facebook Auth Session (Lấy access_token)
   const [fbRequest, fbResponse, fbPromptAsync] = Facebook.useAuthRequest({
-    clientId: '1417644583763676',
+    clientId: FACEBOOK_APP_ID,
+    scopes: ['public_profile', 'email'],
+    redirectUri: makeRedirectUri({ scheme: 'mobileenglish' }),
   });
 
   // Xử lý callback sau khi đăng nhập Google/Facebook thành công
   useEffect(() => {
     if (gResponse?.type === 'success') {
-      const idToken = gResponse.params.id_token;
-      if (idToken) handleSocialLogin('google', idToken);
+      const idToken = (gResponse.params as any)?.id_token || (gResponse as any).authentication?.idToken;
+      if (idToken) {
+        handleSocialLogin('google', idToken);
+      } else {
+        setErrorMsg('Không tìm thấy id_token từ phản hồi Google.');
+      }
+    } else if (gResponse?.type === 'error') {
+      setErrorMsg('Đăng nhập Google thất bại: ' + ((gResponse.error as any)?.message || (gResponse.error as any)?.error_description || 'Lỗi không xác định'));
     }
   }, [gResponse]);
 
   useEffect(() => {
     if (fbResponse?.type === 'success') {
-      const accessToken = fbResponse.authentication?.accessToken;
-      if (accessToken) handleSocialLogin('facebook', accessToken);
+      const accessToken = fbResponse.authentication?.accessToken || (fbResponse.params as any)?.access_token;
+      if (accessToken) {
+        handleSocialLogin('facebook', accessToken);
+      } else {
+        setErrorMsg('Không tìm thấy access_token từ Facebook.');
+      }
+    } else if (fbResponse?.type === 'error') {
+      setErrorMsg('Đăng nhập Facebook thất bại: ' + ((fbResponse.error as any)?.message || (fbResponse.error as any)?.error_description || 'Lỗi không xác định'));
     }
   }, [fbResponse]);
 
   const handleSocialLogin = async (provider: 'google' | 'facebook', token: string) => {
     try {
+      setSocialLoading(provider);
+      setErrorMsg('');
       const deviceInfo = Platform.OS;
       let res;
       if (provider === 'google') {
@@ -150,18 +174,47 @@ export default function RegisterScreen() {
         res = await axiosClient.post('/auth/facebook', { accessToken: token, deviceInfo });
       }
 
-      const { accessToken, refreshToken, user } = res.data.data || res.data;
-      if (!accessToken) throw new Error('Không nhận được token từ server');
+      const rawData = res.data?.data || res.data;
+      const accessToken = rawData?.token?.accessToken || rawData?.accessToken;
+      const refreshToken = rawData?.token?.refreshToken || rawData?.refreshToken;
+      const user = rawData?.user;
+
+      if (!accessToken) throw new Error('Không nhận được token từ máy chủ');
+      if (user && String(user.role || '').toLowerCase() !== 'user') {
+        Alert.alert('Truy cập bị từ chối', 'Tài khoản Quản trị viên/Nhân viên không được phép đăng nhập ứng dụng dành cho học viên!');
+        return;
+      }
 
       await SecureStore.setItemAsync('accessToken', String(accessToken));
       if (refreshToken) await SecureStore.setItemAsync('refreshToken', String(refreshToken));
-      if (user) await SecureStore.setItemAsync('userInfo', JSON.stringify(user));
+      if (user) {
+        await SecureStore.setItemAsync('userInfo', JSON.stringify(user));
+        if (user.avatarUrl) {
+          const baseURL = axiosClient.defaults.baseURL?.replace('/api', '') || 'http://10.0.2.2:3000';
+          const avatar = user.avatarUrl.startsWith('http') ? user.avatarUrl : baseURL + user.avatarUrl;
+          await SecureStore.setItemAsync('userAvatar', avatar);
+        } else {
+          await SecureStore.deleteItemAsync('userAvatar').catch(() => { });
+        }
+      }
 
-      /* @ts-ignore */
-      router.replace('/(tabs)');
+      if (user && user.onboardingCompleted === false) {
+        /* @ts-ignore */
+        router.replace('/onboarding');
+      } else {
+        /* @ts-ignore */
+        router.replace('/(tabs)');
+      }
+
     } catch (e: any) {
       console.log('SOCIAL LOGIN ERROR:', e);
-      setErrorMsg('Đăng nhập MXH thất bại: ' + (e.response?.data?.message || e.message));
+      const msg = e.response?.data?.message || e.response?.data?.error?.message || e.message || 'Đăng nhập mạng xã hội thất bại';
+      setErrorMsg('Đăng nhập MXH thất bại: ' + msg);
+      if (String(msg).toLowerCase().includes('khóa')) {
+        Alert.alert('Tài khoản bị khóa', String(msg));
+      }
+    } finally {
+      setSocialLoading(null);
     }
   };
 
@@ -459,14 +512,28 @@ export default function RegisterScreen() {
           </View>
 
           <View style={styles.socialButtonsContainer}>
-            <TouchableOpacity style={[styles.socialButton, { backgroundColor: theme.card, borderColor: theme.border }]} onPress={() => gPromptAsync()} disabled={!gRequest}>
-              <Image source={{uri: 'https://cdn-icons-png.flaticon.com/512/2991/2991148.png'}} style={styles.socialIcon} />
+            <TouchableOpacity 
+              style={[styles.socialButton, { backgroundColor: theme.card, borderColor: theme.border }]} 
+              onPress={() => gPromptAsync()} 
+              disabled={!gRequest || !!socialLoading}
+            >
+              {socialLoading === 'google' ? (
+                <ActivityIndicator size="small" color="#ea4335" />
+              ) : (
+                <Image source={{uri: 'https://cdn-icons-png.flaticon.com/512/2991/2991148.png'}} style={styles.socialIcon} />
+              )}
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.socialButton, { backgroundColor: theme.card, borderColor: theme.border }]} onPress={() => Alert.alert('Đang phát triển', 'Chức năng đăng nhập Apple đang được tích hợp.')}>
-              <Ionicons name="logo-apple" size={24} color={theme.text} />
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.socialButton, { backgroundColor: theme.card, borderColor: theme.border }]} onPress={() => fbPromptAsync()} disabled={!fbRequest}>
-              <Ionicons name="logo-facebook" size={24} color="#1877f2" />
+
+            <TouchableOpacity 
+              style={[styles.socialButton, { backgroundColor: theme.card, borderColor: theme.border }]} 
+              onPress={() => fbPromptAsync()} 
+              disabled={!fbRequest || !!socialLoading}
+            >
+              {socialLoading === 'facebook' ? (
+                <ActivityIndicator size="small" color="#1877f2" />
+              ) : (
+                <Ionicons name="logo-facebook" size={24} color="#1877f2" />
+              )}
             </TouchableOpacity>
           </View>
         </View>
