@@ -23,10 +23,10 @@ export default function LoginScreen() {
 
   const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
-<<<<<<< HEAD
   const [currentApiUrl, setCurrentApiUrl] = useState(axiosClient.defaults.baseURL || '');
   const [showServerModal, setShowServerModal] = useState(false);
   const [serverInput, setServerInput] = useState('');
+  const [socialLoading, setSocialLoading] = useState<'google' | 'facebook' | null>(null);
 
   useEffect(() => {
     initSavedApiUrl().then((url) => {
@@ -34,9 +34,6 @@ export default function LoginScreen() {
       setServerInput(url);
     });
   }, []);
-=======
-  const [socialLoading, setSocialLoading] = useState<'google' | 'facebook' | null>(null);
->>>>>>> 955acf418ff963b8aeb5749da330e4a33a7093a4
 
   // 1. Cấu hình Google Auth Session (Lấy id_token)
   const [gRequest, gResponse, gPromptAsync] = Google.useIdTokenAuthRequest({
