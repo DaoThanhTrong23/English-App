@@ -17,7 +17,8 @@
     "populate:pos": "tsx scripts/populate-pos-sentences.ts",
     "swagger": "tsx src/swagger-gen.ts",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "populate:meanings": "tsx scripts/populate-meanings.ts"
   },
   "prisma": {
     "schema": "src/prisma/schema.prisma",
