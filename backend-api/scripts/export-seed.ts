@@ -14,7 +14,11 @@ async function main() {
   // 1. Roles & Permissions
   const roles = await prisma.role.findMany({ orderBy: { id: 'asc' } });
   const permissions = await prisma.permission.findMany({ orderBy: { id: 'asc' } });
-  const permissionToRoleRaw = await prisma.$queryRawUnsafe('SELECT A, B FROM _permissiontorole');
+  const tables = await prisma.$queryRawUnsafe<Array<Record<string, string>>>('SHOW TABLES');
+  const tableNames = tables.map((t) => Object.values(t)[0]);
+  const permRoleTable =
+    tableNames.find((t) => t?.toLowerCase() === '_permissiontorole') || '_PermissionToRole';
+  const permissionToRoleRaw = await prisma.$queryRawUnsafe(`SELECT A, B FROM \`${permRoleTable}\``);
   const permissionToRole = (permissionToRoleRaw as any[]).map(r => ({
     permissionId: Number(r.A),
     roleId: Number(r.B)

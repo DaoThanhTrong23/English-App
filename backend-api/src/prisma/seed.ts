@@ -44,7 +44,12 @@ async function main() {
 
     // Mối quan hệ n-n giữa Permission và Role (_PermissionToRole)
     if (data.permissionToRole && data.permissionToRole.length > 0) {
-      console.log(`⏳ Đang liên kết ${data.permissionToRole.length} quyền cho các vai trò (_permissiontorole)...`);
+      const tables = await prisma.$queryRawUnsafe<Array<Record<string, string>>>('SHOW TABLES');
+      const tableNames = tables.map((t) => Object.values(t)[0]);
+      const permRoleTable =
+        tableNames.find((t) => t?.toLowerCase() === '_permissiontorole') || '_PermissionToRole';
+
+      console.log(`⏳ Đang liên kết ${data.permissionToRole.length} quyền cho các vai trò (${permRoleTable})...`);
       const chunkSize = 200;
       for (let i = 0; i < data.permissionToRole.length; i += chunkSize) {
         const chunk = data.permissionToRole.slice(i, i + chunkSize);
@@ -52,10 +57,10 @@ async function main() {
           .map((r: any) => `(${Number(r.permissionId)}, ${Number(r.roleId)})`)
           .join(', ');
         await prisma.$executeRawUnsafe(
-          `INSERT IGNORE INTO _permissiontorole (A, B) VALUES ${values};`
+          `INSERT IGNORE INTO \`${permRoleTable}\` (A, B) VALUES ${values};`
         );
       }
-      console.log('✅ Đã hoàn tất liên kết quyền _permissiontorole');
+      console.log(`✅ Đã hoàn tất liên kết quyền ${permRoleTable}`);
     }
 
     // 2. Users (Bao gồm admin, giáo viên và học viên)
