@@ -1,6 +1,6 @@
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
-import { API_URL } from '../constants/api';
+import { API_URL, getDefaultApiUrl, setRuntimeApiUrl } from '../constants/api';
 import { router } from 'expo-router';
 import { Alert } from 'react-native';
 
@@ -13,8 +13,41 @@ export const axiosClient = axios.create({
   timeout: 60000,
 });
 
+let isCustomUrlLoaded = false;
+
+export const initSavedApiUrl = async (): Promise<string> => {
+  try {
+    const savedUrl = await SecureStore.getItemAsync('customApiUrl');
+    if (savedUrl && savedUrl.trim() !== '') {
+      const normalized = setRuntimeApiUrl(savedUrl);
+      axiosClient.defaults.baseURL = normalized;
+      isCustomUrlLoaded = true;
+      return normalized;
+    }
+  } catch {}
+  isCustomUrlLoaded = true;
+  return axiosClient.defaults.baseURL || API_URL;
+};
+
+export const updateServerApiUrl = async (newUrl: string | null): Promise<string> => {
+  if (!newUrl || newUrl.trim() === '') {
+    await SecureStore.deleteItemAsync('customApiUrl').catch(() => {});
+    const defaultUrl = setRuntimeApiUrl(getDefaultApiUrl());
+    axiosClient.defaults.baseURL = defaultUrl;
+    return defaultUrl;
+  }
+  const normalized = setRuntimeApiUrl(newUrl);
+  await SecureStore.setItemAsync('customApiUrl', normalized).catch(() => {});
+  axiosClient.defaults.baseURL = normalized;
+  return normalized;
+};
+
 axiosClient.interceptors.request.use(
   async (config) => {
+    if (!isCustomUrlLoaded) {
+      await initSavedApiUrl();
+    }
+    config.baseURL = axiosClient.defaults.baseURL || API_URL;
     const token = await SecureStore.getItemAsync('accessToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;

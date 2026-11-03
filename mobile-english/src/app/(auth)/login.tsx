@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, KeyboardAvoidingView, Platform, ScrollView, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, KeyboardAvoidingView, Platform, ScrollView, Alert, Modal } from 'react-native';
 import { useRouter } from 'expo-router';
-import { axiosClient } from '../../api/axiosClient';
+import { axiosClient, initSavedApiUrl, updateServerApiUrl } from '../../api/axiosClient';
 import * as SecureStore from 'expo-secure-store';
 import { Ionicons } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
@@ -20,6 +20,16 @@ export default function LoginScreen() {
 
   const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [currentApiUrl, setCurrentApiUrl] = useState(axiosClient.defaults.baseURL || '');
+  const [showServerModal, setShowServerModal] = useState(false);
+  const [serverInput, setServerInput] = useState('');
+
+  useEffect(() => {
+    initSavedApiUrl().then((url) => {
+      setCurrentApiUrl(url);
+      setServerInput(url);
+    });
+  }, []);
 
   // 1. Cấu hình Google Auth Session (Lấy id_token)
   const [gRequest, gResponse, gPromptAsync] = Google.useIdTokenAuthRequest({
@@ -243,9 +253,80 @@ export default function LoginScreen() {
           </TouchableOpacity>
         </View>
 
-        <Text style={{ fontSize: 11, color: theme.subtext, marginTop: 40, textAlign: 'center' }}>
-          Đang kết nối API: {axiosClient.defaults.baseURL}
-        </Text>
+        <TouchableOpacity
+          onPress={() => {
+            setServerInput(currentApiUrl);
+            setShowServerModal(true);
+          }}
+          style={{ marginTop: 40, paddingVertical: 8, paddingHorizontal: 12 }}
+        >
+          <Text style={{ fontSize: 11, color: theme.subtext, textAlign: 'center', textDecorationLine: 'underline' }}>
+            Đang kết nối API: {currentApiUrl} (Chạm để đổi IP)
+          </Text>
+        </TouchableOpacity>
+
+        <Modal visible={showServerModal} transparent animationType="fade" onRequestClose={() => setShowServerModal(false)}>
+          <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 24 }}>
+            <View style={{ width: '100%', backgroundColor: theme.card, borderRadius: 16, padding: 20, borderWidth: 1, borderColor: theme.border }}>
+              <Text style={{ fontSize: 16, fontWeight: '700', color: theme.text, marginBottom: 6 }}>
+                Cấu hình địa chỉ Server (Local / Tunnel)
+              </Text>
+              <Text style={{ fontSize: 12, color: theme.subtext, marginBottom: 14 }}>
+                Nhập IP máy tính (VD: 192.168.1.10) hoặc đường dẫn đầy đủ (http://192.168.2.22:3000/api)
+              </Text>
+              <TextInput
+                style={{
+                  borderWidth: 1,
+                  borderColor: theme.border,
+                  backgroundColor: theme.inputBg,
+                  color: theme.inputText,
+                  borderRadius: 10,
+                  paddingHorizontal: 14,
+                  paddingVertical: 12,
+                  fontSize: 14,
+                  marginBottom: 16,
+                }}
+                value={serverInput}
+                onChangeText={setServerInput}
+                placeholder="VD: 192.168.2.22 hoặc http://192.168.2.22:3000/api"
+                placeholderTextColor={theme.subtext}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+              <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 10 }}>
+                <TouchableOpacity
+                  onPress={async () => {
+                    const resetUrl = await updateServerApiUrl(null);
+                    setCurrentApiUrl(resetUrl);
+                    setServerInput(resetUrl);
+                    setErrorMsg('');
+                    setShowServerModal(false);
+                  }}
+                  style={{ paddingVertical: 10, paddingHorizontal: 14, borderRadius: 8, borderWidth: 1, borderColor: theme.border }}
+                >
+                  <Text style={{ color: theme.subtext, fontSize: 13, fontWeight: '600' }}>Mặc định</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => setShowServerModal(false)}
+                  style={{ paddingVertical: 10, paddingHorizontal: 14, borderRadius: 8 }}
+                >
+                  <Text style={{ color: theme.subtext, fontSize: 13, fontWeight: '600' }}>Hủy</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={async () => {
+                    const updated = await updateServerApiUrl(serverInput);
+                    setCurrentApiUrl(updated);
+                    setErrorMsg('');
+                    setShowServerModal(false);
+                  }}
+                  style={{ backgroundColor: theme.primary, paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8 }}
+                >
+                  <Text style={{ color: '#fff', fontSize: 13, fontWeight: '700' }}>Lưu kết nối</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
       </ScrollView>
     </KeyboardAvoidingView>
   );

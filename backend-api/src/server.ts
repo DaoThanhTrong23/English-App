@@ -11,8 +11,8 @@ if (process.platform === "win32") {
 }
 
 const app = createapp();
-app.listen(env.PORT, async () => {
-    loggers.info(`API listening on port ${env.PORT}`);
+app.listen(Number(env.PORT), "0.0.0.0", async () => {
+    loggers.info(`API listening on http://0.0.0.0:${env.PORT}`);
     // Tự động kiểm tra và khởi tạo / đồng bộ Roles và Permissions
     await permissionService.initRolesAndPermissions().catch((err) => {
         loggers.warn("Không thể đồng bộ RBAC lúc khởi động (sẽ đồng bộ khi có kết nối DB): " + err.message);

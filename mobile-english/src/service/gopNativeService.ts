@@ -43,7 +43,8 @@ export async function evaluatePronunciationAPI(
   targetWord: string,
   targetIpa: string
 ): Promise<GOPResult> {
-  const apiUrl = `${BACKEND_URL}/api/ai/evaluate-pronunciation`;
+  const currentBackendUrl = API_URL.replace(/\/api\/?$/, '');
+  const apiUrl = `${currentBackendUrl}/api/ai/evaluate-pronunciation`;
 
   // 1. Mobile Native (Android / iOS): Dùng FileSystem.uploadAsync để không bị lỗi FormData của React Native
   if (Platform.OS !== "web" && typeof audioInput === "string") {
