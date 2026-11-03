@@ -8,12 +8,13 @@
     "scheme": "mobileenglish",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon",
+      "bundleIdentifier": "com.daothanhtrong.mobileenglish",
+      "icon": "./assets/images/icon.png",
       "infoPlist": {
         "NSMicrophoneUsageDescription": "Ứng dụng cần quyền truy cập micro để kiểm tra và chấm điểm phát âm tiếng Anh.",
-        "ITSAppUsesNonExemptEncryption": false
-      },
-      "bundleIdentifier": "com.lquoc12300.mobileenglish"
+        "NSPhotoLibraryUsageDescription": "Ứng dụng cần quyền truy cập thư viện ảnh để bạn có thể tải lên ảnh đại diện và chia sẻ hình ảnh trong cộng đồng.",
+        "NSCameraUsageDescription": "Ứng dụng cần quyền truy cập máy ảnh để bạn có thể chụp ảnh đại diện và tải lên bài viết."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -47,6 +48,7 @@
       ],
       "expo-secure-store",
       "expo-image",
+      "expo-image-picker",
       "expo-web-browser",
       "expo-audio"
     ],

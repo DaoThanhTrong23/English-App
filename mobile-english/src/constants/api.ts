@@ -5,15 +5,18 @@ import Constants from 'expo-constants';
  * ============================================================
  * CẤU HÌNH ĐƯỜNG DẪN MÁY CHỦ (SERVER BASE URL)
  * ============================================================
- * - NẾU CÙNG WI-FI: Để NGROK_URL = '', app sẽ TỰ ĐỘNG nhận diện IP máy tính (192.168.0.100)
- * - NẾU KHÁC MẠNG / DÙNG 4G: Chạy localtunnel/ngrok và dán link vào NGROK_URL
+ * - NẾU CÙNG WI-FI: Để NGROK_URL = '', app sẽ TỰ ĐỘNG nhận diện IP máy tính
+ * - NẾU KHÁC MẠNG / DÙNG 4G:
+ *    + Cách 1: Chạy `npm run tunnel` ở backend-api (tự động cập nhật vào .env)
+ *    + Cách 2: Dán trực tiếp link ngrok vào NGROK_URL bên dưới
  */
-const NGROK_URL: string = ''; // <-- Để trống khi điện thoại & máy tính cùng bắt chung 1 mạng Wi-Fi
+const NGROK_URL: string = ''; // <-- Dán link ngrok nếu muốn cấu hình cứng (ví dụ: https://xyz.ngrok-free.dev)
 
 const getBaseApiUrl = (): string => {
-  // 1. Ưu tiên biến môi trường EXPO_PUBLIC_API_URL nếu có
+  // 1. Ưu tiên biến môi trường EXPO_PUBLIC_API_URL nếu có (từ file .env do npm run tunnel tự tạo)
   if (process.env.EXPO_PUBLIC_API_URL) {
-    return process.env.EXPO_PUBLIC_API_URL;
+    const raw = process.env.EXPO_PUBLIC_API_URL.trim().replace(/\/+$/, '');
+    return raw.endsWith('/api') ? raw : `${raw}/api`;
   }
 
   // 2. Nếu có link Tunnel công khai (ngrok / localtunnel)
@@ -22,7 +25,7 @@ const getBaseApiUrl = (): string => {
     return cleanUrl.endsWith('/api') ? cleanUrl : `${cleanUrl}/api`;
   }
 
-  // 3. Tự động trích xuất IP máy tính từ kết nối Expo Metro (Chạy mượt nhất cho iPhone & Android thật)
+  // 3. Tự động trích xuất IP máy tính từ kết nối Expo Metro (Chạy mượt nhất cho iPhone & Android thật khi cùng Wi-Fi)
   const hostUri = Constants.expoConfig?.hostUri || (Constants as any).manifest2?.extra?.expoGo?.debuggerHost;
   if (hostUri) {
     const ip = hostUri.split(':')[0];

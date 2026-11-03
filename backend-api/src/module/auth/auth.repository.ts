@@ -41,12 +41,13 @@ export class AuthRepository {
     }
 
     @logExecution()
-    async createUser(data: { username: string; email: string; passwordHash: string; roleId?: number }) {
+    async createUser(data: { username: string; email: string; passwordHash: string; roleId?: number; avatarUrl?: string }) {
         return prisma.user.create({
             data: {
                 username: data.username.trim(),
                 passwordHash: data.passwordHash,
                 email: data.email.trim().toLowerCase(),
+                avatarUrl: data.avatarUrl || null,
                 roleId: data.roleId || 2
             },
             include: {

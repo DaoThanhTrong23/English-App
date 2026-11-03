@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/server.ts",
+    "tunnel": "node scripts/tunnel.cjs",
     "build": "tsc",
     "start": "node dist/server.js",
     "migrate": "prisma migrate deploy",
@@ -53,6 +54,7 @@
     "zod-to-json-schema": "^3.25.2"
   },
   "devDependencies": {
+    "@ngrok/ngrok": "^1.7.0",
     "@types/bcrypt": "^6.0.0",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",

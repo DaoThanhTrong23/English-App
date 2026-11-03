@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "tunnel": "npx --yes localtunnel --port 5173 --subdomain english-admin-trong",
+    "tunnel:cf": "npx --yes cloudflared tunnel --url http://localhost:5173",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview"

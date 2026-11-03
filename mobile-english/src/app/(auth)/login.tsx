@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, KeyboardAvoidingView, Platform, ScrollView, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, KeyboardAvoidingView, Platform, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { axiosClient } from '../../api/axiosClient';
 import * as SecureStore from 'expo-secure-store';
@@ -12,6 +12,9 @@ import { useAppTheme } from '../../context/ThemeContext';
 
 WebBrowser.maybeCompleteAuthSession();
 
+const GOOGLE_CLIENT_ID = '774080954802-jub4qqvp4eijmk5b04367fk4164omjk5.apps.googleusercontent.com';
+const FACEBOOK_APP_ID = '1417644583763676';
+
 export default function LoginScreen() {
   const router = useRouter();
   const { isDark, theme } = useAppTheme();
@@ -20,35 +23,56 @@ export default function LoginScreen() {
 
   const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [socialLoading, setSocialLoading] = useState<'google' | 'facebook' | null>(null);
 
   // 1. Cấu hình Google Auth Session (Lấy id_token)
   const [gRequest, gResponse, gPromptAsync] = Google.useIdTokenAuthRequest({
-    clientId: '774080954802-jub4qqvp4eijmk5b04367fk4164omjk5.apps.googleusercontent.com',
-    redirectUri: makeRedirectUri({ scheme: 'mobileenglish' }), // Thay bằng webClientId hoặc clientId phù hợp
+    clientId: GOOGLE_CLIENT_ID,
+    webClientId: GOOGLE_CLIENT_ID,
+    androidClientId: GOOGLE_CLIENT_ID,
+    iosClientId: GOOGLE_CLIENT_ID,
+    scopes: ['profile', 'email'],
+    redirectUri: makeRedirectUri({ scheme: 'mobileenglish' }),
   });
 
   // 2. Cấu hình Facebook Auth Session (Lấy access_token)
   const [fbRequest, fbResponse, fbPromptAsync] = Facebook.useAuthRequest({
-    clientId: '1417644583763676',
+    clientId: FACEBOOK_APP_ID,
+    scopes: ['public_profile', 'email'],
+    redirectUri: makeRedirectUri({ scheme: 'mobileenglish' }),
   });
 
   // Xử lý callback sau khi đăng nhập Google/Facebook thành công
   useEffect(() => {
     if (gResponse?.type === 'success') {
-      const idToken = gResponse.params.id_token;
-      if (idToken) handleSocialLogin('google', idToken);
+      const idToken = (gResponse.params as any)?.id_token || (gResponse as any).authentication?.idToken;
+      if (idToken) {
+        handleSocialLogin('google', idToken);
+      } else {
+        setErrorMsg('Không tìm thấy id_token từ phản hồi Google.');
+      }
+    } else if (gResponse?.type === 'error') {
+      setErrorMsg('Đăng nhập Google thất bại: ' + ((gResponse.error as any)?.message || (gResponse.error as any)?.error_description || 'Lỗi không xác định'));
     }
   }, [gResponse]);
 
   useEffect(() => {
     if (fbResponse?.type === 'success') {
-      const accessToken = fbResponse.authentication?.accessToken;
-      if (accessToken) handleSocialLogin('facebook', accessToken);
+      const accessToken = fbResponse.authentication?.accessToken || (fbResponse.params as any)?.access_token;
+      if (accessToken) {
+        handleSocialLogin('facebook', accessToken);
+      } else {
+        setErrorMsg('Không tìm thấy access_token từ Facebook.');
+      }
+    } else if (fbResponse?.type === 'error') {
+      setErrorMsg('Đăng nhập Facebook thất bại: ' + ((fbResponse.error as any)?.message || (fbResponse.error as any)?.error_description || 'Lỗi không xác định'));
     }
   }, [fbResponse]);
 
   const handleSocialLogin = async (provider: 'google' | 'facebook', token: string) => {
     try {
+      setSocialLoading(provider);
+      setErrorMsg('');
       const deviceInfo = Platform.OS;
       let res;
       if (provider === 'google') {
@@ -57,8 +81,12 @@ export default function LoginScreen() {
         res = await axiosClient.post('/auth/facebook', { accessToken: token, deviceInfo });
       }
 
-      const { accessToken, refreshToken, user } = res.data.data || res.data;
-      if (!accessToken) throw new Error('Không nhận được token từ server');
+      const rawData = res.data?.data || res.data;
+      const accessToken = rawData?.token?.accessToken || rawData?.accessToken;
+      const refreshToken = rawData?.token?.refreshToken || rawData?.refreshToken;
+      const user = rawData?.user;
+
+      if (!accessToken) throw new Error('Không nhận được token từ máy chủ');
       if (user && String(user.role || '').toLowerCase() !== 'user') {
         Alert.alert('Truy cập bị từ chối', 'Tài khoản Quản trị viên/Nhân viên không được phép đăng nhập ứng dụng dành cho học viên!');
         return;
@@ -77,7 +105,6 @@ export default function LoginScreen() {
         }
       }
 
-
       if (user && user.onboardingCompleted === false) {
         /* @ts-ignore */
         router.replace('/onboarding');
@@ -88,11 +115,13 @@ export default function LoginScreen() {
 
     } catch (e: any) {
       console.log('SOCIAL LOGIN ERROR:', e);
-      const msg = e.response?.data?.message || e.response?.data?.error?.message || e.message;
+      const msg = e.response?.data?.message || e.response?.data?.error?.message || e.message || 'Đăng nhập mạng xã hội thất bại';
       setErrorMsg('Đăng nhập MXH thất bại: ' + msg);
       if (String(msg).toLowerCase().includes('khóa')) {
         Alert.alert('Tài khoản bị khóa', String(msg));
       }
+    } finally {
+      setSocialLoading(null);
     }
   };
 
@@ -104,7 +133,6 @@ export default function LoginScreen() {
       return;
     }
 
-
     try {
       const deviceInfo = Platform.OS;
 
@@ -113,7 +141,6 @@ export default function LoginScreen() {
         password,
         deviceInfo
       });
-
 
       const { accessToken, refreshToken, user } = res.data.data?.token ? { accessToken: res.data.data.token.accessToken, refreshToken: res.data.data.token.refreshToken, user: res.data.data.user } : res.data.data;
 
@@ -139,7 +166,6 @@ export default function LoginScreen() {
           await SecureStore.deleteItemAsync('userAvatar').catch(() => { });
         }
       }
-
 
       if (user && user.onboardingCompleted === false) {
         /* @ts-ignore */
@@ -224,14 +250,28 @@ export default function LoginScreen() {
           </View>
 
           <View style={styles.socialButtonsContainer}>
-            <TouchableOpacity style={[styles.socialButton, { backgroundColor: theme.card, borderColor: theme.border }]} onPress={() => gPromptAsync()} disabled={!gRequest}>
-              <Image source={{ uri: 'https://cdn-icons-png.flaticon.com/512/2991/2991148.png' }} style={styles.socialIcon} />
+            <TouchableOpacity 
+              style={[styles.socialButton, { backgroundColor: theme.card, borderColor: theme.border }]} 
+              onPress={() => gPromptAsync()} 
+              disabled={!gRequest || !!socialLoading}
+            >
+              {socialLoading === 'google' ? (
+                <ActivityIndicator size="small" color="#ea4335" />
+              ) : (
+                <Image source={{ uri: 'https://cdn-icons-png.flaticon.com/512/2991/2991148.png' }} style={styles.socialIcon} />
+              )}
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.socialButton, { backgroundColor: theme.card, borderColor: theme.border }]} onPress={() => Alert.alert('Đang phát triển', 'Chức năng đăng nhập Apple đang được tích hợp.')}>
-              <Ionicons name="logo-apple" size={24} color={theme.text} />
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.socialButton, { backgroundColor: theme.card, borderColor: theme.border }]} onPress={() => fbPromptAsync()} disabled={!fbRequest}>
-              <Ionicons name="logo-facebook" size={24} color="#1877f2" />
+
+            <TouchableOpacity 
+              style={[styles.socialButton, { backgroundColor: theme.card, borderColor: theme.border }]} 
+              onPress={() => fbPromptAsync()} 
+              disabled={!fbRequest || !!socialLoading}
+            >
+              {socialLoading === 'facebook' ? (
+                <ActivityIndicator size="small" color="#1877f2" />
+              ) : (
+                <Ionicons name="logo-facebook" size={24} color="#1877f2" />
+              )}
             </TouchableOpacity>
           </View>
         </View>
