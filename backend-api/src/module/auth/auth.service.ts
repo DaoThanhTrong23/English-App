@@ -115,11 +115,16 @@ export class AuthService {
     @logExecution()
     @recordActivity("GOOGLE_LOGIN", (result) => `Người dùng ${result.user.username} đăng nhập bằng Google`)
     async googleLogin(idToken: string, deviceInfo?: string, ipAddress?: string) {
-        const ticket = await googleClient.verifyIdToken({
-            idToken,
-            audience: env.GOOGLE_CLIENT_ID, 
-        });
-        const payload = ticket.getPayload();
+        let payload;
+        try {
+            const ticket = await googleClient.verifyIdToken({
+                idToken,
+                audience: env.GOOGLE_CLIENT_ID, 
+            });
+            payload = ticket.getPayload();
+        } catch (err: any) {
+            throw new ApiError(400, "invalid_token", `Xác thực Google Token thất bại: ${err?.message || "Token không hợp lệ hoặc đã hết hạn"}`);
+        }
         
         if (!payload || !payload.email) {
             throw new ApiError(400, "invalid_token", "Token Google không hợp lệ hoặc thiếu email!");
@@ -138,6 +143,7 @@ export class AuthService {
             user = await this.authRepo.createUser({
                 username: `${baseUsername}${randomSuffix}`,
                 email: email,
+                avatarUrl: payload.picture || undefined,
                 passwordHash: "GOOGLE_AUTH_NO_PASSWORD" 
             }) as any; 
         }
@@ -185,35 +191,43 @@ export class AuthService {
         };
     }
 
-
-
     @logExecution()
     @recordActivity("FACEBOOK_LOGIN", (result) => `Người dùng ${result.user.username} đăng nhập bằng Facebook`)
     async facebookLogin(fbAccessToken: string, deviceInfo?: string, ipAddress?: string) {
-        
-   
-        const debugTokenUrl = `https://graph.facebook.com/debug_token?input_token=${fbAccessToken}&access_token=${env.FACEBOOK_APP_ID}|${env.FACEBOOK_APP_SECRET}`;
-        const debugRes = await fetch(debugTokenUrl);
-        const debugData = await debugRes.json();
-        
-        if (!debugRes.ok || !debugData.data || debugData.data.is_valid !== true) {
-             throw new ApiError(400, "invalid_token", "Token Facebook không hợp lệ hoặc đã hết hạn!");
-        }
-        if (debugData.data.app_id !== env.FACEBOOK_APP_ID) {
-             throw new ApiError(403, "invalid_app", "Token này không được cấp cho ứng dụng của chúng tôi!");
+        let debugData;
+        try {
+            const debugTokenUrl = `https://graph.facebook.com/debug_token?input_token=${fbAccessToken}&access_token=${env.FACEBOOK_APP_ID}|${env.FACEBOOK_APP_SECRET}`;
+            const debugRes = await fetch(debugTokenUrl);
+            debugData = await debugRes.json();
+            
+            if (!debugRes.ok || !debugData.data || debugData.data.is_valid !== true) {
+                throw new ApiError(400, "invalid_token", "Token Facebook không hợp lệ hoặc đã hết hạn!");
+            }
+            if (debugData.data.app_id !== env.FACEBOOK_APP_ID) {
+                throw new ApiError(403, "invalid_app", "Token này không được cấp cho ứng dụng của chúng tôi!");
+            }
+        } catch (err: any) {
+            if (err instanceof ApiError) throw err;
+            throw new ApiError(400, "invalid_token", `Xác thực Facebook Token thất bại: ${err?.message || "Lỗi kết nối Facebook"}`);
         }
 
-        const fbRes = await fetch(`https://graph.facebook.com/me?fields=id,name,email&access_token=${fbAccessToken}`);
-        if (!fbRes.ok) {
-            throw new ApiError(400, "invalid_token", "Không thể lấy thông tin người dùng từ Facebook!");
+        let fbData;
+        try {
+            const fbRes = await fetch(`https://graph.facebook.com/me?fields=id,name,email,picture.type(large)&access_token=${fbAccessToken}`);
+            if (!fbRes.ok) {
+                throw new ApiError(400, "invalid_token", "Không thể lấy thông tin người dùng từ Facebook!");
+            }
+            fbData = await fbRes.json();
+        } catch (err: any) {
+            if (err instanceof ApiError) throw err;
+            throw new ApiError(400, "invalid_token", `Không thể lấy thông tin từ Facebook: ${err?.message || "Lỗi kết nối"}`);
         }
-        
-        const fbData = await fbRes.json();
         
         if (!fbData || !fbData.email) {
             throw new ApiError(400, "email_missing", "Tài khoản Facebook của bạn không có Email, hoặc chưa cấp quyền truy cập Email!");
         }
         const email = fbData.email;
+        const fbAvatar = fbData.picture?.data?.url;
         let user = await this.authRepo.findUserByEmail(email);
 
         if (!user) {
@@ -223,6 +237,7 @@ export class AuthService {
             user = await this.authRepo.createUser({
                 username: `${baseUsername}${randomSuffix}`,
                 email: email,
+                avatarUrl: fbAvatar || undefined,
                 passwordHash: "FACEBOOK_AUTH_NO_PASSWORD" 
             }) as any; 
         }
@@ -355,25 +370,25 @@ export class AuthService {
     @recordActivity("USER_LOGOUT", (result) => `Người dùng ${result.user?.username || 'ẩn danh'} đăng xuất thành công`)
     async logout(refreshToken: string, accessToken?: string, userId?: number) {
         // 1. Thu hồi Refresh Token trong DB
-    const tokenHash = hashSHA256(refreshToken);
-    const existing = await this.authRepo.findRefreshTokenByHash(tokenHash);
-    if (existing) {
-        await this.authRepo.revokeRefreshToken(tokenHash);
-    }
-    const currentUserId = userId || existing?.userId;
-    // 2. Nếu có Access Token và xác định được userId -> Lưu vào bảng revoked_token
-    if (accessToken && currentUserId) {
-        const accessTokenHash = hashSHA256(accessToken);
-        await this.authRepo.createRevokedToken({
-            accesstokenHash: accessTokenHash,
-            userId: currentUserId,
-            description: "Người dùng chủ động đăng xuất khỏi hệ thống"
-        });
-    }
-    return { 
-        message: "Đăng xuất thành công",
-        user: existing?.user 
-    };
+        const tokenHash = hashSHA256(refreshToken);
+        const existing = await this.authRepo.findRefreshTokenByHash(tokenHash);
+        if (existing) {
+            await this.authRepo.revokeRefreshToken(tokenHash);
+        }
+        const currentUserId = userId || existing?.userId;
+        // 2. Nếu có Access Token và xác định được userId -> Lưu vào bảng revoked_token
+        if (accessToken && currentUserId) {
+            const accessTokenHash = hashSHA256(accessToken);
+            await this.authRepo.createRevokedToken({
+                accesstokenHash: accessTokenHash,
+                userId: currentUserId,
+                description: "Người dùng chủ động đăng xuất khỏi hệ thống"
+            });
+        }
+        return { 
+            message: "Đăng xuất thành công",
+            user: existing?.user 
+        };
     }
 
     @logExecution()
@@ -412,8 +427,6 @@ export class AuthService {
                 "Tên đăng nhập này đã tồn tại. Vui lòng chọn tên đăng nhập khác."
             );
         }
-
-        
 
         const passwordHash = await bcryptHash(data.password);
         const newUser = await this.authRepo.createUser({

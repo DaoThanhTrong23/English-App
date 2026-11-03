@@ -6,31 +6,22 @@ import * as Device from 'expo-device';
  * ============================================================
  * CẤU HÌNH ĐƯỜNG DẪN MÁY CHỦ (SERVER BASE URL)
  * ============================================================
- * - NẾU CÙNG WI-FI (Chạy Expo Go): Để NGROK_URL = '', app sẽ TỰ ĐỘNG nhận diện IP máy tính
- * - NẾU BUILD APK TEST LOCAL: Cập nhật LOCAL_LAN_IP bên dưới thành IPv4 của máy tính (hoặc bấm trực tiếp vào dòng "Đang kết nối API" ở màn hình Đăng nhập để đổi IP ngay trên điện thoại không cần build lại APK)
- * - NẾU KHÁC MẠNG / DÙNG 4G: Chạy localtunnel/ngrok và dán link vào NGROK_URL
+ * - NẾU CÙNG WI-FI: Để NGROK_URL = '', app sẽ TỰ ĐỘNG nhận diện IP máy tính
+ * - NẾU KHÁC MẠNG / DÙNG 4G:
+ *    + Cách 1: Chạy `npm run tunnel` ở backend-api (tự động cập nhật vào .env)
+ *    + Cách 2: Dán trực tiếp link ngrok vào NGROK_URL bên dưới
  */
-const NGROK_URL: string = ''; // <-- Để trống khi điện thoại & máy tính cùng bắt chung 1 mạng Wi-Fi
-const LOCAL_LAN_IP: string = '192.168.2.22'; // <-- Địa chỉ IPv4 LAN của máy tính chạy Backend
-
-export const normalizeApiUrl = (rawUrl: string): string => {
-  let cleanUrl = rawUrl.trim().replace(/\/+$/, '');
-  if (!cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://')) {
-    // Nếu chỉ nhập IP (VD: 192.168.1.5 hoặc 192.168.1.5:3000)
-    cleanUrl = `http://${cleanUrl}`;
-  }
-  // Nếu chưa có port và là IP nội bộ, tự gắn :3000
-  const hostPart = cleanUrl.replace(/^https?:\/\//, '').split('/')[0];
-  if (!hostPart.includes(':') && (/^\d+\.\d+\.\d+\.\d+$/.test(hostPart) || hostPart === 'localhost')) {
-    cleanUrl = cleanUrl.replace(hostPart, `${hostPart}:3000`);
-  }
-  return cleanUrl.endsWith('/api') ? cleanUrl : `${cleanUrl}/api`;
-};
+const NGROK_URL: string = ''; // <-- Dán link ngrok nếu muốn cấu hình cứng (ví dụ: https://xyz.ngrok-free.dev)
 
 const getBaseApiUrl = (): string => {
-  // 1. Ưu tiên biến môi trường EXPO_PUBLIC_API_URL nếu có
+  // 1. Ưu tiên biến môi trường EXPO_PUBLIC_API_URL nếu có (từ file .env do npm run tunnel tự tạo)
   if (process.env.EXPO_PUBLIC_API_URL) {
+<<<<<<< HEAD
     return normalizeApiUrl(process.env.EXPO_PUBLIC_API_URL);
+=======
+    const raw = process.env.EXPO_PUBLIC_API_URL.trim().replace(/\/+$/, '');
+    return raw.endsWith('/api') ? raw : `${raw}/api`;
+>>>>>>> 955acf418ff963b8aeb5749da330e4a33a7093a4
   }
 
   // 2. Nếu có link Tunnel công khai (ngrok / localtunnel)
@@ -38,7 +29,11 @@ const getBaseApiUrl = (): string => {
     return normalizeApiUrl(NGROK_URL);
   }
 
+<<<<<<< HEAD
   // 3. Tự động trích xuất IP máy tính từ kết nối Expo Metro (Chạy trên Expo Go)
+=======
+  // 3. Tự động trích xuất IP máy tính từ kết nối Expo Metro (Chạy mượt nhất cho iPhone & Android thật khi cùng Wi-Fi)
+>>>>>>> 955acf418ff963b8aeb5749da330e4a33a7093a4
   const hostUri = Constants.expoConfig?.hostUri || (Constants as any).manifest2?.extra?.expoGo?.debuggerHost;
   if (hostUri) {
     const ip = hostUri.split(':')[0];
@@ -53,6 +48,7 @@ const getBaseApiUrl = (): string => {
     return 'http://10.0.2.2:3000/api';
   }
 
+<<<<<<< HEAD
   // 5. Fallback địa chỉ IP mạng nội bộ của máy tính (Dùng khi cài APK lên máy thật)
   return `http://${LOCAL_LAN_IP}:3000/api`;
 };
@@ -62,6 +58,10 @@ export let API_URL = getBaseApiUrl();
 export const setRuntimeApiUrl = (newUrl: string): string => {
   API_URL = normalizeApiUrl(newUrl);
   return API_URL;
+=======
+  // 5. Fallback địa chỉ IP mạng nội bộ của máy tính
+  return 'http://192.168.100.5:3000/api';
+>>>>>>> 955acf418ff963b8aeb5749da330e4a33a7093a4
 };
 
 export const getDefaultApiUrl = (): string => getBaseApiUrl();

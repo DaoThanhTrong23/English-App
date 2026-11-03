@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, Animated, Dimensions, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Animated, Dimensions, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { axiosClient } from '../../api/axiosClient';
-import { API_URL } from '../../constants/api';
 import { useAppTheme } from '../../context/ThemeContext';
 
 const { width, height } = Dimensions.get('window');
@@ -17,12 +16,6 @@ const getRandomPosition = () => {
     x: Math.random() * (width + 100) - 50,
     y: Math.random() * (height + 100) - 50,
   };
-};
-
-const getFixedImageURI = (url: string) => {
-  if (!url) return null;
-  const BASE_URL = API_URL.replace('/api', '');
-  return url.startsWith('http') ? url : BASE_URL + (url.startsWith('/') ? '' : '/') + url;
 };
 
 // A floating Bubble component
@@ -123,16 +116,6 @@ export default function BubbleGameScreen() {
       if (res.data?.data) {
         const words = res.data.data.wordBubbles;
         const meanings = res.data.data.meaningBubbles;
-        
-        // Lấy tất cả ảnh để preload
-        const imageUrls = meanings
-          .map((m: any) => getFixedImageURI(m.imageUrl))
-          .filter(Boolean) as string[];
-
-        // Preload toàn bộ ảnh (nếu có) trước khi cho phép vào game
-        if (imageUrls.length > 0) {
-          await Promise.all(imageUrls.map(url => Image.prefetch(url).catch(() => {})));
-        }
 
         if (res.data.data.config) {
           setGameConfig(res.data.data.config);
@@ -257,7 +240,7 @@ export default function BubbleGameScreen() {
     return (
       <View style={[styles.loadingContainer, { backgroundColor: theme.background }]}>
         <ActivityIndicator size="large" color={theme.primary} />
-        <Text style={{ marginTop: 10, color: theme.subtext }}>Đang tải bong bóng và hình ảnh...</Text>
+        <Text style={{ marginTop: 10, color: theme.subtext }}>Đang chuẩn bị màn chơi...</Text>
       </View>
     );
   }
