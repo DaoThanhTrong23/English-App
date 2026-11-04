@@ -232,7 +232,7 @@ describe('Suite 05: Tests, Questions & Test Results (UI-TEST, UI-TSTDTL, UI-TSTR
       const mp3File = createTempFile('q-audio.mp3', 'ID3-mock-mp3');
       const audioInput = await page.$('.modal-content input[accept="audio/*"]');
       assert.ok(audioInput);
-      await audioInput.uploadFile(mp3File);
+      await (audioInput as any).uploadFile(mp3File);
       await waitForText(page, 'Tải file âm thanh thành công');
       const audioVal = await page.$eval('input[placeholder="URL MP3 hoặc tải lên..."]', (el) => (el as HTMLInputElement).value);
       assert.ok(audioVal.startsWith('http'));
@@ -246,7 +246,7 @@ describe('Suite 05: Tests, Questions & Test Results (UI-TEST, UI-TSTDTL, UI-TSTR
       const imgFile = createTempFile('q-img.png', Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64'));
       const imgInput = await page.$('.modal-content input[accept="image/*"]');
       assert.ok(imgInput);
-      await imgInput.uploadFile(imgFile);
+      await (imgInput as any).uploadFile(imgFile);
       await waitForText(page, 'Tải hình ảnh thành công');
       const imgVal = await page.$eval('input[placeholder="URL Hình ảnh hoặc tải lên..."]', (el) => (el as HTMLInputElement).value);
       assert.ok(imgVal.startsWith('http'));

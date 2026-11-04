@@ -2,15 +2,57 @@ import puppeteer, { type Browser, type Page } from 'puppeteer-core';
 import { createServer, type ViteDevServer } from 'vite';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import * as os from 'node:os';
 import * as XLSX from 'xlsx';
 import { createDefaultMockState, handleMockRequest, type MockState } from './mock-api.ts';
 
-const CHROME_PATH =
-  process.env.CHROME_PATH ||
-  '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+function resolveBrowserPath(): string {
+  if (process.env.CHROME_PATH && fs.existsSync(process.env.CHROME_PATH)) {
+    return process.env.CHROME_PATH;
+  }
+
+  const localAppData = process.env.LOCALAPPDATA || '';
+  const programFiles = process.env['ProgramFiles'] || 'C:\\Program Files';
+  const programFilesX86 = process.env['ProgramFiles(x86)'] || 'C:\\Program Files (x86)';
+
+  const candidates: string[] = [
+    // Windows Chrome
+    path.join(programFiles, 'Google', 'Chrome', 'Application', 'chrome.exe'),
+    path.join(programFilesX86, 'Google', 'Chrome', 'Application', 'chrome.exe'),
+    path.join(localAppData, 'Google', 'Chrome', 'Application', 'chrome.exe'),
+
+    // Windows Microsoft Edge (Chromium - mặc định có trên Windows)
+    path.join(programFilesX86, 'Microsoft', 'Edge', 'Application', 'msedge.exe'),
+    path.join(programFiles, 'Microsoft', 'Edge', 'Application', 'msedge.exe'),
+    path.join(localAppData, 'Microsoft', 'Edge', 'Application', 'msedge.exe'),
+
+    // macOS
+    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+    '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge',
+    '/Applications/Chromium.app/Contents/MacOS/Chromium',
+
+    // Linux
+    '/usr/bin/google-chrome',
+    '/usr/bin/chromium-browser',
+    '/usr/bin/chromium',
+    '/usr/bin/microsoft-edge',
+  ];
+
+  for (const candidate of candidates) {
+    if (candidate && fs.existsSync(candidate)) {
+      return candidate;
+    }
+  }
+
+  throw new Error(
+    'Không tìm thấy Google Chrome hoặc Microsoft Edge. Vui lòng cài đặt trình duyệt hoặc chỉ định biến môi trường CHROME_PATH.'
+  );
+}
+
+const CHROME_PATH = resolveBrowserPath();
 
 export let BASE_URL = 'http://localhost:5173';
-const TEMP_DIR = '/tmp/web-english-e2e-files';
+const TEMP_DIR = path.join(os.tmpdir(), 'web-english-e2e-files');
 
 let sharedServer: ViteDevServer | null = null;
 let sharedBrowser: Browser | null = null;
@@ -47,7 +89,7 @@ export async function initHarness(): Promise<{
   if (!sharedBrowser) {
     sharedBrowser = await puppeteer.launch({
       executablePath: CHROME_PATH,
-      headless: true,
+      headless: process.env.HEADLESS === 'false' ? false : true,
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
@@ -88,13 +130,13 @@ export async function initHarness(): Promise<{
     // Auto-wait wrapper for page.click and page.$eval so lazy-loaded components don't race
     const origClick = sharedPage.click.bind(sharedPage);
     sharedPage.click = async (selector: string, options?: any) => {
-      await sharedPage!.waitForSelector(selector, { timeout: 3000 }).catch(() => {});
+      await sharedPage!.waitForSelector(selector, { timeout: 3000 }).catch(() => { });
       return origClick(selector, options);
     };
 
     const origEval = sharedPage.$eval.bind(sharedPage);
     (sharedPage as any).$eval = async (selector: string, pageFunction: any, ...args: any[]) => {
-      await sharedPage!.waitForSelector(selector, { timeout: 3000 }).catch(() => {});
+      await sharedPage!.waitForSelector(selector, { timeout: 3000 }).catch(() => { });
       return origEval(selector, pageFunction, ...args);
     };
 
@@ -110,7 +152,7 @@ export async function initHarness(): Promise<{
         (window as any).__audioPlayedCount = ((window as any).__audioPlayedCount || 0) + 1;
         (window as any).__lastAudioSrc = this.src || '';
         try {
-          return origPlay ? origPlay.call(this).catch(() => {}) : Promise.resolve();
+          return origPlay ? origPlay.call(this).catch(() => { }) : Promise.resolve();
         } catch {
           return Promise.resolve();
         }
@@ -138,15 +180,15 @@ export async function initHarness(): Promise<{
 
 export async function closeHarness(): Promise<void> {
   if (sharedPage && !sharedPage.isClosed()) {
-    await sharedPage.close().catch(() => {});
+    await sharedPage.close().catch(() => { });
     sharedPage = null;
   }
   if (sharedBrowser) {
-    await sharedBrowser.close().catch(() => {});
+    await sharedBrowser.close().catch(() => { });
     sharedBrowser = null;
   }
   if (sharedServer) {
-    await sharedServer.close().catch(() => {});
+    await sharedServer.close().catch(() => { });
     sharedServer = null;
   }
 }
@@ -298,9 +340,9 @@ export async function clickByText(
           const preferNonSidebar = !sel.includes('sidebar');
           const candidates = preferNonSidebar
             ? [
-                ...allElements.filter((el) => !el.closest('.admin-sidebar')),
-                ...allElements.filter((el) => Boolean(el.closest('.admin-sidebar'))),
-              ]
+              ...allElements.filter((el) => !el.closest('.admin-sidebar')),
+              ...allElements.filter((el) => Boolean(el.closest('.admin-sidebar'))),
+            ]
             : allElements;
 
           for (const el of candidates) {

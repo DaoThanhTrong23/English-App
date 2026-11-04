@@ -247,7 +247,7 @@ describe('Suite 07: AI Chat, Mini-Games & Achievements (UI-AICHAT, UI-GAME, UI-A
       const iconPath = createTempFile('badge.png', Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64'));
       const fileInput = await page.$('.modal-content input[type="file"]');
       assert.ok(fileInput);
-      await fileInput.uploadFile(iconPath);
+      await (fileInput as any).uploadFile(iconPath);
       await waitForText(page, 'Tải ảnh biểu tượng thành công');
       assert.ok(await page.$('.modal-content img[alt="Preview"]'));
     });

@@ -987,7 +987,7 @@ export async function handleMockRequest(req: HTTPRequest, state: MockState): Pro
       headers: {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        'Access-Control-Allow-Headers': '*',
       },
     });
     return true;
@@ -1016,7 +1016,11 @@ export async function handleMockRequest(req: HTTPRequest, state: MockState): Pro
     await req.respond({
       status: 200,
       contentType: 'image/png',
-      headers: { 'Access-Control-Allow-Origin': '*' },
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': '*',
+        'Access-Control-Allow-Methods': '*',
+      },
       body: TINY_PNG_BUFFER,
     });
     return true;
@@ -1026,7 +1030,11 @@ export async function handleMockRequest(req: HTTPRequest, state: MockState): Pro
     await req.respond({
       status: 200,
       contentType: 'audio/mpeg',
-      headers: { 'Access-Control-Allow-Origin': '*' },
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': '*',
+        'Access-Control-Allow-Methods': '*',
+      },
       body: TINY_MP3_BUFFER,
     });
     return true;
@@ -1038,7 +1046,11 @@ export async function handleMockRequest(req: HTTPRequest, state: MockState): Pro
     await req.respond({
       status: 200,
       contentType: 'application/json',
-      headers: { 'Access-Control-Allow-Origin': '*' },
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': '*',
+        'Access-Control-Allow-Methods': '*',
+      },
       body: JSON.stringify([
         {
           word,
@@ -1067,7 +1079,11 @@ export async function handleMockRequest(req: HTTPRequest, state: MockState): Pro
     await req.respond({
       status: 200,
       contentType: 'application/json',
-      headers: { 'Access-Control-Allow-Origin': '*' },
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': '*',
+        'Access-Control-Allow-Methods': '*',
+      },
       body: JSON.stringify([[['nghĩa tiếng Việt tự động', 'sample', null, null, 1]]]),
     });
     return true;
@@ -1077,7 +1093,11 @@ export async function handleMockRequest(req: HTTPRequest, state: MockState): Pro
     await req.respond({
       status: 200,
       contentType: 'application/json',
-      headers: { 'Access-Control-Allow-Origin': '*' },
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': '*',
+        'Access-Control-Allow-Methods': '*',
+      },
       body: JSON.stringify([{ word: 'sample', tags: ['f:25.5'] }]),
     });
     return true;
@@ -1087,7 +1107,11 @@ export async function handleMockRequest(req: HTTPRequest, state: MockState): Pro
     await req.respond({
       status: 200,
       contentType: 'application/json',
-      headers: { 'Access-Control-Allow-Origin': '*' },
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': '*',
+        'Access-Control-Allow-Methods': '*',
+      },
       body: JSON.stringify({
         query: {
           pages: {
@@ -1103,7 +1127,11 @@ export async function handleMockRequest(req: HTTPRequest, state: MockState): Pro
     await req.respond({
       status: 200,
       contentType: 'application/json',
-      headers: { 'Access-Control-Allow-Origin': '*' },
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': '*',
+        'Access-Control-Allow-Methods': '*',
+      },
       body: JSON.stringify({
         query: {
           pages: {
@@ -1121,7 +1149,11 @@ export async function handleMockRequest(req: HTTPRequest, state: MockState): Pro
     await req.respond({
       status: 200,
       contentType: 'application/json',
-      headers: { 'Access-Control-Allow-Origin': '*' },
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': '*',
+        'Access-Control-Allow-Methods': '*',
+      },
       body: JSON.stringify({}),
     });
     return true;
@@ -1175,7 +1207,11 @@ export async function handleMockRequest(req: HTTPRequest, state: MockState): Pro
       await req.respond({
         status: res.status || 200,
         contentType: res.contentType || 'application/json',
-        headers: { 'Access-Control-Allow-Origin': '*' },
+        headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': '*',
+        'Access-Control-Allow-Methods': '*',
+      },
         body: typeof res.body === 'string' || Buffer.isBuffer(res.body) ? res.body : JSON.stringify(res.body),
       });
       return true;
@@ -1186,7 +1222,11 @@ export async function handleMockRequest(req: HTTPRequest, state: MockState): Pro
     await req.respond({
       status,
       contentType: 'application/json',
-      headers: { 'Access-Control-Allow-Origin': '*' },
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': '*',
+        'Access-Control-Allow-Methods': '*',
+      },
       body: JSON.stringify(payload),
     });
   };
@@ -2003,7 +2043,11 @@ export async function handleMockRequest(req: HTTPRequest, state: MockState): Pro
     await req.respond({
       status: 200,
       contentType: 'text/csv',
-      headers: { 'Access-Control-Allow-Origin': '*' },
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': '*',
+        'Access-Control-Allow-Methods': '*',
+      },
       body: 'group,keywords\ngreeting,"hello,hi,good morning"\n',
     });
     return true;

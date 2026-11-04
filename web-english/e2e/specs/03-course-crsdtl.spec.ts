@@ -219,9 +219,9 @@ describe('Suite 03: Courses & Course Detail (UI-COURSE, UI-CRSDTL)', () => {
       await loginAndGoto(page, '/admin/courses/10');
       await waitForText(page, 'Ảnh bìa bài học');
       const filePath = createTempFile('thumb.png', Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64'));
-      const inputEl = await page.$('#course-thumb-upload');
+      const inputEl = await page.$('input#course-thumb-upload');
       assert.ok(inputEl);
-      await inputEl.uploadFile(filePath);
+      await (inputEl as any).uploadFile(filePath);
       await waitForText(page, 'Tải ảnh bìa thành công');
       await clickByText(page, 'button', 'Xóa ảnh');
       await sleep(100);

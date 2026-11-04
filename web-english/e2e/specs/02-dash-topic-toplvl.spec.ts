@@ -178,7 +178,7 @@ describe('Suite 02: Dashboard, Topics & Topic Levels (UI-DASH, UI-TOPIC, UI-TOPL
       const filePath = createTempFile('topic-cover.png', Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64'));
       const fileInput = await page.$('.modal-content input[type="file"]');
       assert.ok(fileInput);
-      await fileInput.uploadFile(filePath);
+      await (fileInput as any).uploadFile(filePath);
       await sleep(200);
       const previewImg = await page.$('.modal-content img[alt="Preview"]');
       assert.ok(previewImg);

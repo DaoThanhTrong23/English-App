@@ -327,7 +327,7 @@ describe('Group 24-26: Cross-Platform, Security & Data Validation (UI-CROSS, UI-
       const bigFile = createTempFile('oversized-image.png', Buffer.alloc(1024 * 64, 0x41));
       const imgInput = await page.$('.modal-content input[type="file"]');
       if (imgInput) {
-        await imgInput.uploadFile(bigFile);
+        await (imgInput as any).uploadFile(bigFile);
         await sleep(250);
       }
       const bodyText = await getBodyText(page);

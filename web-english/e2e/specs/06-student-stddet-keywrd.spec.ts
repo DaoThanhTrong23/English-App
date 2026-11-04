@@ -337,6 +337,8 @@ describe('Suite 06: Students, Student Detail Modal & Keywords (UI-STUDENT, UI-ST
       await sleep(100);
       await setInputValue(page, '.modal-content textarea', 'hello, hi, howdy');
       await page.click('.modal-content .btn-submit');
+      await waitForText(page, 'Cập nhật nhóm từ khóa thành công!');
+      await sleep(200);
       await waitForText(page, 'howdy');
       const text = await getBodyText(page);
       assert.ok(text.includes('howdy'));
