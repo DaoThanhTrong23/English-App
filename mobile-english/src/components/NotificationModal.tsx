@@ -158,19 +158,7 @@ export default function NotificationModal({
             </View>
           )}
 
-          {/* Test Notification Button */}
-          <View style={[styles.testBar, { backgroundColor: isDark ? theme.cardSecondary : '#f8fafc', borderBottomColor: theme.border }]}>
-            <TouchableOpacity
-              style={[styles.testBtn, isDark && { backgroundColor: '#1e293b', borderColor: '#3b82f6' }]}
-              onPress={handleTestLocalNotification}
-              disabled={testing}
-            >
-              <Ionicons name="phone-portrait-outline" size={16} color={isDark ? '#60a5fa' : '#2563eb'} style={{ marginRight: 6 }} />
-              <Text style={[styles.testBtnText, isDark && { color: '#93c5fd' }]}>
-                {testing ? 'Đang gửi...' : 'Test thông báo màn hình khóa'}
-              </Text>
-            </TouchableOpacity>
-          </View>
+{/* Test Notification Button da duoc an */}
 
           {/* Content */}
           {loading ? (
