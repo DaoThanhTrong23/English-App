@@ -147,7 +147,7 @@ export default function RegisterScreen() {
     clientId: isExpoGo ? GOOGLE_WEB_CLIENT_ID : (Platform.OS === 'ios' ? GOOGLE_IOS_CLIENT_ID : GOOGLE_WEB_CLIENT_ID),
     iosClientId: isExpoGo ? undefined : GOOGLE_IOS_CLIENT_ID,
     webClientId: GOOGLE_WEB_CLIENT_ID,
-    responseType: ResponseType.IdToken,
+    responseType: isExpoGo ? ResponseType.IdToken : ResponseType.Code,
     scopes: ['profile', 'email'],
     redirectUri: getGoogleRedirectUri(),
   });
@@ -165,7 +165,7 @@ export default function RegisterScreen() {
       const idToken = (gResponse.params as any)?.id_token || (gResponse as any).authentication?.idToken;
       if (idToken) {
         handleSocialLogin('google', idToken);
-      } else {
+      } else if (!(gResponse.params as any)?.code) {
         setErrorMsg('Không tìm thấy id_token từ phản hồi Google.');
       }
     } else if (gResponse?.type === 'error') {
