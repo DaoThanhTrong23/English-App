@@ -117,10 +117,20 @@ export class AuthService {
     async googleLogin(idToken: string, deviceInfo?: string, ipAddress?: string) {
         let payload;
         try {
+            // const ticket = await googleClient.verifyIdToken({
+            //     idToken,
+            //     audience: env.GOOGLE_CLIENT_ID, 
+            // });
+            const allowedAudiences = [
+                env.GOOGLE_CLIENT_ID, 
+                '774080954802-3lgqkqsqu13nnn9ev6206qf4qqdevq8a.apps.googleusercontent.com'
+            ];
             const ticket = await googleClient.verifyIdToken({
                 idToken,
-                audience: env.GOOGLE_CLIENT_ID, 
+                audience: allowedAudiences, 
             });
+
+            
             payload = ticket.getPayload();
         } catch (err: any) {
             throw new ApiError(400, "invalid_token", `Xác thực Google Token thất bại: ${err?.message || "Token không hợp lệ hoặc đã hết hạn"}`);

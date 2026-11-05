@@ -2,22 +2,35 @@
   "expo": {
     "name": "mobile-english",
     "slug": "mobile-english",
+    "owner": "daothanhtrong43005",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "mobileenglish",
+    "scheme": [
+      "mobileenglish",
+      "fb1417644583763676"
+    ],
     "userInterfaceStyle": "automatic",
     "ios": {
       "bundleIdentifier": "com.daothanhtrong.mobileenglish",
       "icon": "./assets/images/icon.png",
       "infoPlist": {
+        "CFBundleURLTypes": [
+          {
+            "CFBundleURLSchemes": [
+              "mobileenglish",
+              "fb1417644583763676",
+              "com.googleusercontent.apps.774080954802-3lgqkqsqu13nnn9ev6206qf4qqdevq8a"
+            ]
+          }
+        ],
         "NSMicrophoneUsageDescription": "Ứng dụng cần quyền truy cập micro để kiểm tra và chấm điểm phát âm tiếng Anh.",
         "NSPhotoLibraryUsageDescription": "Ứng dụng cần quyền truy cập thư viện ảnh để bạn có thể tải lên ảnh đại diện và chia sẻ hình ảnh trong cộng đồng.",
         "NSCameraUsageDescription": "Ứng dụng cần quyền truy cập máy ảnh để bạn có thể chụp ảnh đại diện và tải lên bài viết."
       }
     },
     "android": {
-      "package": "com.engmaster.mobile",
+      "package": "com.daothanhtrong.mobileenglish",
       "usesCleartextTraffic": true,
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
@@ -29,10 +42,11 @@
         "android.permission.RECORD_AUDIO",
         "android.permission.MODIFY_AUDIO_SETTINGS",
         "android.permission.FOREGROUND_SERVICE",
-        "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
+        "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK",
+        "android.permission.CAMERA",
+        "android.permission.READ_MEDIA_IMAGES"
       ],
-      "predictiveBackGestureEnabled": false,
-      "package": "com.lquoc12300.mobileenglish"
+      "predictiveBackGestureEnabled": false
     },
     "web": {
       "output": "static",

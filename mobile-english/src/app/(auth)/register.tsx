@@ -6,13 +6,28 @@ import * as SecureStore from 'expo-secure-store';
 import { Ionicons } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
-import { makeRedirectUri } from 'expo-auth-session';
+import { makeRedirectUri, getDefaultReturnUrl, ResponseType } from 'expo-auth-session';
 import * as Facebook from 'expo-auth-session/providers/facebook';
 import { useAppTheme } from '../../context/ThemeContext';
+import Constants, { ExecutionEnvironment } from 'expo-constants';
 
 WebBrowser.maybeCompleteAuthSession();
 
-const GOOGLE_CLIENT_ID = '774080954802-jub4qqvp4eijmk5b04367fk4164omjk5.apps.googleusercontent.com';
+const isExpoGo = Constants.executionEnvironment === ExecutionEnvironment.StoreClient || Constants.appOwnership === 'expo';
+
+const EXPO_PROXY_REDIRECT_URI = 'https://auth.expo.io/@daothanhtrong43005/mobile-english';
+
+const GOOGLE_WEB_CLIENT_ID = '774080954802-jub4qqvp4eijmk5b04367fk4164omjk5.apps.googleusercontent.com';
+const GOOGLE_IOS_CLIENT_ID = '774080954802-3lgqkqsqu13nnn9ev6206qf4qqdevq8a.apps.googleusercontent.com';
+const GOOGLE_IOS_REVERSE_CLIENT_ID = 'com.googleusercontent.apps.774080954802-3lgqkqsqu13nnn9ev6206qf4qqdevq8a';
+
+const getGoogleRedirectUri = () => {
+  if (isExpoGo) return EXPO_PROXY_REDIRECT_URI;
+  if (Platform.OS === 'ios') return `${GOOGLE_IOS_REVERSE_CLIENT_ID}:/oauthredirect`;
+  return makeRedirectUri({ scheme: 'mobileenglish' });
+};
+
+
 const FACEBOOK_APP_ID = '1417644583763676';
 
 export default function RegisterScreen() {
@@ -119,13 +134,22 @@ export default function RegisterScreen() {
   }, [email]);
 
   // 1. Cấu hình Google Auth Session (Lấy id_token)
-  const [gRequest, gResponse, gPromptAsync] = Google.useIdTokenAuthRequest({
-    clientId: GOOGLE_CLIENT_ID,
-    webClientId: GOOGLE_CLIENT_ID,
-    androidClientId: GOOGLE_CLIENT_ID,
-    iosClientId: GOOGLE_CLIENT_ID,
+  // const [gRequest, gResponse, gPromptAsync] = Google.useIdTokenAuthRequest({
+  //   clientId: GOOGLE_CLIENT_ID,
+  //   webClientId: GOOGLE_CLIENT_ID,
+  //   androidClientId: GOOGLE_CLIENT_ID,
+  //   iosClientId: GOOGLE_CLIENT_ID,
+  //   scopes: ['profile', 'email'],
+  //   redirectUri: makeRedirectUri({ scheme: 'mobileenglish' }),
+  // });
+
+  const [gRequest, gResponse, gPromptAsync] = Google.useAuthRequest({
+    clientId: isExpoGo ? GOOGLE_WEB_CLIENT_ID : (Platform.OS === 'ios' ? GOOGLE_IOS_CLIENT_ID : GOOGLE_WEB_CLIENT_ID),
+    iosClientId: isExpoGo ? undefined : GOOGLE_IOS_CLIENT_ID,
+    webClientId: GOOGLE_WEB_CLIENT_ID,
+    responseType: ResponseType.IdToken,
     scopes: ['profile', 'email'],
-    redirectUri: makeRedirectUri({ scheme: 'mobileenglish' }),
+    redirectUri: getGoogleRedirectUri(),
   });
 
   // 2. Cấu hình Facebook Auth Session (Lấy access_token)
@@ -213,6 +237,51 @@ export default function RegisterScreen() {
       if (String(msg).toLowerCase().includes('khóa')) {
         Alert.alert('Tài khoản bị khóa', String(msg));
       }
+    } finally {
+      setSocialLoading(null);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      if (!gRequest) return;
+      setSocialLoading('google');
+      setErrorMsg('');
+
+      if (isExpoGo) {
+        const expoReturnUrl = getDefaultReturnUrl();
+        const startUrl = `https://auth.expo.io/@daothanhtrong43005/mobile-english/start?authUrl=${encodeURIComponent(gRequest.url!)}&returnUrl=${encodeURIComponent(expoReturnUrl)}`;
+
+        const result = await WebBrowser.openAuthSessionAsync(startUrl, expoReturnUrl);
+        if (result.type === 'success' && result.url) {
+          const parsed = gRequest.parseReturnUrl(result.url);
+          const idToken = (parsed.params as any)?.id_token || (parsed.authentication as any)?.idToken;
+
+          if (idToken) {
+            await handleSocialLogin('google', idToken);
+          } else {
+            // Fallback: check regex in raw url
+            const match = result.url.match(/[#?&]id_token=([^&]+)/);
+            if (match && match[1]) {
+              await handleSocialLogin('google', decodeURIComponent(match[1]));
+            } else if ((parsed.params as any)?.error) {
+              setErrorMsg(`Google báo lỗi: ${(parsed.params as any).error_description || (parsed.params as any).error}`);
+            } else {
+              console.log('Google Auth Return URL:', result.url);
+              setErrorMsg('Không tìm thấy id_token trong phản hồi Google.');
+            }
+          }
+        } else if (result.type === 'cancel' || result.type === 'dismiss') {
+          // Người dùng hủy đóng popup
+        } else {
+          setErrorMsg('Đăng nhập Google thất bại hoặc không hoàn thành.');
+        }
+      } else {
+        await gPromptAsync();
+      }
+    } catch (err: any) {
+      console.log('GOOGLE SIGN IN ERROR:', err);
+      setErrorMsg('Lỗi đăng nhập Google: ' + (err.message || ''));
     } finally {
       setSocialLoading(null);
     }
@@ -514,7 +583,7 @@ export default function RegisterScreen() {
           <View style={styles.socialButtonsContainer}>
             <TouchableOpacity 
               style={[styles.socialButton, { backgroundColor: theme.card, borderColor: theme.border }]} 
-              onPress={() => gPromptAsync()} 
+              onPress={handleGoogleSignIn} 
               disabled={!gRequest || !!socialLoading}
             >
               {socialLoading === 'google' ? (
